@@ -11,27 +11,37 @@ class PaymentController extends Controller
 {
     public function checkout(Request $request)
     {
+        // Fetch only active gateways configured by the Admin
+        $gateways = \App\Models\PaymentGateway::where('is_active', true)->get();
+
         // For demonstration, we're returning the view with dummy data.
         // In a real flow, you'd validate the payable entity (Student/Center/Invoice),
         // create a 'pending' Transaction record, and pass the required amount.
         return Inertia::render('Payment/Checkout', [
             'amount' => $request->input('amount', 500),
             'purpose' => $request->input('purpose', 'Registration Fee'),
+            'gateways' => $gateways,
             // 'trx_id' => uniqid('TRX_'), // Example ID
         ]);
     }
 
     public function process(Request $request)
     {
-        // This is where you would redirect to the specific gateway.
-        // E.g., if ($request->gateway == 'sslcommerz') { ... return redirect($ssl_url); }
-        // For now, it's a placeholder.
         $request->validate([
             'gateway' => 'required|string',
             'amount' => 'required|numeric',
         ]);
         
-        Log::info('Payment processing initiated', $request->all());
+        $gatewayConfig = \App\Models\PaymentGateway::where('slug', $request->gateway)->where('is_active', true)->firstOrFail();
+
+        Log::info('Payment processing initiated via Dynamic Config', [
+            'gateway' => $gatewayConfig->name,
+            'is_sandbox' => $gatewayConfig->is_sandbox,
+            // 'store_id' => $gatewayConfig->store_id, // Use this for API calls
+            'amount' => $request->amount,
+        ]);
+        
+        // Example: Initialize SSLCommerz / bKash using $gatewayConfig->store_id and $gatewayConfig->store_password
         
         // Simulating immediate redirect back to success for testing purposes
         return redirect()->route('payment.success', ['trx_id' => uniqid('TRX_')]);

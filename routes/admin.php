@@ -185,6 +185,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('youtube-video', YoutubeVideoController::class);
         Route::resource('license', LicenseController::class);
         Route::resource('api-settings', ApiSettingController::class)->only(['index', 'store']);
+        Route::resource('payment-gateway', App\Http\Controllers\Admin\PaymentGatewayController::class)->only(['index', 'update']);
         Route::resource('footer-link', FooterLinkController::class);
         Route::resource('footer-logo', FooterPartnerLogoController::class);
     });

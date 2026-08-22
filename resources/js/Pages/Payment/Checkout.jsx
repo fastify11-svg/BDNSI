@@ -2,9 +2,9 @@ import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { CreditCard, Wallet } from 'lucide-react';
 
-export default function Checkout({ amount, purpose }) {
+export default function Checkout({ amount, purpose, gateways }) {
     const { data, setData, post, processing } = useForm({
-        gateway: 'sslcommerz',
+        gateway: gateways?.length > 0 ? gateways[0].slug : '',
         amount: amount,
     });
 
@@ -38,28 +38,30 @@ export default function Checkout({ amount, purpose }) {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-3">Select Payment Method</label>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div 
-                                    className={`border rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center transition-all ${data.gateway === 'sslcommerz' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 hover:border-indigo-300'}`}
-                                    onClick={() => setData('gateway', 'sslcommerz')}
-                                >
-                                    <CreditCard className="w-8 h-8 mb-2" />
-                                    <span className="font-medium text-sm">Cards & Net Banking</span>
+                            {gateways?.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-4">
+                                    {gateways.map((gw) => (
+                                        <div 
+                                            key={gw.id}
+                                            className={`border rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center transition-all ${data.gateway === gw.slug ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 hover:border-indigo-300'}`}
+                                            onClick={() => setData('gateway', gw.slug)}
+                                        >
+                                            {gw.slug === 'sslcommerz' ? <CreditCard className="w-8 h-8 mb-2" /> : <Wallet className="w-8 h-8 mb-2" />}
+                                            <span className="font-medium text-sm text-center">{gw.name}</span>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div 
-                                    className={`border rounded-lg p-4 cursor-pointer flex flex-col items-center justify-center transition-all ${data.gateway === 'bkash' ? 'border-pink-500 bg-pink-50 text-pink-700' : 'border-gray-200 hover:border-pink-300'}`}
-                                    onClick={() => setData('gateway', 'bkash')}
-                                >
-                                    <Wallet className="w-8 h-8 mb-2" />
-                                    <span className="font-medium text-sm">bKash</span>
+                            ) : (
+                                <div className="p-4 bg-yellow-50 text-yellow-700 rounded-md text-sm">
+                                    No payment methods are currently active. Please contact administration.
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         <div>
                             <button
                                 type="submit"
-                                disabled={processing}
+                                disabled={processing || !gateways || gateways.length === 0}
                                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors duration-200"
                             >
                                 {processing ? 'Processing...' : `Pay ৳ ${amount}`}
