@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/inertia-react';
 import { CheckCircle } from 'lucide-react';
 
 export default function Success({ trx_id, amount }) {

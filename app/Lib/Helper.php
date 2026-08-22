@@ -119,21 +119,28 @@ class Helper
 
     public static function sendSms($phone, $message)
     {
-
-        $api_key = config('site.bluck_api_key');
-        $secret_key = config('site.bluck_secret_key');
-        $sender_id = 'YTTC';
-
-        $url = 'http://apismpp.revesms.com/sendtext?apikey='.urlencode($api_key).
-            '&secretkey='.urlencode($secret_key).
-            '&callerID='.urlencode($sender_id).
-            '&toUser='.urlencode($phone).
-            '&messageContent='.urlencode($message);
-
         if (config('app.env') === 'testing' || config('app.env') === 'local') {
             \Illuminate\Support\Facades\Log::info("Mock SMS to {$phone}: {$message}");
             return;
         }
+
+        $gateway = \App\Models\SmsGateway::where('is_active', true)->first();
+        if (!$gateway) {
+            \Illuminate\Support\Facades\Log::error("SMS Gateway not configured or inactive.");
+            return;
+        }
+
+        $api_key = $gateway->api_key;
+        $secret_key = $gateway->secret_key;
+        $sender_id = $gateway->sender_id;
+        $base_url = rtrim($gateway->base_url, '/'); // ensure no trailing slash
+
+        // Assuming ReveSMS standard for now, but fully dynamic from DB keys
+        $url = $base_url . '?apikey='.urlencode($api_key).
+            '&secretkey='.urlencode($secret_key).
+            '&callerID='.urlencode($sender_id).
+            '&toUser='.urlencode($phone).
+            '&messageContent='.urlencode($message);
 
         if (! empty($api_key)) {
             $curl = curl_init($url);

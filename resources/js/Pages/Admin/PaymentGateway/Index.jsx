@@ -1,7 +1,6 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/inertia-react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { toast } from 'react-toastify';
 import { Save } from 'lucide-react';
 
 function GatewayForm({ gateway }) {
@@ -20,9 +19,7 @@ function GatewayForm({ gateway }) {
     const submit = (e) => {
         e.preventDefault();
         put(route('admin.payment-gateway.update', gateway.id), {
-            preserveScroll: true,
-            onSuccess: () => toast.success(`${gateway.name} settings updated successfully!`),
-            onError: () => toast.error(`Failed to update ${gateway.name} settings.`)
+            preserveScroll: true
         });
     };
 

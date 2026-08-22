@@ -54,6 +54,7 @@ export default function AdminLayout({ children, title = 'Admin Dashboard' }) {
             items: [
                 { label: 'Financial Tracking', href: '/admin/financial', icon: 'fa-money-bill-wave' },
                 { label: 'Payment Gateways', href: '/admin/payment-gateway', icon: 'fa-credit-card' },
+                { label: 'SMS Gateways', href: '/admin/sms-gateway', icon: 'fa-envelope-open-text' },
                 { label: 'User List', href: '/admin/user', icon: 'fa-users' },
                 { label: 'Sub Admin', href: '/admin/sub-admin', icon: 'fa-user-shield' },
                 { label: 'Contact Us', href: '/admin/contactUs', icon: 'fa-headset' },

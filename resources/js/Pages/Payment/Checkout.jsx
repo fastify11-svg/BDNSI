@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/inertia-react';
 import { CreditCard, Wallet } from 'lucide-react';
 
 export default function Checkout({ amount, purpose, gateways }) {

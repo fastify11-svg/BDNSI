@@ -44,6 +44,7 @@
         "dotenv": "^17.4.2",
         "html2pdf.js": "^0.14.0",
         "jquery": "^3.6.0",
+        "lucide-react": "^1.33.0",
         "pdfjs-dist": "^2.16.105",
         "react": "^19.2.7",
         "react-dom": "^19.2.7",

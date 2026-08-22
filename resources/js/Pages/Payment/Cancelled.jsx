@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/inertia-react';
 import { AlertTriangle } from 'lucide-react';
 
 export default function Cancelled({ message }) {
