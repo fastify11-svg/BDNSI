@@ -1,6 +1,6 @@
 ## BDNSI web
 
-BTSI is a web application based on laravel web framework.
+BDNSI is a web application based on laravel web framework.
 
 ## Copyright
 
