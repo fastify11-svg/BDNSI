@@ -13,6 +13,10 @@ class PaymentGateway extends Model
         'store_id',
         'store_password',
         'signature_key',
+        'app_key',
+        'app_secret',
+        'username',
+        'password',
         'is_sandbox',
         'is_active',
     ];

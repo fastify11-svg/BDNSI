@@ -23,6 +23,10 @@ class PaymentGatewayController extends Controller
             'store_id' => 'nullable|string|max:255',
             'store_password' => 'nullable|string|max:255',
             'signature_key' => 'nullable|string|max:255',
+            'app_key' => 'nullable|string|max:255',
+            'app_secret' => 'nullable|string|max:255',
+            'username' => 'nullable|string|max:255',
+            'password' => 'nullable|string|max:255',
             'is_sandbox' => 'boolean',
             'is_active' => 'boolean',
         ]);

@@ -9,6 +9,10 @@ function GatewayForm({ gateway }) {
         store_id: gateway.store_id || '',
         store_password: gateway.store_password || '',
         signature_key: gateway.signature_key || '',
+        app_key: gateway.app_key || '',
+        app_secret: gateway.app_secret || '',
+        username: gateway.username || '',
+        password: gateway.password || '',
         is_sandbox: gateway.is_sandbox,
         is_active: gateway.is_active,
     });
@@ -21,6 +25,8 @@ function GatewayForm({ gateway }) {
             onError: () => toast.error(`Failed to update ${gateway.name} settings.`)
         });
     };
+
+    const isBkash = gateway.slug === 'bkash';
 
     return (
         <form onSubmit={submit} className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
@@ -46,38 +52,90 @@ function GatewayForm({ gateway }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Store / Client ID</label>
-                    <input 
-                        type="text" 
-                        value={data.store_id} 
-                        onChange={(e) => setData('store_id', e.target.value)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                    />
-                    {errors.store_id && <p className="mt-1 text-sm text-red-600">{errors.store_id}</p>}
-                </div>
-                
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Store Password / Secret Key</label>
-                    <input 
-                        type="password" 
-                        value={data.store_password} 
-                        onChange={(e) => setData('store_password', e.target.value)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                    />
-                    {errors.store_password && <p className="mt-1 text-sm text-red-600">{errors.store_password}</p>}
-                </div>
+                {!isBkash && (
+                    <>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Store / Client ID</label>
+                            <input 
+                                type="text" 
+                                value={data.store_id} 
+                                onChange={(e) => setData('store_id', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                            />
+                            {errors.store_id && <p className="mt-1 text-sm text-red-600">{errors.store_id}</p>}
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Store Password / Secret Key</label>
+                            <input 
+                                type="password" 
+                                value={data.store_password} 
+                                onChange={(e) => setData('store_password', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                            />
+                            {errors.store_password && <p className="mt-1 text-sm text-red-600">{errors.store_password}</p>}
+                        </div>
 
-                <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700">Signature / Webhook Key</label>
-                    <input 
-                        type="text" 
-                        value={data.signature_key} 
-                        onChange={(e) => setData('signature_key', e.target.value)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
-                    />
-                    {errors.signature_key && <p className="mt-1 text-sm text-red-600">{errors.signature_key}</p>}
-                </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700">Signature / Webhook Key</label>
+                            <input 
+                                type="text" 
+                                value={data.signature_key} 
+                                onChange={(e) => setData('signature_key', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                            />
+                            {errors.signature_key && <p className="mt-1 text-sm text-red-600">{errors.signature_key}</p>}
+                        </div>
+                    </>
+                )}
+
+                {isBkash && (
+                    <>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">App Key</label>
+                            <input 
+                                type="text" 
+                                value={data.app_key} 
+                                onChange={(e) => setData('app_key', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                            />
+                            {errors.app_key && <p className="mt-1 text-sm text-red-600">{errors.app_key}</p>}
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">App Secret</label>
+                            <input 
+                                type="password" 
+                                value={data.app_secret} 
+                                onChange={(e) => setData('app_secret', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                            />
+                            {errors.app_secret && <p className="mt-1 text-sm text-red-600">{errors.app_secret}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Username</label>
+                            <input 
+                                type="text" 
+                                value={data.username} 
+                                onChange={(e) => setData('username', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                            />
+                            {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Password</label>
+                            <input 
+                                type="password" 
+                                value={data.password} 
+                                onChange={(e) => setData('password', e.target.value)}
+                                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                            />
+                            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                        </div>
+                    </>
+                )}
             </div>
 
             <div className="mt-6 flex items-center justify-between bg-gray-50 p-4 rounded-md">
