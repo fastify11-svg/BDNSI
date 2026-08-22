@@ -105,6 +105,17 @@ Route::get('/lang-change', function (Request $request) {
     return redirect()->back();
 });
 
+use App\Http\Controllers\PaymentController;
+
+Route::prefix('payment')->name('payment.')->group(function () {
+    Route::get('checkout', [PaymentController::class, 'checkout'])->name('checkout');
+    Route::post('process', [PaymentController::class, 'process'])->name('process');
+    Route::post('callback/{gateway}', [PaymentController::class, 'callback'])->name('callback');
+    Route::match(['get', 'post'], 'success', [PaymentController::class, 'success'])->name('success');
+    Route::match(['get', 'post'], 'failed', [PaymentController::class, 'failed'])->name('failed');
+    Route::match(['get', 'post'], 'cancel', [PaymentController::class, 'cancel'])->name('cancel');
+});
+
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/student.php';
