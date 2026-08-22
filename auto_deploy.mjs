@@ -32,7 +32,7 @@ async function deploy() {
         else
           echo "No git repo. Initializing from GitHub..."
           git init 2>&1
-          git remote add origin https://github.com/fastify11-svg/bdnsi_yttc.git 2>&1
+          git remote add origin https://github.com/fastify11-svg/BDNSI.git 2>&1
           git fetch origin main 2>&1
           git checkout -f main 2>&1
           echo "Git clone done."
