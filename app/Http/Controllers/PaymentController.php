@@ -11,17 +11,16 @@ class PaymentController extends Controller
 {
     public function checkout(Request $request)
     {
-        // Fetch only active gateways configured by the Admin
         $gateways = \App\Models\PaymentGateway::where('is_active', true)->get();
+        $user = auth()->user() ?? auth('admin')->user();
+        
+        $amount = $request->input('amount') ?? config('site.setting.registration_fee', 500);
+        $purpose = $request->input('purpose', 'Registration Fee');
 
-        // For demonstration, we're returning the view with dummy data.
-        // In a real flow, you'd validate the payable entity (Student/Center/Invoice),
-        // create a 'pending' Transaction record, and pass the required amount.
         return Inertia::render('Payment/Checkout', [
-            'amount' => $request->input('amount', 500),
-            'purpose' => $request->input('purpose', 'Registration Fee'),
+            'amount' => $amount,
+            'purpose' => $purpose,
             'gateways' => $gateways,
-            // 'trx_id' => uniqid('TRX_'), // Example ID
         ]);
     }
 
@@ -35,10 +34,24 @@ class PaymentController extends Controller
         $gatewayConfig = \App\Models\PaymentGateway::where('slug', $request->gateway)->where('is_active', true)->firstOrFail();
         $trx_id = uniqid('TRX_');
 
+        $user = auth()->user() ?? auth('admin')->user();
+
+        // Dynamically Create Pending Transaction
+        \App\Models\Transaction::create([
+            'trx_id' => $trx_id,
+            'amount' => $request->amount,
+            'gateway' => $request->gateway,
+            'status' => 'pending',
+            'purpose' => $request->input('purpose', 'Registration Fee'),
+            'payable_type' => $user ? get_class($user) : null,
+            'payable_id' => $user ? $user->id : null,
+        ]);
+
         Log::info('Payment processing initiated via Dynamic Config', [
             'gateway' => $gatewayConfig->name,
             'is_sandbox' => $gatewayConfig->is_sandbox,
             'amount' => $request->amount,
+            'trx_id' => $trx_id,
         ]);
         
         if ($request->gateway === 'sslcommerz') {
@@ -54,11 +67,11 @@ class PaymentController extends Controller
             $post_data['fail_url'] = route('payment.failed', ['gateway' => 'sslcommerz']);
             $post_data['cancel_url'] = route('payment.cancel', ['gateway' => 'sslcommerz']);
             
-            // Dummy customer info required by SSLCommerz
-            $post_data['cus_name'] = "Test Customer";
-            $post_data['cus_email'] = "test@mail.com";
-            $post_data['cus_add1'] = "Dhaka";
-            $post_data['cus_phone'] = "01711111111";
+            // Dynamic customer info required by SSLCommerz
+            $post_data['cus_name'] = $user ? $user->name : 'BDNSI Student';
+            $post_data['cus_email'] = $user ? ($user->email ?? 'student@bdnsi.com') : 'student@bdnsi.com';
+            $post_data['cus_add1'] = 'Dhaka, Bangladesh';
+            $post_data['cus_phone'] = $user ? ($user->phone ?? '01700000000') : '01700000000';
 
             $response = \Illuminate\Support\Facades\Http::asForm()->post($apiUrl, $post_data);
             $result = $response->json();
@@ -118,49 +131,91 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Gateway not found'], 404);
         }
 
-        if ($gateway === 'bkash') {
-            $paymentID = $request->query('paymentID');
-            $status = $request->query('status');
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            if ($gateway === 'bkash') {
+                $paymentID = $request->query('paymentID');
+                $status = $request->query('status');
 
-            if ($status === 'success' && $paymentID) {
-                $baseUrl = $gatewayConfig->is_sandbox ? 'https://tokenized.sandbox.bka.sh/v1.2.0-beta' : 'https://tokenized.pay.bka.sh/v1.2.0-beta';
-                
-                // Re-grant token to execute
-                $tokenResponse = \Illuminate\Support\Facades\Http::withHeaders([
-                    'username' => $gatewayConfig->username,
-                    'password' => $gatewayConfig->password,
-                ])->post($baseUrl . '/tokenized/checkout/token/grant', [
-                    'app_key' => $gatewayConfig->app_key,
-                    'app_secret' => $gatewayConfig->app_secret,
-                ]);
-                $tokenData = $tokenResponse->json();
-                
-                if (isset($tokenData['id_token'])) {
-                    $executeResponse = \Illuminate\Support\Facades\Http::withHeaders([
-                        'Authorization' => $tokenData['id_token'],
-                        'X-APP-Key' => $gatewayConfig->app_key,
-                    ])->post($baseUrl . '/tokenized/checkout/execute', [
-                        'paymentID' => $paymentID
+                if ($status === 'success' && $paymentID) {
+                    $baseUrl = $gatewayConfig->is_sandbox ? 'https://tokenized.sandbox.bka.sh/v1.2.0-beta' : 'https://tokenized.pay.bka.sh/v1.2.0-beta';
+                    
+                    // Re-grant token to execute
+                    $tokenResponse = \Illuminate\Support\Facades\Http::withHeaders([
+                        'username' => $gatewayConfig->username,
+                        'password' => $gatewayConfig->password,
+                    ])->post($baseUrl . '/tokenized/checkout/token/grant', [
+                        'app_key' => $gatewayConfig->app_key,
+                        'app_secret' => $gatewayConfig->app_secret,
                     ]);
+                    $tokenData = $tokenResponse->json();
                     
-                    $executeData = $executeResponse->json();
-                    
-                    if (isset($executeData['transactionStatus']) && $executeData['transactionStatus'] === 'Completed') {
-                        return redirect()->route('payment.success', [
-                            'trx_id' => $executeData['trxID'] ?? $paymentID, 
-                            'amount' => $executeData['amount'] ?? 0
+                    if (isset($tokenData['id_token'])) {
+                        $executeResponse = \Illuminate\Support\Facades\Http::withHeaders([
+                            'Authorization' => $tokenData['id_token'],
+                            'X-APP-Key' => $gatewayConfig->app_key,
+                        ])->post($baseUrl . '/tokenized/checkout/execute', [
+                            'paymentID' => $paymentID
                         ]);
+                        
+                        $executeData = $executeResponse->json();
+                        
+                        if (isset($executeData['transactionStatus']) && $executeData['transactionStatus'] === 'Completed') {
+                            $trxID = $executeData['trxID'] ?? $paymentID;
+                            \App\Models\Transaction::where('trx_id', $trxID)->update([
+                                'status' => 'success',
+                                'gateway_response' => json_encode($executeData)
+                            ]);
+                            \Illuminate\Support\Facades\DB::commit();
+                            return redirect()->route('payment.success', [
+                                'trx_id' => $trxID, 
+                                'amount' => $executeData['amount'] ?? 0
+                            ]);
+                        }
                     }
                 }
+                
+                \Illuminate\Support\Facades\DB::commit();
+                return redirect()->route('payment.failed', ['message' => 'bKash Payment Failed or Cancelled']);
             }
-            
-            return redirect()->route('payment.failed', ['message' => 'bKash Payment Failed or Cancelled']);
-        }
-        else if ($gateway === 'sslcommerz') {
-            // Future IPN signature validation goes here
-            return response()->json(['message' => 'SSLCommerz IPN received']);
+            else if ($gateway === 'sslcommerz') {
+                // Strict IPN signature validation
+                $val_id = $request->input('val_id');
+                $status = $request->input('status');
+                $tran_id = $request->input('tran_id');
+
+                if ($status === 'VALID' && $val_id) {
+                    $apiUrl = $gatewayConfig->is_sandbox ? 'https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php' : 'https://securepay.sslcommerz.com/validator/api/validationserverAPI.php';
+                    $response = \Illuminate\Support\Facades\Http::get($apiUrl, [
+                        'val_id' => $val_id,
+                        'store_id' => $gatewayConfig->store_id,
+                        'store_passwd' => $gatewayConfig->store_password,
+                        'v' => 1,
+                        'format' => 'json'
+                    ]);
+                    $result = $response->json();
+                    
+                    if (isset($result['status']) && ($result['status'] === 'VALID' || $result['status'] === 'VALIDATED')) {
+                        \App\Models\Transaction::where('trx_id', $tran_id)->update([
+                            'status' => 'success',
+                            'gateway_response' => json_encode($result)
+                        ]);
+                        \Illuminate\Support\Facades\DB::commit();
+                        return response()->json(['message' => 'SSLCommerz IPN Verified successfully']);
+                    }
+                }
+                
+                \App\Models\Transaction::where('trx_id', $tran_id)->update(['status' => 'failed']);
+                \Illuminate\Support\Facades\DB::commit();
+                return response()->json(['message' => 'SSLCommerz IPN Invalid'], 400);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            Log::error('Payment callback error: ' . $e->getMessage());
+            return response()->json(['message' => 'Callback error'], 500);
         }
         
+        \Illuminate\Support\Facades\DB::commit();
         return response()->json(['message' => 'Callback received']);
     }
 

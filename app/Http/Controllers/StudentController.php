@@ -255,7 +255,10 @@ class StudentController extends Controller
         }
 
         DB::transaction(function () use ($student) {
-            Result::where('student_id', $student->id)->delete();
+            \App\Models\Result::where('student_id', $student->id)->delete();
+            \App\Models\Payment::where('student_id', $student->id)->delete();
+            \App\Models\Transaction::where('payable_type', 'App\\Models\\Student')
+                ->where('payable_id', $student->id)->delete();
             $student->delete();
         });
 

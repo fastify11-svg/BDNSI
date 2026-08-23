@@ -344,13 +344,7 @@
                 @php
                     // Try to find the semester data, or use a dummy for preview
                     $semData = $semesters->where('semester_name', $semName)->first();
-                    $subjects = $semData ? ($semData->subjects_data ?? []) : [
-                        ['code' => 'DUM-101', 'subject' => 'Dummy Subject 1', 'credit' => '3', 'gpa' => '3.50', 'grade' => 'A'],
-                        ['code' => 'DUM-102', 'subject' => 'Dummy Subject 2', 'credit' => '3', 'gpa' => '3.80', 'grade' => 'A'],
-                        ['code' => 'DUM-103', 'subject' => 'Dummy Subject 3', 'credit' => '3', 'gpa' => '3.20', 'grade' => 'B'],
-                        ['code' => 'DUM-104', 'subject' => 'Dummy Subject 4', 'credit' => '3', 'gpa' => '3.90', 'grade' => 'A'],
-                        ['code' => 'DUM-105', 'subject' => 'Dummy Subject 5', 'credit' => '3', 'gpa' => '4.00', 'grade' => 'A+']
-                    ];
+                    $subjects = $semData ? ($semData->subjects_data ?? []) : [];
                 @endphp
                 <div class="semester-card">
                     <div class="semester-title">{{$semName}}</div>

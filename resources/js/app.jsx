@@ -15,4 +15,3 @@ createInertiaApp({
         createRoot(el).render(<App {...props} />);
     },
 });
-console.log('Cache bust 1'); 
