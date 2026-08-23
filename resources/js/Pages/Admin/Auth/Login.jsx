@@ -2,24 +2,15 @@ import React from 'react';
 import { useForm, usePage } from '@inertiajs/inertia-react';
 
 export default function AdminLogin({ status, canResetPassword }) {
-    const { app_url } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         remember: false,
     });
 
-    const getUrl = (path) => {
-        if (!path) return app_url || '/';
-        if (path.startsWith('http://') || path.startsWith('https://')) return path;
-        const cleanBase = (app_url || '').replace(/\/$/, '');
-        const cleanPath = path.replace(/^\//, '');
-        return cleanBase ? `${cleanBase}/${cleanPath}` : `/${cleanPath}`;
-    };
-
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(getUrl('/admin/login'), {
+        post('/admin/login', {
             onFinish: () => reset('password'),
         });
     };
