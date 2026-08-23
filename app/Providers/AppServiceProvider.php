@@ -110,5 +110,41 @@ class AppServiceProvider extends ServiceProvider
                 }
             ?>';
         });
+
+        // Add Model Event Observers to clear Frontend Caches
+        $modelsToClearCache = [
+            \App\Models\Slider::class,
+            \App\Models\Subject::class,
+            \App\Models\Team::class,
+            \App\Models\YoutubeVideo::class,
+            \App\Models\Notice::class,
+            \App\Models\Center::class,
+            \App\Models\Student::class,
+            \App\Models\SiteConfig::class,
+        ];
+
+        $clearCache = function () {
+            $keys = [
+                'homepage_sliders',
+                'homepage_sponsors',
+                'homepage_photo_gallery',
+                'homepage_courses',
+                'homepage_teams',
+                'homepage_youtube_videos',
+                'homepage_notices',
+                'homepage_centers',
+                'homepage_success_students',
+                'homepage_counts',
+                'site_config', // For SiteConfig::firstCached()
+            ];
+            foreach ($keys as $key) {
+                \Illuminate\Support\Facades\Cache::forget($key);
+            }
+        };
+
+        foreach ($modelsToClearCache as $model) {
+            $model::saved($clearCache);
+            $model::deleted($clearCache);
+        }
     }
 }

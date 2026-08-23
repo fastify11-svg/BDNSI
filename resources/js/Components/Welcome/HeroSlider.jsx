@@ -5,11 +5,7 @@ import { getUrl } from '../../utils/urlHelper';
 export default function HeroSlider({ sliders }) {
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    const FALLBACK_SLIDERS = [
-        { id: 1, photo: '/images/about.jpg', title: 'Technical Education Training Banner 1' }
-    ];
-
-    const activeSliders = sliders && sliders.length > 0 ? sliders : FALLBACK_SLIDERS;
+    const activeSliders = sliders && sliders.length > 0 ? sliders : [];
 
     useEffect(() => {
         if (activeSliders.length <= 1) return;
@@ -18,6 +14,18 @@ export default function HeroSlider({ sliders }) {
         }, 5000);
         return () => clearInterval(timer);
     }, [activeSliders.length]);
+
+    if (activeSliders.length === 0) {
+        return (
+            <div className="lg:col-span-8 bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-center items-center h-56 sm:h-[340px] lg:h-[388px]">
+                <div className="text-center p-6">
+                    <i className="fa-solid fa-images text-4xl text-slate-300 mb-3"></i>
+                    <h2 className="text-xl font-black text-slate-400">Welcome to BDNSI</h2>
+                    <p className="text-sm text-slate-500 mt-2">No promotional banners are currently active.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="lg:col-span-8 bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm flex flex-col">

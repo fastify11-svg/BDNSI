@@ -3,27 +3,21 @@ import { Link } from '@inertiajs/inertia-react';
 import { getUrl } from '../../utils/urlHelper';
 
 export default function NoticeBoard({ notices }) {
-    const FALLBACK_NOTICES = [
-        { id: 1, displayTitle: 'এমন শিক্ষার্থীদের জন্য যারা [পরীক্ষার নাম] পরীক্ষায় অংশগ্রহণ করেছেন, জানানো যাচ্ছে যে পরীক্ষা...', displayDate: '11 Aug 2025' },
-        { id: 2, displayTitle: 'এমন শিক্ষার্থীদের জন্য যারা [কোর্সের নাম] কোর্সে অংশগ্রহণ করতে চান, জানানো যাচ্ছে যে কোর্স...', displayDate: '11 Aug 2025' },
-        { id: 3, displayTitle: 'শিক্ষার্থীদের জানানো যাচ্ছে যে, আমাদের প্রতিষ্ঠানে ইলেকট্রিশিয়ান কোর্স আগামী [তারিখ] থেকে...', displayDate: '11 Aug 2025' },
-    ];
-
     const formatDate = (dateStr) => {
-        if (!dateStr) return '11 Aug 2025';
+        if (!dateStr) return '';
         try {
             const date = new Date(dateStr);
-            return isNaN(date.getTime()) ? '11 Aug 2025' : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            return isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
         } catch {
-            return '11 Aug 2025';
+            return '';
         }
     };
 
     const formattedNotices = notices && notices.length > 0 ? notices.map(n => ({
         ...n,
-        displayTitle: n.title || (n.details ? n.details.replace(/<[^>]*>?/gm, '').trim() : '') || 'গুরুত্বপূর্ণ বিজ্ঞপ্তি প্রকাশ করা হয়েছে',
+        displayTitle: n.title || (n.details ? n.details.replace(/<[^>]*>?/gm, '').trim() : '') || 'No title provided',
         displayDate: formatDate(n.created_at)
-    })) : FALLBACK_NOTICES;
+    })) : [];
 
     return (
         <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
@@ -37,16 +31,20 @@ export default function NoticeBoard({ notices }) {
                 </Link>
             </div>
             <div className="divide-y divide-slate-100 p-2">
-                {formattedNotices.map((n, idx) => (
-                    <Link key={`notice-${n.id || idx}`} href={getUrl(`/all-notice-list/${n.id}`)} className="p-3 flex items-center gap-3 hover:bg-purple-50/50 transition group">
-                        <span className="bg-amber-100 text-amber-900 font-extrabold px-2.5 py-1 rounded text-[10px] shrink-0 font-mono">
-                            {n.displayDate}
-                        </span>
-                        <p className="text-[13px] font-medium text-slate-800 group-hover:text-[#7024A8] transition truncate">
-                            {n.displayTitle}
-                        </p>
-                    </Link>
-                ))}
+                {formattedNotices.length === 0 ? (
+                    <div className="p-4 text-center text-slate-500 text-sm">No recent notices available.</div>
+                ) : (
+                    formattedNotices.map((n, idx) => (
+                        <Link key={`notice-${n.id || idx}`} href={getUrl(`/all-notice-list/${n.id}`)} className="p-3 flex items-center gap-3 hover:bg-purple-50/50 transition group">
+                            <span className="bg-amber-100 text-amber-900 font-extrabold px-2.5 py-1 rounded text-[10px] shrink-0 font-mono">
+                                {n.displayDate}
+                            </span>
+                            <p className="text-[13px] font-medium text-slate-800 group-hover:text-[#7024A8] transition truncate">
+                                {n.displayTitle}
+                            </p>
+                        </Link>
+                    ))
+                )}
             </div>
         </div>
     );

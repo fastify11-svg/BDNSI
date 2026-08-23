@@ -3,18 +3,18 @@ import { Link } from '@inertiajs/inertia-react';
 import { getUrl } from '../../utils/urlHelper';
 
 export default function CourseList({ courses }) {
-    const FALLBACK_COURSES = [
-        { id: 1, name: '3g 4g 6g Arc Welder', duration: '3-Month, 6-Month, 1-Year, 2-Year', image: '/images/driving.png' },
-        { id: 2, name: '3g 4g Mig Welder', duration: '3-Month, 6-Month, 1-Year, 2-Year', image: '/images/blueverify.png' },
-        { id: 3, name: '3g 4g Mig Welder & Gas Cutting', duration: '2 Years', image: '/images/driving.png' },
-        { id: 4, name: '3G,4G Welder', duration: '2 Years', image: '/images/blueverify.png' },
-        { id: 5, name: '4G, 6G, TIG, and MIG Welding', duration: '3-Month, 6-Month, 1-Year, 2-Year', image: '/images/driving.png' },
-        { id: 6, name: '4G,6G, TIG, MIG Welding', duration: '6-Month, 1-Year, 2-Year', image: '/images/blueverify.png' },
-        { id: 7, name: '6g Tig Welder', duration: '3-Month, 6-Month, 1-Year, 2-Year', image: '/images/driving.png' },
-    ];
-
-    const courseList = courses && courses.length > 0 ? courses : FALLBACK_COURSES;
+    const courseList = courses && courses.length > 0 ? courses : [];
     
+    if (courseList.length === 0) {
+        return (
+            <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm p-8 text-center">
+                <i className="fa-solid fa-graduation-cap text-4xl text-slate-300 mb-3"></i>
+                <h2 className="text-lg font-bold text-slate-400">No active courses available right now.</h2>
+                <p className="text-sm text-slate-500 mt-2">Please check back later.</p>
+            </div>
+        );
+    }
+
     const groupInPairs = (arr) => {
         const pairs = [];
         for (let i = 0; i < arr.length; i += 2) {

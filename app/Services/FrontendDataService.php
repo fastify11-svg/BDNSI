@@ -55,21 +55,11 @@ class FrontendDataService
         });
 
         $centers = Cache::remember('homepage_centers', 3600, function () {
-            $data = SiteConfig::isEnabled('toggle_verified_centers') ? Center::where('status', CenterStatus::Approved)->take(8)->get() : collect([]);
-            if ($data->isEmpty() && SiteConfig::isEnabled('toggle_verified_centers')) {
-                $data = Center::take(8)->get();
-            }
-
-            return $data;
+            return SiteConfig::isEnabled('toggle_verified_centers') ? Center::where('status', CenterStatus::Approved)->take(8)->get() : collect([]);
         });
 
         $success_students = Cache::remember('homepage_success_students', 3600, function () {
-            $data = SiteConfig::isEnabled('toggle_success_students') ? Student::where('status', StudentStatus::Approved)->take(12)->get() : collect([]);
-            if ($data->isEmpty() && SiteConfig::isEnabled('toggle_success_students')) {
-                $data = Student::take(12)->get();
-            }
-
-            return $data;
+            return SiteConfig::isEnabled('toggle_success_students') ? Student::where('status', StudentStatus::Approved)->take(12)->get() : collect([]);
         });
 
         $notice = $config->marquee_notice ?? config('site.defaults.notice');

@@ -24,14 +24,16 @@ const VideoThumbnail = ({ video, vidId }) => {
 
 
 export default function VideoGallery({ youtube_videos }) {
-    const FALLBACK_VIDEOS = [
-        { video_id: 'dQw4w9WgXcQ', title: 'BDNSI Technical Orientation Video 1' },
-        { video_id: 'dQw4w9WgXcQ', title: 'BDNSI Technical Orientation Video 2' },
-        { video_id: 'dQw4w9WgXcQ', title: 'BDNSI Technical Orientation Video 3' },
-        { video_id: 'dQw4w9WgXcQ', title: 'BDNSI Technical Orientation Video 4' }
-    ];
+    const videoList = youtube_videos && youtube_videos.length > 0 ? youtube_videos : [];
 
-    const videoList = youtube_videos && youtube_videos.length > 0 ? youtube_videos : FALLBACK_VIDEOS;
+    if (videoList.length === 0) {
+        return (
+            <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm p-8 text-center">
+                <i className="fa-brands fa-youtube text-4xl text-slate-300 mb-3"></i>
+                <h2 className="text-lg font-bold text-slate-400">No video content available.</h2>
+            </div>
+        );
+    }
 
     const groupInPairs = (arr) => {
         const pairs = [];

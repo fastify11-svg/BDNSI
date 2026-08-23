@@ -7,13 +7,7 @@ import HeroSlider from '../Components/Welcome/HeroSlider';
 import NoticeBoard from '../Components/Welcome/NoticeBoard';
 import CourseList from '../Components/Welcome/CourseList';
 import VideoGallery from '../Components/Welcome/VideoGallery';
-import { 
-    FALLBACK_SLIDERS, 
-    FALLBACK_CENTERS, 
-    FALLBACK_STUDENTS, 
-    FALLBACK_GALLERY, 
-    FALLBACK_SPONSORS 
-} from '../data/fallbacks';
+
 
 
 export default function Welcome({
@@ -47,14 +41,14 @@ export default function Welcome({
 
 
 
-    const verifiedInstitutes = centers.length > 0 ? centers : FALLBACK_CENTERS;
-    const successStudentList = success_students.length > 0 ? success_students : FALLBACK_STUDENTS;
+    const verifiedInstitutes = centers.length > 0 ? centers : [];
+    const successStudentList = success_students.length > 0 ? success_students : [];
 
     const galleryImages = photo_gallery && photo_gallery.length > 0
-        ? photo_gallery.map(g => g.photo || g.image || '/images/about.jpg')
-        : FALLBACK_GALLERY;
+        ? photo_gallery.map(g => g.photo || g.image)
+        : [];
 
-    const sponsorList = sponsors.length > 0 ? sponsors.map(s => s.image || s.photo || '/images/1711405466.jpg') : FALLBACK_SPONSORS;
+    const sponsorList = sponsors.length > 0 ? sponsors.map(s => s.image || s.photo) : [];
 
     return (
         <FrontendLayout>
@@ -71,12 +65,12 @@ export default function Welcome({
                         <div className="animate-notice-marquee">
                             <div className="flex gap-16 shrink-0 min-w-full pr-16 items-center">
                                 <p className="text-[13px] font-semibold text-slate-800">
-                                    {cleanNotice || 'মানসম্মত প্রশিক্ষণ গ্রহণ করে অনেক শিক্ষিত কিংবা অশিক্ষিত বেকার কর্মসংস্থান করতে পেরেছে। দেশের প্রায় সকল পাবলিক ও প্রাইভেট বিশ্ববিদ্যালয়ের সংশ্লিষ্ট ডিপার্টমেন্টের ছাত্র-ছাত্রী প্রশিক্ষণ গ্রহণ করছেন।'}
+                                    {cleanNotice || 'No notice available at the moment.'}
                                 </p>
                             </div>
                             <div className="flex gap-16 shrink-0 min-w-full pr-16 items-center" aria-hidden="true">
                                 <p className="text-[13px] font-semibold text-slate-800">
-                                    {cleanNotice || 'মানসম্মত প্রশিক্ষণ গ্রহণ করে অনেক শিক্ষিত কিংবা অশিক্ষিত বেকার কর্মসংস্থান করতে পেরেছে। দেশের প্রায় সকল পাবলিক ও প্রাইভেট বিশ্ববিদ্যালয়ের সংশ্লিষ্ট ডিপার্টমেন্টের ছাত্র-ছাত্রী প্রশিক্ষণ গ্রহণ করছেন।'}
+                                    {cleanNotice || 'No notice available at the moment.'}
                                 </p>
                             </div>
                         </div>
@@ -97,7 +91,10 @@ export default function Welcome({
                             LEADERSHIP
                         </div>
                         <div className="p-4 grid grid-cols-2 gap-4 text-center bg-white">
-                            {(teams.length > 0 ? teams.slice(0, 2) : [{name: "Mrs. Shiuli Akhter", designation: "Advisor", image: null}, {name: "Mohammad Zafarullah", designation: "President", image: null}]).map((team, idx) => (
+                            {teams.length === 0 ? (
+                                <div className="col-span-2 text-xs text-slate-400 py-4">No leadership team registered.</div>
+                            ) : (
+                            teams.slice(0, 2).map((team, idx) => (
                                 <div key={`team-${team.id || idx}`} className="space-y-1">
                                     <div className="w-20 h-24 bg-slate-100 border border-slate-200 rounded overflow-hidden mx-auto shadow-sm group">
                                         <img
@@ -120,7 +117,7 @@ export default function Welcome({
                                         {team.email && <a href={`mailto:${team.email}`} className="text-slate-400 hover:text-rose-600 transition"><i className="fa-solid fa-envelope"></i></a>}
                                     </div>
                                 </div>
-                            ))}
+                            )))}
                         </div>
                     </div>
 
@@ -184,11 +181,11 @@ export default function Welcome({
                                 {aboutExpanded ? (
                                     <div 
                                         className="prose max-w-none text-[13px] text-slate-700 space-y-2 leading-relaxed"
-                                        dangerouslySetInnerHTML={{ __html: about_us || 'মানসম্মত প্রশিক্ষণ প্রদান করে বেকার কর্মসংস্থান সৃষ্টিতে আমরা প্রতিশ্রুতিবদ্ধ।' }} 
+                                        dangerouslySetInnerHTML={{ __html: about_us || 'Information not available.' }} 
                                     />
                                 ) : (
                                     <p className="line-clamp-4 sm:line-clamp-5">
-                                        {about_us ? about_us.replace(/<[^>]*>?/gm, '') : 'মানসম্মত প্রশিক্ষণ প্রদান করে বেকার কর্মসংস্থান সৃষ্টিতে আমরা প্রতিশ্রুতিবদ্ধ। দেশের বিভিন্ন স্থানের বেকার যুবকদের কারিগরি প্রশিক্ষণ দিয়ে দক্ষ জনশক্তিতে রূপান্তর করা হচ্ছে।'}
+                                        {about_us ? about_us.replace(/<[^>]*>?/gm, '') : 'Information not available.'}
                                     </p>
                                 )}
                                 {about_us && about_us.length > 200 && (
@@ -224,7 +221,7 @@ export default function Welcome({
                     </div>
 
                     {/* PHOTO GALLERY Card (Clickable Lightbox Trigger) */}
-                    {isEnabled(config.toggle_photo_gallery) && (
+                    {isEnabled(config.toggle_photo_gallery) && galleryImages.length > 0 && (
                         <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
                             <div className="bg-[#7024A8] text-white px-4 py-2.5 text-xs font-bold flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-white">
@@ -385,7 +382,7 @@ export default function Welcome({
             {/* 4. OUR COURSES Card (Desktop Grid & Mobile 2-Row Horizontal Auto-Slider) */}
             <CourseList courses={courses} />
             {/* 5. VERIFIED CENTERS Card (Continuous Auto-Slider) */}
-            {isEnabled(config.toggle_verified_centers) && (
+            {isEnabled(config.toggle_verified_centers) && verifiedInstitutes.length > 0 && (
                 <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
                     <div className="bg-[#7024A8] text-white px-4 py-2.5 text-xs font-bold flex justify-between items-center">
                         <div className="flex items-center gap-2 text-white">
@@ -451,7 +448,7 @@ export default function Welcome({
             )}
 
             {/* 6. SUCCESS STUDENTS Card (Continuous Auto-Slider) */}
-            {isEnabled(config.toggle_success_students) && (
+            {isEnabled(config.toggle_success_students) && successStudentList.length > 0 && (
                 <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
                     <div className="bg-[#7024A8] text-white px-4 py-2.5 text-xs font-bold flex justify-between items-center">
                         <div className="flex items-center gap-2 text-white">
@@ -516,7 +513,7 @@ export default function Welcome({
             )}
 
             {/* 8. CERTIFIED Card (Continuous Auto-Slider) */}
-            {isEnabled(config.toggle_sponsors) && (
+            {isEnabled(config.toggle_sponsors) && sponsorList.length > 0 && (
                 <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
                     <div className="bg-[#7024A8] text-white px-4 py-2.5 text-xs font-bold flex items-center justify-between">
                         <div className="flex items-center gap-2 text-white">
