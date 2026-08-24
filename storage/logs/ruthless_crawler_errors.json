@@ -1,20 +1,44 @@
 [
     {
-        "url": "http:\/\/127.0.0.1:8000\/admin\/student\/export",
+        "url": "http:\/\/127.0.0.1:8000\/admin\/slider\/create",
         "guard": "admin",
         "status": 500,
-        "error": "Undefined array key \"exportCsv\""
+        "error": "Method App\\Http\\Controllers\\Admin\\SliderController::create does not exist."
     },
     {
-        "url": "http:\/\/127.0.0.1:8000\/admin\/document-templates\/{document_template}",
+        "url": "http:\/\/127.0.0.1:8000\/admin\/slider\/{slider}",
         "guard": "admin",
         "status": 500,
-        "error": "Method App\\Http\\Controllers\\Admin\\DocumentTemplateController::show does not exist."
+        "error": "Method App\\Http\\Controllers\\Admin\\SliderController::show does not exist."
     },
     {
-        "url": "http:\/\/127.0.0.1:8000\/admin\/student-registration-form\/1",
+        "url": "http:\/\/127.0.0.1:8000\/admin\/slider\/{slider}\/edit",
         "guard": "admin",
         "status": 500,
-        "error": "Undefined array key \"registrationForm\""
+        "error": "Method App\\Http\\Controllers\\Admin\\SliderController::edit does not exist."
+    },
+    {
+        "url": "http:\/\/127.0.0.1:8000\/admin\/notice\/{notice}",
+        "guard": "admin",
+        "status": 500,
+        "error": "Method App\\Http\\Controllers\\Admin\\NoticeController::show does not exist."
+    },
+    {
+        "url": "http:\/\/127.0.0.1:8000\/admin\/translation\/{translation}",
+        "guard": "admin",
+        "status": 500,
+        "error": "Method App\\Http\\Controllers\\Admin\\TranslationController::show does not exist."
+    },
+    {
+        "url": "http:\/\/127.0.0.1:8000\/admin\/youtube-video\/{youtube_video}",
+        "guard": "admin",
+        "status": 500,
+        "error": "Method App\\Http\\Controllers\\Admin\\YoutubeVideoController::show does not exist."
+    },
+    {
+        "url": "http:\/\/127.0.0.1:8000\/admin\/license\/create",
+        "guard": "admin",
+        "status": 500,
+        "error": "Call to undefined method App\\Models\\License::getVehicleOptions()"
     }
 ]

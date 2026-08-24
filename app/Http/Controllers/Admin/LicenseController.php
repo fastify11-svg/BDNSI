@@ -34,7 +34,7 @@ class LicenseController extends Controller
     public function create()
     {
         return view('admin.license.create', [
-            'vehicleOptions' => License::getVehicleOptions(),
+            'vehicleOptions' => ['M', 'CYCLE', 'CAR', 'JEEP'],
         ]);
     }
 
@@ -51,8 +51,8 @@ class LicenseController extends Controller
             'issue_date' => 'required|date',
             'valid_from' => 'required|date',
             'valid_to' => 'required|date|after:valid_from',
-            'allowed_vehicles' => 'required|array|min:1',
-            'allowed_vehicles.*' => 'required|string|in:M,CYCLE,CAR,JEEP',
+            'credential_type' => 'required|array|min:1',
+            'credential_type.*' => 'required|string|in:M,CYCLE,CAR,JEEP',
         ]);
 
         $license = License::create($validated);
@@ -69,7 +69,7 @@ class LicenseController extends Controller
     {
         return view('admin.license.edit', [
             'license' => $license,
-            'vehicleOptions' => License::getVehicleOptions(),
+            'vehicleOptions' => ['M', 'CYCLE', 'CAR', 'JEEP'],
         ]);
     }
 
