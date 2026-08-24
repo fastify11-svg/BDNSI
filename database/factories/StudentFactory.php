@@ -25,9 +25,14 @@ class StudentFactory extends Factory
         return [
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
-            // 'email_verified_at' => now(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'remember_token' => Str::random(10),
+            'remember_token' => \Illuminate\Support\Str::random(10),
+            'fathers_name' => 'Test Father',
+            'mothers_name' => 'Test Mother',
+            'date_of_birth' => '2000-01-01',
+            'gender' => 0,
+            'religion' => 0,
+            'blood_group' => 0,
         ];
     }
 }

@@ -38,7 +38,7 @@ class UpdateStudentFinancialStatus implements ShouldQueue
             $student->due_amount  = max(0, ($student->due_amount ?? 0) - $amount);
 
             if ($student->due_amount <= 0) {
-                $student->payment_status = 'Paid';
+                $student->payment_status = 1; // 1=Paid
             }
 
             $student->saveQuietly(); // avoid triggering Observers again
