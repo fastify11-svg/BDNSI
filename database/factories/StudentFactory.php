@@ -33,6 +33,9 @@ class StudentFactory extends Factory
             'gender' => 0,
             'religion' => 0,
             'blood_group' => 0,
+            'present_address' => 'Present Address',
+            'permanent_address' => 'Permanent Address',
+            'phone' => '01700000000',
         ];
     }
 }

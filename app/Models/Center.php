@@ -43,12 +43,24 @@ class Center extends Model
         'nid_back_photo',
         'status',
         'team_id',
+        'credit_enabled',
+        'credit_limit',
+        'current_due',
+        'allow_registration_without_payment',
+        'allow_result_without_payment',
+        'allow_certificate_without_payment',
+        'auto_restriction',
     ];
 
     protected $casts = [
         'gender' => Gender::class,
         'religion' => Religion::class,
         'status' => CenterStatus::class,
+        'credit_enabled' => 'boolean',
+        'allow_registration_without_payment' => 'boolean',
+        'allow_result_without_payment' => 'boolean',
+        'allow_certificate_without_payment' => 'boolean',
+        'auto_restriction' => 'boolean',
         'photo' => ImageField::class.':center/photo',
         'director_image' => ImageField::class.':center/photo',
         'director_photo' => ImageField::class.':center/photo',
@@ -101,5 +113,36 @@ class Center extends Model
     public function transactions()
     {
         return $this->morphMany(Transaction::class, 'payable');
+    }
+
+    public function prices()
+    {
+        return $this->hasMany(Price::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function ledgers()
+    {
+        return $this->hasMany(CenterLedger::class);
+    }
+
+    public function getAvailableCreditAttribute()
+    {
+        if (!$this->credit_enabled) {
+            return 0;
+        }
+        return max(0, $this->credit_limit - $this->current_due);
+    }
+
+    public function hasSufficientCredit($amount)
+    {
+        if (!$this->credit_enabled) {
+            return false;
+        }
+        return ($this->current_due + $amount) <= $this->credit_limit;
     }
 }

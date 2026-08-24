@@ -45,6 +45,12 @@ class CenterUpdateRequest extends FormRequest
             'trade_license' => 'nullable|image',
             'password' => 'nullable|confirmed|min:6',
             'team_id' => 'nullable|exists:teams,id',
+            'credit_enabled' => 'nullable|boolean',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'allow_registration_without_payment' => 'nullable|boolean',
+            'allow_result_without_payment' => 'nullable|boolean',
+            'allow_certificate_without_payment' => 'nullable|boolean',
+            'auto_restriction' => 'nullable|boolean',
         ];
     }
 
