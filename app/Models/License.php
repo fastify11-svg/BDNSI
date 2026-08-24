@@ -21,55 +21,27 @@ class License extends Model
         'issue_date',
         'valid_from',
         'valid_to',
-        'allowed_vehicles',
+        'credential_type',
     ];
 
     protected $casts = [
         'issue_date' => 'datetime',
         'valid_from' => 'datetime',
-        'valid_to' => 'datetime',
-        'image' => ImageField::class.':license,images/no-image.png',
+        'valid_to'   => 'datetime',
+        'image'      => ImageField::class.':license,images/no-image.png',
+        // credential_type is stored as plain string — no JSON cast needed
     ];
 
-    // Custom accessor for allowed_vehicles
-    public function getAllowedVehiclesAttribute($value)
-    {
-        if (empty($value)) {
-            return [];
-        }
-
-        // If it's already an array (from JSON), return it
-        if (is_array($value)) {
-            return $value;
-        }
-
-        // If it's a JSON string, decode it
-        $decoded = json_decode($value, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return $decoded;
-        }
-
-        // If it's a single string value, return as array
-        return [$value];
-    }
-
-    // Custom mutator for allowed_vehicles
-    public function setAllowedVehiclesAttribute($value)
-    {
-        if (is_array($value)) {
-            $this->attributes['allowed_vehicles'] = json_encode($value);
-        } else {
-            $this->attributes['allowed_vehicles'] = $value;
-        }
-    }
-
-    public static function getVehicleOptions()
+    /**
+     * Returns a list of available credential types for vocational certificates.
+     */
+    public static function getCredentialTypes(): array
     {
         return [
-            'M' => 'M - Motorcycle',
-            'CYCLE' => 'CYCLE - Bicycle',
-            'CAR' => 'CAR - Car',
-            'JEEP' => 'JEEP - Jeep',
+            'Vocational Certificate'    => 'Vocational Certificate',
+            'Professional Diploma'      => 'Professional Diploma',
+            'Completion Certificate'    => 'Completion Certificate',
+            'Short Course Certificate'  => 'Short Course Certificate',
         ];
     }
 }

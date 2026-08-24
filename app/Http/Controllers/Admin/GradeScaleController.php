@@ -41,6 +41,8 @@ class GradeScaleController extends Controller
             'rules' => $request->rules
         ]);
 
+        \Illuminate\Support\Facades\Cache::forget("grade_scale_{$gradeScale->course_type}");
+
         return back()->with('success', 'Grading rules updated successfully.');
     }
 }

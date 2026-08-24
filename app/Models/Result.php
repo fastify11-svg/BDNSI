@@ -49,14 +49,6 @@ class Result extends Model
                         throw new \Exception("Total marks ($total) exceeds the maximum limit ($limit) for this course.");
                     }
                 }
-
-                $new_written = (int) round($total * 0.5);
-                $new_practical = (int) round($total * 0.3);
-                $new_viva = $total - $new_written - $new_practical;
-
-                $result->written = $new_written;
-                $result->practical = $new_practical;
-                $result->viva = $new_viva;
             }
         });
     }

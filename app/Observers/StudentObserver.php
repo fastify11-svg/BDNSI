@@ -26,7 +26,7 @@ class StudentObserver
             // Generate License automatically
             $licenseNumber = $student->registration ?? $student->roll ?? uniqid('LIC-');
             if ($student->nid_or_birth) {
-                try {
+                    try {
                     \App\Models\License::updateOrCreate(
                         ['cnic' => $student->nid_or_birth],
                         [
@@ -37,6 +37,7 @@ class StudentObserver
                             'issue_date'     => now(),
                             'valid_from'     => now(),
                             'valid_to'       => now()->addYears(5),
+                            'credential_type' => 'Vocational Certificate',
                         ]
                     );
                 } catch (\Exception $e) {
@@ -63,17 +64,17 @@ class StudentObserver
             // Generate License automatically
             $licenseNumber = $student->registration ?? $student->roll ?? uniqid('LIC-');
             if ($student->nid_or_birth) {
-                \App\Models\License::updateOrCreate(
+                            \App\Models\License::updateOrCreate(
                     ['cnic' => $student->nid_or_birth],
                     [
-                        'name' => $student->name,
-                        'father_name' => $student->fathers_name,
-                        'city' => $student->present_address,
+                        'name'           => $student->name,
+                        'father_name'    => $student->fathers_name ?? 'N/A',
+                        'city'           => $student->present_address ?? 'N/A',
                         'license_number' => $licenseNumber,
-                        'issue_date' => now(),
-                        'valid_from' => now(),
-                        'valid_to' => now()->addYears(5), // typical license validity
-                        'allowed_vehicles' => ['M', 'CAR'], // default based on driving school
+                        'issue_date'     => now(),
+                        'valid_from'     => now(),
+                        'valid_to'       => now()->addYears(5),
+                        'credential_type' => 'Vocational Certificate',
                     ]
                 );
             }

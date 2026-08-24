@@ -131,30 +131,12 @@ class Helper
         }
 
         $api_key = $gateway->api_key;
-        $secret_key = $gateway->secret_key;
-        $sender_id = $gateway->sender_id;
-        $base_url = rtrim($gateway->base_url, '/'); // ensure no trailing slash
-
-        // Assuming ReveSMS standard for now, but fully dynamic from DB keys
-        $url = $base_url . '?apikey='.urlencode($api_key).
-            '&secretkey='.urlencode($secret_key).
-            '&callerID='.urlencode($sender_id).
-            '&toUser='.urlencode($phone).
-            '&messageContent='.urlencode($message);
-
-        if (! empty($api_key)) {
-            $curl = curl_init($url);
-
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 5);
-            $result = curl_exec($curl);
-            if (curl_errno($curl)) {
-                $error_msg = curl_error($curl);
-
-            }
-
-            curl_close($curl);
+        
+        try {
+            $driver = \App\Services\Sms\SmsGatewayFactory::make($gateway);
+            $driver->send($phone, $message, $gateway);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Helper::sendSms failed: " . $e->getMessage());
         }
-
     }
 }

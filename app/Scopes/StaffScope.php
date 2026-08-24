@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Schema;
 
 class StaffScope implements Scope
 {
-    protected static $columnCache = [];
-
     /**
      * Apply the scope to a given Eloquent query builder.
      *
@@ -39,11 +37,9 @@ class StaffScope implements Scope
 
     private function tableHasColumn($table, $column)
     {
-        $cacheKey = $table . '.' . $column;
-        if (!isset(static::$columnCache[$cacheKey])) {
-            static::$columnCache[$cacheKey] = Schema::hasColumn($table, $column);
-        }
-
-        return static::$columnCache[$cacheKey];
+        $cacheKey = "schema_col_{$table}.{$column}";
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($table, $column) {
+            return \Illuminate\Support\Facades\Schema::hasColumn($table, $column);
+        });
     }
 }

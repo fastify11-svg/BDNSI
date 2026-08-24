@@ -62,21 +62,42 @@ class BulkDocumentController extends Controller
     }
 
     /**
-     * Poll real-time progress for a bulk PDF generation job.
+     * Real-time Server-Sent Events (SSE) progress stream for bulk PDF generation.
      */
-    public function bulkProgress(string $jobId): JsonResponse
+    public function bulkProgress(string $jobId)
     {
-        $progress = Cache::get("bulk_pdf_{$jobId}");
+        return response()->stream(function () use ($jobId) {
+            while (true) {
+                if (connection_aborted()) {
+                    break;
+                }
 
-        if (! $progress) {
-            return response()->json([
-                'status' => 'not_found',
-                'message' => 'Job ID expired or not found.',
-                'percentage' => 0,
-            ], 404);
-        }
+                $progress = Cache::get("bulk_pdf_{$jobId}");
 
-        return response()->json($progress);
+                if (! $progress) {
+                    echo "event: close\n";
+                    echo "data: " . json_encode(['status' => 'not_found', 'message' => 'Job expired or not found']) . "\n\n";
+                    ob_flush();
+                    flush();
+                    break;
+                }
+
+                echo "data: " . json_encode($progress) . "\n\n";
+                ob_flush();
+                flush();
+
+                if ($progress['status'] === 'completed' || $progress['status'] === 'failed') {
+                    break;
+                }
+
+                sleep(1);
+            }
+        }, 200, [
+            'Content-Type'      => 'text/event-stream',
+            'Cache-Control'     => 'no-cache',
+            'Connection'        => 'keep-alive',
+            'X-Accel-Buffering' => 'no', // Prevents Nginx from buffering the stream
+        ]);
     }
 
     /**

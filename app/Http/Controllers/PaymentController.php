@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
+use App\Events\PaymentSucceeded;
 use App\Models\Transaction;
 
 class PaymentController extends Controller
@@ -162,13 +163,19 @@ class PaymentController extends Controller
                         
                         if (isset($executeData['transactionStatus']) && $executeData['transactionStatus'] === 'Completed') {
                             $trxID = $executeData['trxID'] ?? $paymentID;
-                            \App\Models\Transaction::where('trx_id', $trxID)->update([
-                                'status' => 'success',
-                                'gateway_response' => json_encode($executeData)
-                            ]);
+                            $transaction = \App\Models\Transaction::where('trx_id', $trxID)->first();
+                            if ($transaction) {
+                                $transaction->update([
+                                    'status'           => 'success',
+                                    'gateway_response' => json_encode($executeData)
+                                ]);
+                                // Fire the PaymentSucceeded event to reconcile student financial data
+                                $payable = $transaction->payable;
+                                event(new PaymentSucceeded($transaction->fresh(), $payable));
+                            }
                             \Illuminate\Support\Facades\DB::commit();
                             return redirect()->route('payment.success', [
-                                'trx_id' => $trxID, 
+                                'trx_id' => $trxID,
                                 'amount' => $executeData['amount'] ?? 0
                             ]);
                         }
@@ -196,10 +203,16 @@ class PaymentController extends Controller
                     $result = $response->json();
                     
                     if (isset($result['status']) && ($result['status'] === 'VALID' || $result['status'] === 'VALIDATED')) {
-                        \App\Models\Transaction::where('trx_id', $tran_id)->update([
-                            'status' => 'success',
-                            'gateway_response' => json_encode($result)
-                        ]);
+                        $transaction = \App\Models\Transaction::where('trx_id', $tran_id)->first();
+                        if ($transaction) {
+                            $transaction->update([
+                                'status'           => 'success',
+                                'gateway_response' => json_encode($result)
+                            ]);
+                            // Fire the PaymentSucceeded event to reconcile student financial data
+                            $payable = $transaction->payable;
+                            event(new PaymentSucceeded($transaction->fresh(), $payable));
+                        }
                         \Illuminate\Support\Facades\DB::commit();
                         return response()->json(['message' => 'SSLCommerz IPN Verified successfully']);
                     }

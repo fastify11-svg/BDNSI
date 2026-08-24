@@ -621,7 +621,7 @@ class StudentController extends Controller
 
         $admin = Auth::guard('admin')->user();
 
-        if ($admin->id == 1) {
+        if ($admin->hasPermission('student-full-edit')) {
             $validated = $request->validate([
                 'center_id' => 'required|exists:centers,id',
                 'name' => 'required|string',

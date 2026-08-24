@@ -15,26 +15,28 @@ export default function BulkProgressModal({ isOpen, jobId, onClose, title = 'Bul
     useEffect(() => {
         if (!isOpen || !jobId) return;
 
-        let interval = null;
+        const eventSource = new EventSource(getUrl(`/admin/documents/bulk-status/${jobId}`));
 
-        const checkStatus = async () => {
+        eventSource.onmessage = (event) => {
             try {
-                const res = await axios.get(getUrl(`/admin/documents/bulk-status/${jobId}`));
-                setProgress(res.data);
+                const data = JSON.parse(event.data);
+                setProgress(data);
 
-                if (res.data.status === 'completed' || res.data.status === 'failed') {
-                    clearInterval(interval);
+                if (data.status === 'completed' || data.status === 'failed') {
+                    eventSource.close();
                 }
             } catch (err) {
-                console.error('Error polling bulk status:', err);
+                console.error('Error parsing SSE data:', err);
             }
         };
 
-        checkStatus();
-        interval = setInterval(checkStatus, 1200);
+        eventSource.onerror = (error) => {
+            console.error('SSE connection error:', error);
+            eventSource.close();
+        };
 
         return () => {
-            if (interval) clearInterval(interval);
+            eventSource.close();
         };
     }, [isOpen, jobId]);
 
