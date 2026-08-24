@@ -13,6 +13,7 @@ class DashboardController extends Controller
     {
         $auth = Auth::user();
         $centerId = $auth->center_id;
+        $center = $auth->center; // Load center relationships
 
         $cards = [
             'Total Student' => Student::hide()->where('center_id', $centerId)->count(),
@@ -20,6 +21,16 @@ class DashboardController extends Controller
             'Total Pending' => Student::hide()->where('center_id', $centerId)->whereIn('status', [StudentStatus::Pending, StudentStatus::Requested])->count(),
         ];
 
-        return Inertia::render('Center/Dashboard', compact('cards'));
+        $financials = null;
+        if ($center) {
+            $financials = [
+                'credit_enabled' => $center->credit_enabled,
+                'credit_limit' => $center->credit_limit,
+                'current_due' => $center->current_due,
+                'available_credit' => $center->available_credit,
+            ];
+        }
+
+        return Inertia::render('Center/Dashboard', compact('cards', 'financials'));
     }
 }

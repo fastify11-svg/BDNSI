@@ -3,7 +3,7 @@ import { Link, usePage } from '@inertiajs/inertia-react';
 import CenterLayout from '../../Layouts/CenterLayout';
 import { getUrl } from '../../utils/urlHelper';
 
-export default function Dashboard({ cards = {} }) {
+export default function Dashboard({ cards = {}, financials = null }) {
     const { auth, app_url } = usePage().props;
     const [activeTab, setActiveTab] = useState('Basic');
 
@@ -124,6 +124,64 @@ export default function Dashboard({ cards = {} }) {
                         </div>
                     </div>
                 </div>
+
+                {/* Financial Ledger Widget */}
+                {financials && (
+                    <div className="space-y-4">
+                        <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                                B2B FINANCIAL LEDGER
+                            </p>
+                            <h2 className="text-xl font-black text-slate-900">
+                                Financial overview
+                            </h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Current Due */}
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Total Due</p>
+                                    <p className="text-4xl font-black text-rose-600">৳{parseFloat(financials.current_due || 0).toFixed(2)}</p>
+                                    <p className="text-[11px] text-slate-500 font-medium">Unpaid balance</p>
+                                </div>
+                                <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-700 text-xl shadow-sm">
+                                    <i className="fa-solid fa-money-bill-wave"></i>
+                                </div>
+                            </div>
+
+                            {/* Credit Limit */}
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Credit Limit</p>
+                                    <p className="text-4xl font-black text-slate-900">
+                                        {financials.credit_enabled ? `৳${parseFloat(financials.credit_limit || 0).toFixed(2)}` : 'N/A'}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 font-medium">
+                                        {financials.credit_enabled ? 'Maximum allowed due' : 'Credit system disabled'}
+                                    </p>
+                                </div>
+                                <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700 text-xl shadow-sm">
+                                    <i className="fa-solid fa-scale-balanced"></i>
+                                </div>
+                            </div>
+
+                            {/* Available Credit */}
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex justify-between items-center relative overflow-hidden group hover:shadow-md transition">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Available Credit</p>
+                                    <p className="text-4xl font-black text-emerald-600">
+                                        {financials.credit_enabled ? `৳${parseFloat(financials.available_credit || 0).toFixed(2)}` : 'N/A'}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 font-medium">Remaining ordering capacity</p>
+                                </div>
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 text-xl shadow-sm">
+                                    <i className="fa-solid fa-chart-pie"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Center Information Section */}
                 <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">

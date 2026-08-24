@@ -80,6 +80,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('student', StudentController::class)->middleware('throttle:20,1');
     Route::resource('student-submission', StudentSubmissionController::class)->only(['create', 'store'])->middleware('throttle:10,1');
     Route::get('center-student-result', CenterTotalResultController::class)->name('centerStudentResult');
+    
+    // Financial Center Routes (Phase C)
+    Route::get('orders', [\App\Http\Controllers\Center\OrderController::class, 'index'])->name('center.orders.index');
+    Route::get('orders/{order}', [\App\Http\Controllers\Center\OrderController::class, 'show'])->name('center.orders.show');
 
     Route::resource('password-update', PasswordUpdateController::class)->only(['create', 'store']);
     Route::resource('profile-update', ProfileUpdateController::class)->only(['create', 'store']);

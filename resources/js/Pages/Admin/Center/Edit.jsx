@@ -27,6 +27,9 @@ export default function Edit({ center, divisions = [], districts = [], upazilas 
         team_id: center.team_id || '',
         password: '',
         password_confirmation: '',
+        credit_enabled: center.credit_enabled ?? false,
+        credit_limit: center.credit_limit || 0,
+        allow_result_without_payment: center.allow_result_without_payment ?? false,
     });
 
     const [submitting, setSubmitting] = useState(false);
@@ -242,6 +245,51 @@ export default function Edit({ center, divisions = [], districts = [], upazilas 
                                     placeholder="Confirm new password"
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                 />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 3: Financial & Credit Setup */}
+                    <div className="p-6 space-y-4">
+                        <div className="flex items-center gap-2 text-indigo-600">
+                            <i className="fa-solid fa-money-bill-transfer text-lg"></i>
+                            <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800">3. Financial & Credit Setup (Phase C)</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-medium">
+                            <div className="flex items-center gap-3 mt-4 border p-3 rounded-lg bg-slate-50">
+                                <input
+                                    type="checkbox"
+                                    id="credit_enabled"
+                                    checked={form.credit_enabled}
+                                    onChange={e => setForm({ ...form, credit_enabled: e.target.checked })}
+                                    className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="credit_enabled" className="text-slate-700 font-bold cursor-pointer">Enable Credit System</label>
+                            </div>
+
+                            <div>
+                                <label className="block text-slate-700 font-bold mb-1">Credit Limit (BDT)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={form.credit_limit}
+                                    onChange={e => setForm({ ...form, credit_limit: e.target.value })}
+                                    disabled={!form.credit_enabled}
+                                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition disabled:opacity-50"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-3 mt-4 border p-3 rounded-lg bg-slate-50">
+                                <input
+                                    type="checkbox"
+                                    id="allow_result"
+                                    checked={form.allow_result_without_payment}
+                                    onChange={e => setForm({ ...form, allow_result_without_payment: e.target.checked })}
+                                    className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="allow_result" className="text-slate-700 font-bold cursor-pointer">Allow Result Publish Without Payment</label>
                             </div>
                         </div>
                     </div>

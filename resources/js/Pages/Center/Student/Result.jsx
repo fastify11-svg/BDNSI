@@ -64,20 +64,31 @@ export default function Result({ students = [], sessions = [], subjects = [] }) 
                                             <td className="px-6 py-4 font-mono text-xs text-purple-700 font-bold">
                                                 Roll: {student.roll || 'N/A'}
                                             </td>
-                                            <td className="px-6 py-4 font-extrabold text-emerald-600">
-                                                {student.result?.gpa || student.result?.grade || 'Passed (A+)'}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <a
-                                                    href={getUrl(`/result?roll=${student.roll}`)}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold border border-emerald-200 inline-flex items-center gap-1"
-                                                >
-                                                    <i className="fa-solid fa-graduation-cap"></i>
-                                                    <span>View Result</span>
-                                                </a>
-                                            </td>
+                                            {student.result_error ? (
+                                                <td colSpan="2" className="px-6 py-4">
+                                                    <div className="flex items-center gap-2 px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs font-bold">
+                                                        <i className="fa-solid fa-lock"></i>
+                                                        <span>Payment Due: Result access is restricted until payment is settled.</span>
+                                                    </div>
+                                                </td>
+                                            ) : (
+                                                <>
+                                                    <td className="px-6 py-4 font-extrabold text-emerald-600">
+                                                        {student.result?.gpa || student.result?.grade || 'Passed (A+)'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <a
+                                                            href={getUrl(`/result?roll=${student.roll}`)}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-bold border border-emerald-200 inline-flex items-center gap-1"
+                                                        >
+                                                            <i className="fa-solid fa-graduation-cap"></i>
+                                                            <span>View Result</span>
+                                                        </a>
+                                                    </td>
+                                                </>
+                                            )}
                                         </tr>
                                     ))
                                 ) : (

@@ -21,7 +21,19 @@ class CenterTotalResultController extends Controller
     {
 
         if ($request->has(['session_id', 'subject_id'])) {
-            $students = Student::with('result', 'subject:id,name', 'session:id,name')->where('center_id', auth()->user()->center_id)->where(['session_id' => $request->session_id, 'subject_id' => $request->subject_id])->get();
+            $center = auth()->user()->center;
+            $students = Student::with('result', 'subject:id,name', 'session:id,name')->where('center_id', $center->id)->where(['session_id' => $request->session_id, 'subject_id' => $request->subject_id])->get();
+
+            $policy = new \App\Policies\AcademicAccessPolicy();
+            
+            $students->transform(function ($student) use ($policy, $center) {
+                $studentArray = $student->toArray();
+                if (!$policy->publishResult($center, $student)) {
+                    unset($studentArray['result']);
+                    $studentArray['result_error'] = 'Result blocked due to unpaid balance and insufficient credit limit.';
+                }
+                return $studentArray;
+            });
 
             return Inertia::render('Center/Student/Result', [
                 'students' => $students,
