@@ -24,5 +24,12 @@ class PaymentGateway extends Model
     protected $casts = [
         'is_sandbox' => 'boolean',
         'is_active' => 'boolean',
+        'store_id' => 'encrypted',
+        'store_password' => 'encrypted',
+        'signature_key' => 'encrypted',
+        'app_key' => 'encrypted',
+        'app_secret' => 'encrypted',
+        'username' => 'encrypted',
+        'password' => 'encrypted',
     ];
 }

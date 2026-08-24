@@ -32,31 +32,12 @@ async function deploy() {
 
     // 1. Upload specific updated and new files
     const filesToUpload = [
-      'app/Http/Kernel.php',
-      'app/Http/Middleware/HandleInertiaRequests.php',
-      'app/Http/Middleware/CaptureReferralMiddleware.php',
-      'app/Http/Middleware/CheckStudentPortalActive.php',
-      'app/Http/Requests/CenterStoreRequest.php',
-      'app/Http/Requests/Student/Auth/LoginRequest.php',
-      'app/Http/Controllers/Admin/BulkDocumentController.php',
-      'app/Jobs/GenerateBulkDocumentsJob.php',
-      'app/Services/PdfEngineService.php',
-      'app/Models/Session.php',
-      'app/Models/SiteConfig.php',
-      'app/Models/Student.php',
-      'app/Models/Subject.php',
-      'app/Models/Team.php',
-      'app/Scopes/StaffScope.php',
-      'app/Traits/BelongsToStaff.php',
-      'config/auth.php',
-      'pdf_engine.mjs',
-      'routes/admin.php',
-      'routes/staff.php',
-      'routes/student.php',
-      'routes/web.php',
-      'database/migrations/2026_08_24_060000_add_auth_and_referral_to_teams_table.php',
-      'database/migrations/2026_08_24_060001_add_team_id_to_subjects_and_sessions_table.php',
-      'database/migrations/2026_08_24_070000_add_toggle_student_portal_to_site_configs_table.php',
+      'app/Console/Kernel.php',
+      'app/Providers/TelescopeServiceProvider.php',
+      'config/app.php',
+      'config/telescope.php',
+      'composer.json',
+      'composer.lock',
     ];
 
     for (const relPath of filesToUpload) {
@@ -69,17 +50,8 @@ async function deploy() {
     }
 
     // 2. Upload directories
-    console.log('[SFTP] Uploading app/Http/Controllers/Staff directory...');
-    await sftp.uploadDir(path.resolve('app/Http/Controllers/Staff'), `${REMOTE_DIR}/app/Http/Controllers/Staff`);
-
-    console.log('[SFTP] Uploading app/Http/Controllers/Student directory...');
-    await sftp.uploadDir(path.resolve('app/Http/Controllers/Student'), `${REMOTE_DIR}/app/Http/Controllers/Student`);
-
-    console.log('[SFTP] Uploading resources/views/student/document directory...');
-    await sftp.uploadDir(path.resolve('resources/views/student/document'), `${REMOTE_DIR}/resources/views/student/document`);
-
-    console.log('[SFTP] Uploading public/build directory...');
-    await sftp.uploadDir(path.resolve('public/build'), `${REMOTE_DIR}/public/build`);
+    console.log('[SFTP] Uploading public/vendor/telescope directory...');
+    await sftp.uploadDir(path.resolve('public/vendor/telescope'), `${REMOTE_DIR}/public/vendor/telescope`);
 
     await sftp.end();
     console.log('[SFTP] All files uploaded successfully.');
@@ -97,17 +69,23 @@ async function deploy() {
           chmod -R 755 .
           chmod -R 775 storage bootstrap/cache 2>/dev/null || true
           
+          echo "=== Installing PHP dependencies ==="
+          composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts 2>&1
+          
+          echo "=== Discovering Packages ==="
+          php artisan package:discover
+          
           echo "=== Running Database Migrations ==="
           php artisan migrate --force
+          
+          echo "=== Publishing Telescope Assets ==="
+          php artisan telescope:publish
           
           echo "=== Clearing and Rebuilding Laravel Caches ==="
           php artisan optimize:clear
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
-          
-          echo "=== Checking PDF Engine Routes ==="
-          php artisan route:list | grep -i bulk || true
           
           echo "=== Production Deployment Complete ==="
         `;

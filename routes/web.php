@@ -127,18 +127,4 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'timestamp' => now()]);
 })->middleware('throttle:health')->name('health');
 
-Route::get('/live_deploy', function () {
-    try {
-        Schema::dropIfExists('semester_results');
-        DB::table('migrations')->where('migration', 'like', '%create_semester_results%')->delete();
-        Artisan::call('migrate', ['--force' => true]);
 
-        return 'Deployed successfully: '.Artisan::output();
-    } catch (Exception $e) {
-        return 'Error: '.$e->getMessage();
-    }
-});
-
-Route::get('/ping', function() { return 'pong'; });
-
-Route::get('/test-transcript', function () { return view('admin.student.transcript', ['student' => (object)['name' => 'John Doe', 'roll' => '123', 'registration' => '456', 'course_type' => (object)['value' => 2]]]); });
