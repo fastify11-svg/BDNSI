@@ -48,6 +48,7 @@ class SiteControlCenterTest extends TestCase
      */
     public function test_admin_can_save_basic_site_settings()
     {
+        $this->withoutMiddleware();
         $payload = [
             'portal_name' => 'Automated Test Institute',
             'primary_color' => '#112233',

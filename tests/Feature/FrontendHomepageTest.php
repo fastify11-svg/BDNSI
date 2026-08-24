@@ -6,6 +6,12 @@ use Tests\TestCase;
 
 class FrontendHomepageTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Cache::flush();
+    }
+
     /**
      * Test if the homepage loads correctly.
      *

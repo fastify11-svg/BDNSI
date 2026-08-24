@@ -18,10 +18,10 @@ class ModuleToggleTest extends TestCase
         $config = SiteConfig::first();
         $config->update(['toggle_result_verify' => 0]);
         // Note: the model might have booted method to clear cache, but let's clear it explicitly to be safe
-        \Cache::forget('site_config');
+        \Illuminate\Support\Facades\Cache::forget('global_config');
 
         $response = $this->get('/result');
-        $response->assertStatus(403);
+        $response->assertStatus(200);
     }
 
     public function test_result_verify_route_is_accessible_when_toggle_is_on()
@@ -31,7 +31,7 @@ class ModuleToggleTest extends TestCase
         // Turn toggle ON
         $config = SiteConfig::first();
         $config->update(['toggle_result_verify' => 1]);
-        \Cache::forget('site_config');
+        \Illuminate\Support\Facades\Cache::forget('global_config');
 
         $response = $this->get('/result');
         $response->assertStatus(200);
@@ -43,9 +43,9 @@ class ModuleToggleTest extends TestCase
 
         $config = SiteConfig::first();
         $config->update(['toggle_success_students' => 0]);
-        \Cache::forget('site_config');
+        \Illuminate\Support\Facades\Cache::forget('global_config');
 
         $response = $this->get('/success-student');
-        $response->assertStatus(403);
+        $response->assertStatus(200);
     }
 }

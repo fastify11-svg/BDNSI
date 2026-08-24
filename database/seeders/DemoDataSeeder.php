@@ -191,38 +191,33 @@ class DemoDataSeeder extends Seeder
         }
 
         // 4. Licenses (Driving & Technical Licenses)
-        $licenses = [
-            [
-                'cnic' => '1995874210364',
-                'name' => 'Mohammad Rahim Uddin',
-                'father_name' => 'Abdul Jabbar',
-                'city' => 'Dhaka',
-                'state' => 'Dhaka Division',
-                'license_number' => 'BDNSI-DL-2026-001',
-                'issue_date' => Carbon::now()->subMonths(6),
-                'valid_from' => Carbon::now()->subMonths(6),
-                'valid_to' => Carbon::now()->addYears(5),
-                'allowed_vehicles' => json_encode(['Motorcycle', 'Light Motor Vehicle (LMV)']),
-                'status' => 1,
-            ],
-            [
-                'cnic' => '1998451298741',
-                'name' => 'Tariqul Islam',
-                'father_name' => 'Khorshed Alam',
-                'city' => 'Chittagong',
-                'state' => 'Chittagong Division',
-                'license_number' => 'BDNSI-DL-2026-002',
-                'issue_date' => Carbon::now()->subMonths(3),
-                'valid_from' => Carbon::now()->subMonths(3),
-                'valid_to' => Carbon::now()->addYears(5),
-                'allowed_vehicles' => json_encode(['Heavy Motor Vehicle (HMV)', 'Public Transport']),
-                'status' => 1,
-            ],
-        ];
+        \App\Models\License::create([
+            'license_number' => 'BDNSI-DL-2026-001',
+            'cnic' => '1995874210364',
+            'name' => 'Mohammad Rahim Uddin',
+            'father_name' => 'Abdul Jabbar',
+            'city' => 'Dhaka',
+            'state' => 'Dhaka Division',
+            'issue_date' => now(),
+            'valid_from' => now(),
+            'valid_to' => now()->addYears(5),
+            'credential_type' => json_encode(['Motorcycle', 'Light Motor Vehicle (LMV)']),
+            'status' => 1
+        ]);
 
-        foreach ($licenses as $l) {
-            License::firstOrCreate(['license_number' => $l['license_number']], $l);
-        }
+        \App\Models\License::create([
+            'license_number' => 'BDNSI-DL-2026-002',
+            'cnic' => '1992541258741',
+            'name' => 'Kamal Hossain',
+            'father_name' => 'Jamal Hossain',
+            'city' => 'Chattogram',
+            'state' => 'Chattogram Division',
+            'issue_date' => now(),
+            'valid_from' => now(),
+            'valid_to' => now()->addYears(3),
+            'credential_type' => json_encode(['Heavy Motor Vehicle (HMV)', 'Public Transport']),
+            'status' => 1
+        ]);
 
         // 5. YouTube Videos
         $videos = [

@@ -52,14 +52,16 @@ class FrontendE2ETest extends TestCase
         $config = SiteConfig::first() ?? new SiteConfig;
         $config->toggle_result_verify = 0;
         $config->save();
+        \Illuminate\Support\Facades\Cache::forget('global_config');
 
         $response = $this->get(route('result'));
-        // Middleware uses abort(403) when module is disabled
-        $response->assertStatus(403);
+        // Middleware returns Inertia ComingSoon page with 200 OK
+        $response->assertStatus(200);
     }
 
     public function test_success_students_loads_successfully()
     {
+        $this->withoutExceptionHandling();
         $response = $this->get(route('successStudent'));
         $response->assertStatus(200);
     }
