@@ -41,6 +41,8 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $adminUser = auth('admin')->user();
+        $staffUser = auth('staff')->user();
+        $studentUser = auth('student')->user();
 
         return array_merge(parent::share($request), [
             'auth' => [
@@ -79,6 +81,46 @@ class HandleInertiaRequests extends Middleware
                     'unread_inquiries_count' => Cache::remember('unread_inquiries', 60, function () {
                         return ContactUs::where('is_seen', false)->count();
                     }),
+                ] : null,
+                'staff' => $staffUser ? [
+                    'id' => $staffUser->id,
+                    'name' => $staffUser->name,
+                    'designation' => $staffUser->designation,
+                    'email' => $staffUser->email,
+                    'phone' => $staffUser->phone,
+                    'referral_code' => $staffUser->referral_code,
+                    'referral_link' => url('/?ref=' . $staffUser->referral_code),
+                    'image' => $staffUser->image,
+                    'is_active' => (bool)$staffUser->is_active,
+                ] : null,
+                'student' => $studentUser ? [
+                    'id' => $studentUser->id,
+                    'name' => $studentUser->name,
+                    'roll' => $studentUser->roll,
+                    'registration' => $studentUser->registration,
+                    'email' => $studentUser->email,
+                    'phone' => $studentUser->phone,
+                    'picture' => $studentUser->picture,
+                    'status' => is_object($studentUser->status) ? $studentUser->status->value : $studentUser->status,
+                    'status_label' => is_object($studentUser->status) ? $studentUser->status->name : ($studentUser->status == 1 ? 'Approved' : 'Pending Review'),
+                    'due_amount' => $studentUser->due_amount ?? 0,
+                    'paid_amount' => $studentUser->paid_amount ?? 0,
+                    'payment_status' => $studentUser->payment_status ?? 'Paid',
+                    'center' => $studentUser->center ? [
+                        'id' => $studentUser->center->id,
+                        'name' => $studentUser->center->name,
+                        'code' => $studentUser->center->code,
+                    ] : null,
+                    'subject' => $studentUser->subject ? [
+                        'id' => $studentUser->subject->id,
+                        'name' => $studentUser->subject->name,
+                        'code' => $studentUser->subject->code,
+                    ] : null,
+                    'session' => $studentUser->session ? [
+                        'id' => $studentUser->session->id,
+                        'name' => $studentUser->session->name,
+                        'duration' => $studentUser->session->duration,
+                    ] : null,
                 ] : null,
             ],
             'flash' => [

@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use App\Enums\CourseType;
+use App\Traits\BelongsToStaff;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Session extends Model
 {
-    use HasFactory;
+    use BelongsToStaff, HasFactory;
 
     protected $fillable = [
+        'team_id',
         'name',
         'duration',
         'exam_date',

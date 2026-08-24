@@ -126,26 +126,42 @@ class ResultController extends Controller
                 $percentage = ($limit > 0) ? ($totalMarks / $limit) * 100 : 0;
 
                 $targetCgpa = 0.00;
-                if ($percentage >= 80) {
-                    $targetCgpa = 4.00;
-                } elseif ($percentage >= 75) {
-                    $targetCgpa = 3.75;
-                } elseif ($percentage >= 70) {
-                    $targetCgpa = 3.50;
-                } elseif ($percentage >= 65) {
-                    $targetCgpa = 3.25;
-                } elseif ($percentage >= 60) {
-                    $targetCgpa = 3.00;
-                } elseif ($percentage >= 55) {
-                    $targetCgpa = 2.75;
-                } elseif ($percentage >= 50) {
-                    $targetCgpa = 2.50;
-                } elseif ($percentage >= 45) {
-                    $targetCgpa = 2.25;
-                } elseif ($percentage >= 40) {
-                    $targetCgpa = 2.00;
+
+                // Dynamic Grading Scale Engine
+                $gradeScale = \App\Models\GradeScale::where('course_type', $typeStr)->first();
+                if ($gradeScale && is_array($gradeScale->rules) && count($gradeScale->rules) > 0) {
+                    $limit = $gradeScale->max_marks > 0 ? $gradeScale->max_marks : $limit;
+                    $percentage = ($limit > 0) ? ($totalMarks / $limit) * 100 : 0;
+                    
+                    foreach ($gradeScale->rules as $rule) {
+                        if ($percentage >= $rule['min_percent'] && $percentage <= $rule['max_percent']) {
+                            $targetCgpa = (float) $rule['cgpa']; // Assuming rules store cgpa
+                            break;
+                        }
+                    }
                 } else {
-                    $targetCgpa = 0.00;
+                    // Fallback to legacy hardcoded rules
+                    if ($percentage >= 80) {
+                        $targetCgpa = 4.00;
+                    } elseif ($percentage >= 75) {
+                        $targetCgpa = 3.75;
+                    } elseif ($percentage >= 70) {
+                        $targetCgpa = 3.50;
+                    } elseif ($percentage >= 65) {
+                        $targetCgpa = 3.25;
+                    } elseif ($percentage >= 60) {
+                        $targetCgpa = 3.00;
+                    } elseif ($percentage >= 55) {
+                        $targetCgpa = 2.75;
+                    } elseif ($percentage >= 50) {
+                        $targetCgpa = 2.50;
+                    } elseif ($percentage >= 45) {
+                        $targetCgpa = 2.25;
+                    } elseif ($percentage >= 40) {
+                        $targetCgpa = 2.00;
+                    } else {
+                        $targetCgpa = 0.00;
+                    }
                 }
 
                 $baseGrades = [

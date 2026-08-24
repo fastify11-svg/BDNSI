@@ -59,6 +59,7 @@ class Kernel extends HttpKernel
             EncryptCookies::class,
             AddQueuedCookiesToResponse::class,
             StartSession::class,
+            \App\Http\Middleware\CaptureReferralMiddleware::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
             ShareErrorsFromSession::class,
             VerifyCsrfToken::class,
@@ -91,5 +92,6 @@ class Kernel extends HttpKernel
         'throttle' => ThrottleRequests::class,
         'verified' => EnsureEmailIsVerified::class,
         'module' => CheckModuleEnabled::class,
+        'portal.student' => \App\Http\Middleware\CheckStudentPortalActive::class,
     ];
 }

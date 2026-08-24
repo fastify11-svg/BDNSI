@@ -20,7 +20,7 @@ class SiteConfig extends Model
         'privacy_policy', 'footer_copyright',
         'toggle_center_apply', 'toggle_result_verify', 'toggle_success_students',
         'toggle_video_gallery', 'toggle_photo_gallery', 'toggle_verified_centers',
-        'toggle_sponsors', 'toggle_notice_board', 'toggle_contact_form', 'toggle_whatsapp',
+        'toggle_sponsors', 'toggle_notice_board', 'toggle_contact_form', 'toggle_whatsapp', 'toggle_student_portal',
         'primary_color', 'secondary_color', 'accent_color',
         'footer_top_bg_image', 'footer_side_bg_image', 'footer_disclaimer_text',
         'footer_planning_text', 'footer_tech_support_text',

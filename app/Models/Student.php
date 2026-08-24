@@ -9,6 +9,7 @@ use App\Enums\Gender;
 use App\Enums\Religion;
 use App\Enums\StudentStatus;
 use App\Scopes\CenterScope;
+use App\Traits\BelongsToStaff;
 use App\Traits\DeletesImage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -43,7 +44,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class Student extends Authenticatable
 {
-    use \App\Traits\ClearsFrontendCache, \App\Traits\Student\HasGrades, DeletesImage, HasFactory;
+    use \App\Traits\ClearsFrontendCache, \App\Traits\Student\HasGrades, BelongsToStaff, DeletesImage, HasFactory;
 
     protected static function booted()
     {
@@ -81,6 +82,8 @@ class Student extends Authenticatable
         'qualification',
         'course_type',
         'team_id',
+        'password',
+        'remember_token',
     ];
 
     protected $casts = [
@@ -121,6 +124,11 @@ class Student extends Authenticatable
     public function semesterResults()
     {
         return $this->hasMany(SemesterResult::class);
+    }
+
+    public function transactions()
+    {
+        return $this->morphMany(Transaction::class, 'payable');
     }
 
     public function scopeOwn($query, $centerId = null)

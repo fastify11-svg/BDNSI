@@ -104,6 +104,7 @@ class CenterStoreRequest extends FormRequest
         }
 
         $validated['status'] = $status ?? CenterStatus::Pending;
+        $validated['team_id'] = $validated['team_id'] ?? session('staff_referral_id') ?? request()->cookie('bdnsi_staff_ref_id');
 
         return Center::create($validated);
     }

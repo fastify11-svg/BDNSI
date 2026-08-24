@@ -1,0 +1,20 @@
+[
+    {
+        "url": "http:\/\/127.0.0.1:8000\/admin\/student\/export",
+        "guard": "admin",
+        "status": 500,
+        "error": "Undefined array key \"exportCsv\""
+    },
+    {
+        "url": "http:\/\/127.0.0.1:8000\/admin\/document-templates\/{document_template}",
+        "guard": "admin",
+        "status": 500,
+        "error": "Method App\\Http\\Controllers\\Admin\\DocumentTemplateController::show does not exist."
+    },
+    {
+        "url": "http:\/\/127.0.0.1:8000\/admin\/student-registration-form\/1",
+        "guard": "admin",
+        "status": 500,
+        "error": "Undefined array key \"registrationForm\""
+    }
+]

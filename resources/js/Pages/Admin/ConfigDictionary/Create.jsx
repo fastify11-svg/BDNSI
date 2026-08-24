@@ -58,6 +58,7 @@ export default function Create({ settings = {} }) {
         toggle_notice_board: settings?.toggle_notice_board ?? 1,
         toggle_contact_form: settings?.toggle_contact_form ?? 1,
         toggle_whatsapp: settings?.toggle_whatsapp ?? 1,
+        toggle_student_portal: settings?.toggle_student_portal ?? 1,
         toggle_maintenance_mode: settings?.toggle_maintenance_mode ?? 0,
         toggle_promo_popup: settings?.toggle_promo_popup ?? 0,
 
@@ -459,6 +460,7 @@ export default function Create({ settings = {} }) {
                                     { id: 'toggle_notice_board', title: 'Notice Board Ticker', desc: 'Latest urgent circulars and PDF notice board.' },
                                     { id: 'toggle_contact_form', title: 'Contact Us Form', desc: 'Public inquiry form section on homepage.' },
                                     { id: 'toggle_whatsapp', title: 'Floating WhatsApp Widget', desc: 'Live chat support floating button on bottom right.' },
+                                    { id: 'toggle_student_portal', title: '🎓 Student Portal Access', desc: 'Global Kill-Switch to enable or disable student login & dashboard.' },
                                     { id: 'toggle_maintenance_mode', title: 'Maintenance Mode', desc: 'Temporarily lock the frontend for upgrades (Future Feature).' },
                                     { id: 'toggle_promo_popup', title: 'Promo Popup Banner', desc: 'Show a promotional popup on load (Future Feature).' },
                                 ].map((mod) => {

@@ -4,14 +4,16 @@ namespace App\Models;
 
 use App\Enums\CourseType;
 use App\Lib\Image;
+use App\Traits\BelongsToStaff;
 use App\Traits\ClearsFrontendCache;
 use Illuminate\Database\Eloquent\Model;
 
 class Subject extends Model
 {
-    use ClearsFrontendCache;
+    use BelongsToStaff, ClearsFrontendCache;
 
     protected $fillable = [
+        'team_id',
         'name',
         'code',
         'photo',
@@ -33,5 +35,10 @@ class Subject extends Model
         } else {
             return asset('images/no-image.png');
         }
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'subject_id');
     }
 }

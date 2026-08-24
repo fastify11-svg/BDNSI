@@ -97,4 +97,9 @@ class Center extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function transactions()
+    {
+        return $this->morphMany(Transaction::class, 'payable');
+    }
 }

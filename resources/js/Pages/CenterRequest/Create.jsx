@@ -3,7 +3,7 @@ import { useForm, usePage } from '@inertiajs/inertia-react';
 import FrontendLayout from '../../Layouts/FrontendLayout';
 import { getUrl } from '../../utils/urlHelper';
 
-export default function Create() {
+export default function Create({ divisions = [], districts = {}, upazilas = {} }) {
     const [logoPreview, setLogoPreview] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
     const [sigPreview, setSigPreview] = useState(null);
@@ -20,6 +20,9 @@ export default function Create() {
         center_logo: null,
         director_photo: null,
         director_signature: null,
+        division: '',
+        district: '',
+        upazilla: '',
     });
 
     const handleFileChange = (e, field, setPreview) => {
@@ -45,6 +48,12 @@ export default function Create() {
             }
         });
     };
+
+    const districtsArray = Object.entries(districts).map(([id, dist]) => ({ id, ...dist }));
+    const upazilasArray = Object.entries(upazilas).map(([id, upz]) => ({ id, ...upz }));
+
+    const filteredDistricts = districtsArray.filter(d => String(d.division_id) === String(data.division));
+    const filteredUpazilas = upazilasArray.filter(u => String(u.district_id) === String(data.district));
 
     return (
         <FrontendLayout>
@@ -118,6 +127,73 @@ export default function Create() {
                                 <i className="fa-solid fa-location-dot"></i>
                                 <span>2. Location & Address</span>
                             </h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                                {/* Division */}
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Division *</label>
+                                    <select
+                                        value={data.division}
+                                        onChange={(e) => {
+                                            setData((prev) => ({
+                                                ...prev,
+                                                division: e.target.value,
+                                                district: '',
+                                                upazilla: ''
+                                            }));
+                                        }}
+                                        required
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-purple-500/20 focus:border-[#7024A8] outline-none transition text-xs font-medium"
+                                    >
+                                        <option value="">Select Division</option>
+                                        {divisions.map((div) => (
+                                            <option key={div.id} value={div.id}>{div.name}</option>
+                                        ))}
+                                    </select>
+                                    {errors.division && <p className="text-rose-600 mt-1 font-semibold text-[11px]">{errors.division}</p>}
+                                </div>
+
+                                {/* District */}
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">District *</label>
+                                    <select
+                                        value={data.district}
+                                        onChange={(e) => {
+                                            setData((prev) => ({
+                                                ...prev,
+                                                district: e.target.value,
+                                                upazilla: ''
+                                            }));
+                                        }}
+                                        required
+                                        disabled={!data.division}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-purple-500/20 focus:border-[#7024A8] outline-none transition text-xs font-medium disabled:opacity-50"
+                                    >
+                                        <option value="">Select District</option>
+                                        {filteredDistricts.map((dist) => (
+                                            <option key={dist.id} value={dist.id}>{dist.name}</option>
+                                        ))}
+                                    </select>
+                                    {errors.district && <p className="text-rose-600 mt-1 font-semibold text-[11px]">{errors.district}</p>}
+                                </div>
+
+                                {/* Upazila */}
+                                <div>
+                                    <label className="block font-bold text-slate-700 mb-1">Upazila / Thana *</label>
+                                    <select
+                                        value={data.upazilla}
+                                        onChange={(e) => setData('upazilla', e.target.value)}
+                                        required
+                                        disabled={!data.district}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-purple-500/20 focus:border-[#7024A8] outline-none transition text-xs font-medium disabled:opacity-50"
+                                    >
+                                        <option value="">Select Upazila</option>
+                                        {filteredUpazilas.map((upz) => (
+                                            <option key={upz.id} value={upz.id}>{upz.name}</option>
+                                        ))}
+                                    </select>
+                                    {errors.upazilla && <p className="text-rose-600 mt-1 font-semibold text-[11px]">{errors.upazilla}</p>}
+                                </div>
+                            </div>
                             <div className="grid grid-cols-1 gap-5">
                                 {/* Field 3: Center Location (Area / Landmark) */}
                                 <div>

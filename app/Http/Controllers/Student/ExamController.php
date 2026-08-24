@@ -16,10 +16,11 @@ class ExamController extends Controller
      */
     public function index()
     {
-
         $alldata = Exam::with('questions')->where('subject_id', auth()->guard('student')->user()->subject_id)->first();
 
-        return view('student.exam.index', compact('alldata'));
+        return \Inertia\Inertia::render('Student/Exam/Index', [
+            'alldata' => $alldata
+        ]);
     }
 
     /**

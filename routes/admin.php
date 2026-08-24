@@ -135,7 +135,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('certificate/{id}', [StudentController::class, 'certificate'])->name('certificateStudent');
         Route::get('without-backgroundcertificate/{id}', [StudentController::class, 'certificateWithoutBackground'])->name('certificateWithoutBackground');
 
-        Route::resource('document-templates', DocumentTemplateController::class);
+        Route::resource('document-templates', DocumentTemplateController::class)->except(['show']);
         Route::patch('document-templates/{template}/toggle-status', [DocumentTemplateController::class, 'toggleStatus'])->name('document-templates.toggleStatus');
         Route::post('document-templates/upload-asset', [DocumentTemplateController::class, 'uploadAsset'])->name('document-templates.upload-asset');
         Route::get('document-templates/{id}/preview', [DocumentTemplateController::class, 'preview'])->name('document-templates.preview');
@@ -157,6 +157,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('document-templates/{template_id}/generate/{student_id}', [DocumentGenerationController::class, 'generate'])->name('document-templates.generate');
         Route::post('document-templates/bulk-generate', [DocumentGenerationController::class, 'bulkGenerate'])->name('document-templates.bulk-generate');
+        
+        // Enterprise Backend PDF Engine Routes
+        Route::post('documents/bulk-generate', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkGenerate'])->name('documents.bulk-generate');
+        Route::get('documents/bulk-status/{jobId}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkProgress'])->name('documents.bulk-status');
+        Route::get('documents/bulk-download/{filename}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkDownload'])->name('documents.bulk-download');
+        Route::get('documents/render-pdf/{template}/{student}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'renderSingle'])->name('documents.render-pdf');
+
         Route::get('student-registration-form/{id}', [StudentController::class, 'registrationForm'])->name('registrationForm');
 
         Route::resource('result', ResultController::class)->only(['index', 'create', 'store', 'show']);

@@ -58,6 +58,10 @@ return [
             'driver' => 'session',
             'provider' => 'students',
         ],
+        'staff' => [
+            'driver' => 'session',
+            'provider' => 'teams',
+        ],
     ],
 
     /*
@@ -95,6 +99,10 @@ return [
             'driver' => 'eloquent',
             'model' => Student::class,
         ],
+        'teams' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\Team::class,
+        ],
     ],
 
     /*
@@ -127,6 +135,12 @@ return [
         ],
         'students' => [
             'provider' => 'students',
+            'table' => 'password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'teams' => [
+            'provider' => 'teams',
             'table' => 'password_resets',
             'expire' => 60,
             'throttle' => 60,

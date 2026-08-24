@@ -95,7 +95,7 @@ class StudentController extends Controller
 
     protected $permissionPrefix = 'student';
 
-    protected $skipActions = ['admit', 'certificate', 'certificateWithoutBackground'];
+    protected $skipActions = ['admit', 'certificate', 'certificateWithoutBackground', 'exportCsv', 'importCsv', 'registrationForm'];
 
     public function admit(int $id)
     {
@@ -112,6 +112,12 @@ class StudentController extends Controller
         }
 
         return $this->renderDynamicTemplate('certificate', $student, 'admin.student.certificate2');
+    }
+
+    public function registrationForm(int $id)
+    {
+        $student = Student::where('id', $id)->firstOrFail();
+        return $this->renderDynamicTemplate('registration_form', $student, 'admin.student.registrationForm');
     }
 
     public function certificateWithoutBackground(int $id)

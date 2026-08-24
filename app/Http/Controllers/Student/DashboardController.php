@@ -3,19 +3,33 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
+use App\Models\Notice;
+use App\Models\Student;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function __construct()
+    public function index(Request $request)
     {
-        /*
-         * Uncomment the line below if you want to use verified middleware
-         */
-        // $this->middleware('verified:student.verification.notice');
-    }
+        $studentId = Auth::guard('student')->id();
 
-    public function index()
-    {
-        return view('student.dashboard');
+        $student = Student::withoutGlobalScopes()
+            ->with(['center', 'subject', 'session', 'result', 'semesterResults'])
+            ->findOrFail($studentId);
+
+        // Fetch recent active notices
+        $notices = Notice::where('is_active', true)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return Inertia::render('Student/Dashboard', [
+            'student' => $student,
+            'result' => $student->result,
+            'semesterResults' => $student->semesterResults,
+            'notices' => $notices,
+        ]);
     }
 }

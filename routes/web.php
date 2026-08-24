@@ -119,6 +119,7 @@ Route::prefix('payment')->name('payment.')->group(function () {
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/student.php';
+require __DIR__.'/staff.php';
 
 Route::post('/gemini/extract-ocr', [GeminiOcrController::class, 'extractData'])->middleware(['throttle:10,1', 'auth:admin'])->name('gemini.ocr');
 

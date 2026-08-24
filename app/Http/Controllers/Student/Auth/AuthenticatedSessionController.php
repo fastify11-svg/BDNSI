@@ -7,22 +7,27 @@ use App\Http\Requests\Student\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
+     * Display the student login view.
      *
-     * @return View
+     * @return Response|RedirectResponse
      */
     public function create()
     {
-        return view('student.auth.login');
+        if (Auth::guard('student')->check()) {
+            return redirect()->route('student.dashboard');
+        }
+
+        return Inertia::render('Student/Auth/Login');
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle an incoming student authentication request.
      *
      * @return RedirectResponse
      */
@@ -32,11 +37,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect(route('student.dashboard'));
+        return redirect()->intended(route('student.dashboard'));
     }
 
     /**
-     * Destroy an authenticated session.
+     * Destroy an authenticated student session.
      *
      * @return RedirectResponse
      */
@@ -45,9 +50,8 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('student')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('student.login');
     }
 }

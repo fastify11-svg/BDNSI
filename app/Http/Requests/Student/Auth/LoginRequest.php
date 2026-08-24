@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests\Student\Auth;
 
+use App\Models\Student;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -29,7 +31,7 @@ class LoginRequest extends FormRequest
     public function rules()
     {
         return [
-            'phone' => 'required|string',
+            'login' => 'required|string',
             'password' => 'required|string',
         ];
     }
@@ -45,14 +47,28 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::guard('student')->attempt($this->only('phone', 'password'), $this->filled('remember'))) {
+        $login = trim($this->input('login'));
+        $password = $this->input('password');
+
+        // Support authentication via Roll, Registration, Mobile, or Email
+        $student = Student::withoutGlobalScopes()
+            ->where(function ($query) use ($login) {
+                $query->where('roll', $login)
+                      ->orWhere('registration', $login)
+                      ->orWhere('phone', $login)
+                      ->orWhere('email', $login);
+            })
+            ->first();
+
+        if (! $student || ! Hash::check($password, $student->password)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'phone' => __('auth.failed'),
+                'login' => __('These student credentials do not match our academic records.'),
             ]);
         }
 
+        Auth::guard('student')->login($student, $this->boolean('remember'));
         RateLimiter::clear($this->throttleKey());
     }
 
@@ -65,7 +81,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited()
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 50)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 30)) {
             return;
         }
 
@@ -74,7 +90,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'phone' => trans('auth.throttle', [
+            'login' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -88,6 +104,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey()
     {
-        return Str::lower($this->input('phone')).'|'.$this->ip().'|student';
+        return Str::lower($this->input('login')) . '|' . $this->ip() . '|student';
     }
 }

@@ -10,27 +10,28 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
-use Illuminate\Validation\ValidationException;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class NewPasswordController extends Controller
 {
     /**
      * Display the password reset view.
      *
-     * @return View
+     * @return Response
      */
     public function create(Request $request)
     {
-        return view('student.auth.reset-password', ['request' => $request]);
+        return Inertia::render('Student/Auth/ResetPassword', [
+            'token' => $request->route('token'),
+            'email' => $request->email,
+        ]);
     }
 
     /**
      * Handle an incoming new password request.
      *
      * @return RedirectResponse
-     *
-     * @throws ValidationException
      */
     public function store(Request $request)
     {
@@ -40,9 +41,6 @@ class NewPasswordController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Here we will attempt to reset the student's password. If it is successful we
-        // will update the password on an actual student model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
         $status = Password::broker('students')->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($student) use ($request) {
@@ -55,12 +53,9 @@ class NewPasswordController extends Controller
             }
         );
 
-        // If the password was successfully reset, we will redirect the student back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
         return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('student.login')->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+            ? redirect()->route('student.login')->with('success', 'Your password has been reset successfully. Please log in.')
+            : back()->withInput($request->only('email'))
+                ->withErrors(['email' => __($status)]);
     }
 }
