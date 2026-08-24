@@ -67,6 +67,7 @@ class PaymentController extends Controller
             $post_data['success_url'] = route('payment.success', ['gateway' => 'sslcommerz']);
             $post_data['fail_url'] = route('payment.failed', ['gateway' => 'sslcommerz']);
             $post_data['cancel_url'] = route('payment.cancel', ['gateway' => 'sslcommerz']);
+            $post_data['ipn_url'] = route('payment.callback', ['gateway' => 'sslcommerz']);
             
             // Dynamic customer info required by SSLCommerz
             $post_data['cus_name'] = $user ? $user->name : 'BDNSI Student';

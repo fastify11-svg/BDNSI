@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/inertia-react';
+import { Head, Link, useForm } from '@inertiajs/inertia-react';
 import { getUrl } from '../../../utils/urlHelper';
 
 export default function Login() {
@@ -98,10 +98,16 @@ export default function Login() {
                         </div>
                     </form>
 
-                    <div className="pt-4 border-t border-slate-800 text-center">
+                    <div className="pt-4 border-t border-slate-800 text-center flex flex-col gap-2">
+                        <Link
+                            href={getUrl('/staff/forgot-password')}
+                            className="text-xs text-purple-400 hover:text-purple-300 font-semibold transition"
+                        >
+                            Forgot your password?
+                        </Link>
                         <p className="text-[11px] text-slate-400">
-                            Need credentials or password reset?{' '}
-                            <span className="text-purple-400 font-semibold">Contact Head Office Super Admin</span>
+                            Need credentials?{' '}
+                            <span className="text-slate-300 font-semibold">Contact Head Office Admin</span>
                         </p>
                     </div>
                 </div>

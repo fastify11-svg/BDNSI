@@ -115,86 +115,92 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('userCreate');
 
     Route::middleware('auth:admin')->group(function () {
-        Route::resource('password-update', PasswordUpdateController::class)
-            ->only(['create', 'store']);
-        Route::resource('profile-update', ProfileUpdateController::class)
-            ->only(['create', 'store']);
-        Route::resource('user', UserController::class);
-        Route::post('subject/ai-suggest', [SubjectController::class, 'aiSuggest'])->name('subject.aiSuggest');
-        Route::resource('subject', SubjectController::class)->except(['show']);
+        // Common Routes (Admin + Sub-admin)
+        Route::middleware(['role:admin|sub_admin'])->group(function () {
+            Route::resource('password-update', PasswordUpdateController::class)->only(['create', 'store']);
+            Route::resource('profile-update', ProfileUpdateController::class)->only(['create', 'store']);
+            
+            Route::get('student/export', [StudentController::class, 'exportCsv'])->name('student.export');
+            Route::post('student/import', [StudentController::class, 'importCsv'])->name('student.import');
+            Route::resource('student', StudentController::class);
+            Route::get('admit-card/{id}', [StudentController::class, 'admit'])->name('student.admit');
+            Route::get('certificate/{id}', [StudentController::class, 'certificate'])->name('certificateStudent');
+            Route::get('without-backgroundcertificate/{id}', [StudentController::class, 'certificateWithoutBackground'])->name('certificateWithoutBackground');
+            Route::get('student-registration-form/{id}', [StudentController::class, 'registrationForm'])->name('registrationForm');
 
-        Route::patch('session/{session}/toggle-status', [SessionController::class, 'toggleStatus'])->name('session.toggleStatus');
-        Route::resource('session', SessionController::class)->except(['show']);
+            Route::resource('result', ResultController::class)->only(['index', 'create', 'store', 'show']);
+        });
 
-        Route::get('student/export', [StudentController::class, 'exportCsv'])->name('student.export');
-        Route::post('student/import', [StudentController::class, 'importCsv'])->name('student.import');
-        Route::resource('student', StudentController::class);
-        Route::resource('exam', ExamController::class);
-        Route::resource('question', QuestionController::class);
-        Route::get('admit-card/{id}', [StudentController::class, 'admit'])->name('student.admit');
-        Route::get('certificate/{id}', [StudentController::class, 'certificate'])->name('certificateStudent');
-        Route::get('without-backgroundcertificate/{id}', [StudentController::class, 'certificateWithoutBackground'])->name('certificateWithoutBackground');
+        // Super Admin Only Routes
+        Route::middleware(['role:admin'])->group(function () {
+            Route::resource('user', UserController::class);
+            Route::post('subject/ai-suggest', [SubjectController::class, 'aiSuggest'])->name('subject.aiSuggest');
+            Route::resource('subject', SubjectController::class)->except(['show']);
 
-        Route::resource('document-templates', DocumentTemplateController::class)->except(['show']);
-        Route::patch('document-templates/{template}/toggle-status', [DocumentTemplateController::class, 'toggleStatus'])->name('document-templates.toggleStatus');
-        Route::post('document-templates/upload-asset', [DocumentTemplateController::class, 'uploadAsset'])->name('document-templates.upload-asset');
-        Route::get('document-templates/{id}/preview', [DocumentTemplateController::class, 'preview'])->name('document-templates.preview');
-        
-        // Registration Review and Diploma Routing
-        Route::get('/registration-review', [App\Http\Controllers\Admin\RegistrationReviewController::class, 'index'])->name('registration-review.index');
-        Route::post('/registration-review/approve', [App\Http\Controllers\Admin\RegistrationReviewController::class, 'approve'])->name('registration-review.approve');
+            Route::patch('session/{session}/toggle-status', [SessionController::class, 'toggleStatus'])->name('session.toggleStatus');
+            Route::resource('session', SessionController::class)->except(['show']);
 
-        Route::resource('/diplomas', App\Http\Controllers\Admin\DiplomaController::class)->only(['index', 'update']);
+            Route::resource('exam', ExamController::class);
+            Route::resource('question', QuestionController::class);
 
-        // Financial Tracking
-        Route::get('/financial', [App\Http\Controllers\Admin\FinancialController::class, 'index'])->name('financial.index');
-        Route::post('/financial', [App\Http\Controllers\Admin\FinancialController::class, 'store'])->name('financial.store');
-        Route::put('/financial/{payment}', [App\Http\Controllers\Admin\FinancialController::class, 'update'])->name('financial.update');
+            Route::resource('document-templates', DocumentTemplateController::class)->except(['show']);
+            Route::patch('document-templates/{template}/toggle-status', [DocumentTemplateController::class, 'toggleStatus'])->name('document-templates.toggleStatus');
+            Route::post('document-templates/upload-asset', [DocumentTemplateController::class, 'uploadAsset'])->name('document-templates.upload-asset');
+            Route::get('document-templates/{id}/preview', [DocumentTemplateController::class, 'preview'])->name('document-templates.preview');
+            
+            // Registration Review and Diploma Routing
+            Route::get('/registration-review', [App\Http\Controllers\Admin\RegistrationReviewController::class, 'index'])->name('registration-review.index');
+            Route::post('/registration-review/approve', [App\Http\Controllers\Admin\RegistrationReviewController::class, 'approve'])->name('registration-review.approve');
 
-        // Dynamic Grading Rules
-        Route::get('/grade-scales', [App\Http\Controllers\Admin\GradeScaleController::class, 'index'])->name('grade-scales.index');
-        Route::put('/grade-scales/{gradeScale}', [App\Http\Controllers\Admin\GradeScaleController::class, 'update'])->name('grade-scales.update');
+            Route::resource('/diplomas', App\Http\Controllers\Admin\DiplomaController::class)->only(['index', 'update']);
 
-        Route::get('document-templates/{template_id}/generate/{student_id}', [DocumentGenerationController::class, 'generate'])->name('document-templates.generate');
-        Route::post('document-templates/bulk-generate', [DocumentGenerationController::class, 'bulkGenerate'])->name('document-templates.bulk-generate');
-        
-        // Enterprise Backend PDF Engine Routes
-        Route::post('documents/bulk-generate', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkGenerate'])->name('documents.bulk-generate');
-        Route::get('documents/bulk-status/{jobId}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkProgress'])->name('documents.bulk-status');
-        Route::get('documents/bulk-download/{filename}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkDownload'])->name('documents.bulk-download');
-        Route::get('documents/render-pdf/{template}/{student}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'renderSingle'])->name('documents.render-pdf');
+            // Financial Tracking
+            Route::get('/financial', [App\Http\Controllers\Admin\FinancialController::class, 'index'])->name('financial.index');
+            Route::post('/financial', [App\Http\Controllers\Admin\FinancialController::class, 'store'])->name('financial.store');
+            Route::put('/financial/{payment}', [App\Http\Controllers\Admin\FinancialController::class, 'update'])->name('financial.update');
 
-        Route::get('student-registration-form/{id}', [StudentController::class, 'registrationForm'])->name('registrationForm');
+            // Dynamic Grading Rules
+            Route::get('/grade-scales', [App\Http\Controllers\Admin\GradeScaleController::class, 'index'])->name('grade-scales.index');
+            Route::put('/grade-scales/{gradeScale}', [App\Http\Controllers\Admin\GradeScaleController::class, 'update'])->name('grade-scales.update');
 
-        Route::resource('result', ResultController::class)->only(['index', 'create', 'store', 'show']);
-        Route::resource('slider', SliderController::class);
-        Route::get('user/portal/{user}', [UserController::class, 'portal'])->name('user.portal');
+            Route::get('document-templates/{template_id}/generate/{student_id}', [DocumentGenerationController::class, 'generate'])->name('document-templates.generate');
+            Route::post('document-templates/bulk-generate', [DocumentGenerationController::class, 'bulkGenerate'])->name('document-templates.bulk-generate');
+            
+            // Enterprise Backend PDF Engine Routes
+            Route::post('documents/bulk-generate', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkGenerate'])->name('documents.bulk-generate');
+            Route::get('documents/bulk-status/{jobId}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkProgress'])->name('documents.bulk-status');
+            Route::get('documents/bulk-download/{filename}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkDownload'])->name('documents.bulk-download');
+            Route::get('documents/render-pdf/{template}/{student}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'renderSingle'])->name('documents.render-pdf');
 
-        Route::resource('center', CenterController::class);
-        Route::patch('center/{center}/status', [CenterController::class, 'updateStatus'])->name('center.updateStatus');
-        Route::resource('notice', NoticeController::class);
-        Route::resource('adminList', AdminListController::class)->only(['edit', 'update']);
-        Route::resource('configDictionary', ConfigDictionaryController::class)->only(['create', 'store']);
-        Route::resource('team', TeamController::class);
-        Route::get('team-performance', [App\Http\Controllers\Admin\TeamPerformanceController::class, 'index'])->name('team-performance.index');
-        Route::post('team-performance/targets', [App\Http\Controllers\Admin\TeamPerformanceController::class, 'store'])->name('team-performance.store');
-        Route::resource('sub-admin', SubadminController::class);
-        Route::resource('upazila-store', UpazilaStoreController::class);
+            Route::resource('slider', SliderController::class);
+            Route::get('user/portal/{user}', [UserController::class, 'portal'])->name('user.portal');
 
-        Route::get('contactUs', [ContactUsController::class, 'index'])->name('contactUs');
-        Route::patch('contactUs/{id}/mark-read', [ContactUsController::class, 'markAsRead'])->name('contactUs.markAsRead');
-        Route::post('contactUs/{id}/ai-analyze', [ContactUsController::class, 'aiAnalyze'])->name('contactUs.aiAnalyze');
-        Route::delete('contactUs/{id}', [ContactUsController::class, 'destroy'])->name('contactUs.destroy');
-        Route::resource('translation', TranslationController::class);
-        Route::resource('sponsor', SponsorController::class);
-        Route::resource('backup', BackupController::class)->only(['index', 'update']);
-        Route::resource('whatapp-link', WhatappLinkController::class);
-        Route::resource('youtube-video', YoutubeVideoController::class);
-        Route::resource('license', LicenseController::class);
-        Route::resource('api-settings', ApiSettingController::class)->only(['index', 'store']);
-        Route::resource('payment-gateway', App\Http\Controllers\Admin\PaymentGatewayController::class)->only(['index', 'update']);
-        Route::resource('sms-gateway', App\Http\Controllers\Admin\SmsGatewayController::class)->only(['index', 'update']);
-        Route::resource('footer-link', FooterLinkController::class);
-        Route::resource('footer-logo', FooterPartnerLogoController::class);
+            Route::resource('center', CenterController::class);
+            Route::patch('center/{center}/status', [CenterController::class, 'updateStatus'])->name('center.updateStatus');
+            Route::resource('notice', NoticeController::class);
+            Route::resource('adminList', AdminListController::class)->only(['edit', 'update']);
+            Route::resource('configDictionary', ConfigDictionaryController::class)->only(['create', 'store']);
+            Route::resource('team', TeamController::class);
+            Route::get('team-performance', [App\Http\Controllers\Admin\TeamPerformanceController::class, 'index'])->name('team-performance.index');
+            Route::post('team-performance/targets', [App\Http\Controllers\Admin\TeamPerformanceController::class, 'store'])->name('team-performance.store');
+            Route::resource('sub-admin', SubadminController::class);
+            Route::resource('upazila-store', UpazilaStoreController::class);
+
+            Route::get('contactUs', [ContactUsController::class, 'index'])->name('contactUs');
+            Route::patch('contactUs/{id}/mark-read', [ContactUsController::class, 'markAsRead'])->name('contactUs.markAsRead');
+            Route::post('contactUs/{id}/ai-analyze', [ContactUsController::class, 'aiAnalyze'])->name('contactUs.aiAnalyze');
+            Route::delete('contactUs/{id}', [ContactUsController::class, 'destroy'])->name('contactUs.destroy');
+            Route::resource('translation', TranslationController::class);
+            Route::resource('sponsor', SponsorController::class);
+            Route::resource('backup', BackupController::class)->only(['index', 'update']);
+            Route::resource('whatapp-link', WhatappLinkController::class);
+            Route::resource('youtube-video', YoutubeVideoController::class);
+            Route::resource('license', LicenseController::class);
+            Route::resource('api-settings', ApiSettingController::class)->only(['index', 'store']);
+            Route::resource('payment-gateway', App\Http\Controllers\Admin\PaymentGatewayController::class)->only(['index', 'update']);
+            Route::resource('sms-gateway', App\Http\Controllers\Admin\SmsGatewayController::class)->only(['index', 'update']);
+            Route::resource('footer-link', FooterLinkController::class);
+            Route::resource('footer-logo', FooterPartnerLogoController::class);
+        });
     });
 });
