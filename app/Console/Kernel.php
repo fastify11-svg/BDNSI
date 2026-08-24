@@ -26,6 +26,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->command('app:backup')->hourly();
         $schedule->command('student:delete-unpublished')->daily();
+        $schedule->command('telescope:prune --hours=48')->daily();
     }
 
     /**

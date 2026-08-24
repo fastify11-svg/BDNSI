@@ -17,6 +17,7 @@
         "intervention/image": "^2.7",
         "laravel/framework": "^8.0",
         "laravel/sanctum": "^2.11",
+        "laravel/telescope": "4.6",
         "laravel/tinker": "^2.5",
         "painlesscode/breeze-multiauth": "^1.1",
         "santigarcor/laratrust": "^7.1",
