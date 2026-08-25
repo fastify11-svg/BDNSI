@@ -23,7 +23,7 @@ class ReportController extends Controller
 
         // 1. Revenue & Collections
         $totalRevenue = CenterLedger::whereBetween('created_at', [$startDate, $endDate])
-                                     ->where('transaction_type', 'credit')
+                                     ->where('type', 'credit')
                                      ->sum('amount');
                                      
         // 2. Pending Dues (Global)
