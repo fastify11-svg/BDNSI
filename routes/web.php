@@ -84,6 +84,10 @@ Route::middleware(['auth'])->group(function () {
     // Financial Center Routes (Phase C)
     Route::get('orders', [\App\Http\Controllers\Center\OrderController::class, 'index'])->name('center.orders.index');
     Route::get('orders/{order}', [\App\Http\Controllers\Center\OrderController::class, 'show'])->name('center.orders.show');
+    
+    // Center Certificates Hub (Phase D)
+    Route::get('certificates', [\App\Http\Controllers\Center\CertificateController::class, 'index'])->name('center.certificates.index');
+    Route::get('certificates/{student}', [\App\Http\Controllers\Center\CertificateController::class, 'show'])->name('center.certificates.show');
 
     Route::resource('password-update', PasswordUpdateController::class)->only(['create', 'store']);
     Route::resource('profile-update', ProfileUpdateController::class)->only(['create', 'store']);

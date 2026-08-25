@@ -25,6 +25,7 @@ export default function Create({ sessions = [], subjects = [], districts = [], u
         course_type: '1',
         course_duration: '6 Months',
         picture: null,
+        payment_method: 'pay_now',
     });
 
     const handleDataExtracted = (data, rawText = '', file = null) => {
@@ -271,6 +272,37 @@ export default function Create({ sessions = [], subjects = [], districts = [], u
                                     onChange={(e) => setData('picture', e.target.files[0])}
                                     className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none shadow-sm"
                                 />
+                            </div>
+
+                            <div className="md:col-span-3 border-t border-slate-200/80 pt-6 mt-4">
+                                <h3 className="text-sm font-black text-slate-900 mb-4">Payment & Billing</h3>
+                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center">
+                                    <div className="flex-1 w-full">
+                                        <label className="block font-bold text-slate-700 mb-1.5">Payment Method *</label>
+                                        <select
+                                            value={data.payment_method}
+                                            onChange={(e) => setData('payment_method', e.target.value)}
+                                            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none shadow-sm"
+                                        >
+                                            <option value="pay_now">Pay Now via SSLCommerz / bKash</option>
+                                            {usePage().props.auth?.user?.center?.credit_enabled && (
+                                                <option value="credit">Pay later (Use Center Credit)</option>
+                                            )}
+                                        </select>
+                                    </div>
+                                    
+                                    {usePage().props.auth?.user?.center?.credit_enabled && (
+                                        <div className="text-right flex-shrink-0 bg-white px-4 py-2 rounded-lg border border-slate-200 w-full md:w-auto">
+                                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Available Credit</p>
+                                            <p className="text-lg font-black text-[#0F5233]">
+                                                ৳{parseFloat(
+                                                    Math.max(0, (usePage().props.auth?.user?.center?.credit_limit || 0) - (usePage().props.auth?.user?.center?.current_due || 0))
+                                                ).toFixed(2)}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                {errors.payment_method && <p className="text-rose-600 mt-1">{errors.payment_method}</p>}
                             </div>
                         </div>
 

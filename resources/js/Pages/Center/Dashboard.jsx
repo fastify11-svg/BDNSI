@@ -3,7 +3,7 @@ import { Link, usePage } from '@inertiajs/inertia-react';
 import CenterLayout from '../../Layouts/CenterLayout';
 import { getUrl } from '../../utils/urlHelper';
 
-export default function Dashboard({ cards = {}, financials = null }) {
+export default function Dashboard({ cards = {}, financials = null, recent_orders = [], recent_students = [] }) {
     const { auth, app_url } = usePage().props;
     const [activeTab, setActiveTab] = useState('Basic');
 
@@ -182,6 +182,79 @@ export default function Dashboard({ cards = {}, financials = null }) {
                         </div>
                     </div>
                 )}
+
+                {/* Dashboard Data Tables */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Recent Orders */}
+                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900">Recent Orders</h3>
+                                <p className="text-[11px] text-slate-500">Your latest B2B financial invoices</p>
+                            </div>
+                            <Link href={getUrl('/orders')} className="text-xs font-bold text-indigo-600 hover:text-indigo-700">View All</Link>
+                        </div>
+                        {recent_orders.length > 0 ? (
+                            <div className="space-y-3">
+                                {recent_orders.map(order => (
+                                    <div key={order.id} className="flex justify-between items-center p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition">
+                                        <div>
+                                            <p className="text-xs font-bold text-slate-900">Order #{order.id}</p>
+                                            <p className="text-[10px] text-slate-500">{order.items_count} items &bull; ৳{parseFloat(order.total_amount).toFixed(2)}</p>
+                                        </div>
+                                        <div className="text-right flex flex-col items-end gap-1">
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                                order.status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
+                                                order.status === 'unpaid' ? 'bg-rose-100 text-rose-700' :
+                                                'bg-amber-100 text-amber-700'
+                                            }`}>
+                                                {order.status.toUpperCase()}
+                                            </span>
+                                            <Link href={getUrl(`/orders/${order.id}`)} className="text-[10px] font-bold text-slate-400 hover:text-indigo-600">
+                                                View <i className="fa-solid fa-arrow-right ml-0.5"></i>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-6 text-slate-400 text-xs">No recent orders found.</div>
+                        )}
+                    </div>
+
+                    {/* Recent Registrations */}
+                    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900">Recent Registrations</h3>
+                                <p className="text-[11px] text-slate-500">Latest student enrollments</p>
+                            </div>
+                            <Link href={getUrl('/student')} className="text-xs font-bold text-indigo-600 hover:text-indigo-700">View All</Link>
+                        </div>
+                        {recent_students.length > 0 ? (
+                            <div className="space-y-3">
+                                {recent_students.map(student => (
+                                    <div key={student.id} className="flex justify-between items-center p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition">
+                                        <div>
+                                            <p className="text-xs font-bold text-slate-900">{student.name}</p>
+                                            <p className="text-[10px] text-slate-500">{student.subject?.name || 'N/A'} &bull; {student.phone}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                                student.status?.key === 'Approved' ? 'bg-emerald-100 text-emerald-700' :
+                                                'bg-amber-100 text-amber-700'
+                                            }`}>
+                                                {student.status?.key || 'PENDING'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-6 text-slate-400 text-xs">No recent students found.</div>
+                        )}
+                    </div>
+                </div>
 
                 {/* Center Information Section */}
                 <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">

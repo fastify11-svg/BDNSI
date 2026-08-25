@@ -24,6 +24,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         \App\Events\PaymentSucceeded::class => [
             \App\Listeners\UpdateStudentFinancialStatus::class,
+            \App\Listeners\UpdateOrderFinancialStatus::class,
         ],
     ];
 

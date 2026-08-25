@@ -93,5 +93,6 @@ class Kernel extends HttpKernel
         'verified' => EnsureEmailIsVerified::class,
         'module' => CheckModuleEnabled::class,
         'portal.student' => \App\Http\Middleware\CheckStudentPortalActive::class,
+        'check.financial.restriction' => \App\Http\Middleware\CheckFinancialRestriction::class,
     ];
 }

@@ -12,9 +12,11 @@ use App\Traits\DeletesImage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Notifications\Notifiable;
+
 class Center extends Model
 {
-    use \App\Traits\ClearsFrontendCache, DeletesImage, HasFactory;
+    use \App\Traits\ClearsFrontendCache, DeletesImage, HasFactory, Notifiable;
 
     protected $fillable = [
         'code',
@@ -144,5 +146,31 @@ class Center extends Model
             return false;
         }
         return ($this->current_due + $amount) <= $this->credit_limit;
+    }
+
+    /**
+     * Get the financial due classification of the center.
+     */
+    public function getDueClassificationAttribute(): string
+    {
+        if ($this->current_due <= 0) {
+            return 'CLEAR';
+        }
+
+        if (!$this->credit_enabled) {
+            return 'PAYMENT_DUE';
+        }
+
+        if ($this->current_due >= $this->credit_limit) {
+            return 'CREDIT_LIMIT_REACHED';
+        }
+
+        $utilization = $this->current_due / $this->credit_limit;
+
+        if ($utilization >= 0.8) {
+            return 'CREDIT_LIMIT_WARNING';
+        }
+
+        return 'CREDIT_ACTIVE';
     }
 }

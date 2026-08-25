@@ -513,6 +513,53 @@ class StudentController extends Controller
                 .$student->roll.' and Registration No: '.$student->registration.'. Thanks for staying with '.config('site.setting.name');
             \Illuminate\Support\Facades\Log::info("Saving student: dispatching sms");
             SendStudentSmsJob::dispatch($student->phone, $message);
+            
+            // --- Phase E: Registration Order Hook (Admin) ---
+            $pricingService = new \App\Services\PricingService();
+            $priceData = $pricingService->resolvePrice('registration', $validated['center_id']);
+            $finalPrice = $priceData['final_price'];
+
+            $order = \App\Models\Order::create([
+                'center_id' => $validated['center_id'],
+                'order_number' => 'ORD-' . strtoupper(uniqid()),
+                'total_amount' => $finalPrice,
+                'discount_amount' => $priceData['discount'],
+                'payable_amount' => $finalPrice,
+                'paid_amount' => 0,
+                'due_amount' => $finalPrice,
+                'status' => 'Pending',
+            ]);
+
+            \App\Models\OrderItem::create([
+                'order_id' => $order->id,
+                'itemable_id' => $student->id,
+                'itemable_type' => \App\Models\Student::class,
+                'product_type' => 'registration',
+                'unit_price' => $finalPrice,
+                'qty' => 1,
+                'total' => $finalPrice,
+            ]);
+
+            if ($finalPrice > 0) {
+                // Admin creation bypasses policy limits, adds to center due unconditionally
+                $center = $student->center;
+                if ($center) {
+                    $ledgerService = new \App\Services\FinancialLedgerService();
+                    $ledgerService->recordOrder($center, $order, $finalPrice, 'Student Registration Fee (Admin) - ' . $student->registration);
+                }
+                $student->update([
+                    'payment_status' => 0,
+                    'due_amount' => $finalPrice,
+                ]);
+            } else {
+                $student->update([
+                    'payment_status' => 1,
+                    'paid_amount' => 0,
+                    'due_amount' => 0,
+                ]);
+                $order->update(['status' => 'Completed']);
+            }
+
             \Illuminate\Support\Facades\Log::info("Saving student: committing");
             DB::commit();
             \Illuminate\Support\Facades\Log::info("Saving student: done");

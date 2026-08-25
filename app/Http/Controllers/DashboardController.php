@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\StudentStatus;
 use App\Models\Student;
+use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -31,6 +32,18 @@ class DashboardController extends Controller
             ];
         }
 
-        return Inertia::render('Center/Dashboard', compact('cards', 'financials'));
+        $recent_orders = Order::where('center_id', $centerId)
+            ->withCount('items')
+            ->orderBy('id', 'desc')
+            ->take(5)
+            ->get();
+            
+        $recent_students = Student::hide()->where('center_id', $centerId)
+            ->with(['subject:id,name', 'session:id,name'])
+            ->orderBy('id', 'desc')
+            ->take(5)
+            ->get();
+
+        return Inertia::render('Center/Dashboard', compact('cards', 'financials', 'recent_orders', 'recent_students'));
     }
 }

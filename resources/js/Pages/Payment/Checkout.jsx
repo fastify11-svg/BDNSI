@@ -2,10 +2,11 @@ import React from 'react';
 import { Head, useForm } from '@inertiajs/inertia-react';
 import { CreditCard, Wallet } from 'lucide-react';
 
-export default function Checkout({ amount, purpose, gateways }) {
+export default function Checkout({ amount, purpose, gateways, order_id }) {
     const { data, setData, post, processing } = useForm({
         gateway: gateways?.length > 0 ? gateways[0].slug : '',
         amount: amount,
+        order_id: order_id || null,
     });
 
     const submit = (e) => {

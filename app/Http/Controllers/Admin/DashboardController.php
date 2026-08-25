@@ -43,10 +43,14 @@ class DashboardController extends Controller
                 'value' => Center::count(),
                 'url' => route('admin.center.index'),
             ],
-            'Total Courses ' => [
-                'value' => Subject::count(),
-                'url' => route('admin.subject.index'),
+            'Total Revenue' => [
+                'value' => \App\Models\Order::where('status', 'Paid')->orWhere('status', 'Partially Paid')->sum('paid_amount'),
+                'url' => '#',
             ],
+            'Total Outstanding Dues' => [
+                'value' => \App\Models\Center::sum('current_due'),
+                'url' => '#',
+            ]
         ]);
 
         $adminList = Admin::all();
@@ -84,6 +88,10 @@ class DashboardController extends Controller
             ->orderBy('total_students', 'DESC')
             ->limit(5)
             ->get();
+            
+        // 4. Financial Health (Last 30 Days Revenue)
+        $thirtyDaysAgo = now()->subDays(30);
+        $recentRevenue = \App\Models\Order::where('created_at', '>=', $thirtyDaysAgo)->sum('paid_amount');
 
         return Inertia::render('Admin/Dashboard', [
             'cards' => $cards,
@@ -92,6 +100,7 @@ class DashboardController extends Controller
                 'monthlyRegistrations' => $monthlyRegistrations,
                 'statusBreakdown' => $statusBreakdown,
                 'topCenters' => $topCenters,
+                'recentRevenue' => $recentRevenue,
             ],
         ]);
     }

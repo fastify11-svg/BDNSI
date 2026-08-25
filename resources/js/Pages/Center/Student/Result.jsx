@@ -66,9 +66,14 @@ export default function Result({ students = [], sessions = [], subjects = [] }) 
                                             </td>
                                             {student.result_error ? (
                                                 <td colSpan="2" className="px-6 py-4">
-                                                    <div className="flex items-center gap-2 px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs font-bold">
-                                                        <i className="fa-solid fa-lock"></i>
-                                                        <span>Payment Due: Result access is restricted until payment is settled.</span>
+                                                    <div className="flex items-center justify-between px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs font-bold">
+                                                        <div className="flex items-center gap-2">
+                                                            <i className="fa-solid fa-lock"></i>
+                                                            <span>Payment Due: Result access is restricted until payment is settled.</span>
+                                                        </div>
+                                                        <Link href={getUrl('/orders')} className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-[10px] shadow-sm transition">
+                                                            Pay Invoice
+                                                        </Link>
                                                     </div>
                                                 </td>
                                             ) : (

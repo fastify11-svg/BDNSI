@@ -223,23 +223,47 @@ export default function Index({ students, filters = {} }) {
                                                 </td>
 
                                                 <td className="px-5 py-4 whitespace-nowrap">
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => toggleDocMenu(e, student.id)}
-                                                        className="bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
-                                                    >
-                                                        <span>Documents</span>
-                                                        <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${activeDocMenuId === student.id ? 'rotate-180' : ''}`}></i>
-                                                    </button>
+                                                    {student.can_access_documents === false ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                alert('Documents are locked due to pending payment. Please clear the due amount.');
+                                                            }}
+                                                            className="bg-slate-100 text-slate-400 px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 cursor-not-allowed border border-slate-200"
+                                                            title="Documents locked due to pending payment"
+                                                        >
+                                                            <i className="fa-solid fa-lock text-[10px]"></i>
+                                                            <span>Locked</span>
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => toggleDocMenu(e, student.id)}
+                                                            className="bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
+                                                        >
+                                                            <span>Documents</span>
+                                                            <i className={`fa-solid fa-chevron-down text-[10px] transition-transform ${activeDocMenuId === student.id ? 'rotate-180' : ''}`}></i>
+                                                        </button>
+                                                    )}
                                                 </td>
-                                                <td className="px-5 py-4">
+                                                <td className="px-5 py-4 flex flex-col gap-1.5 items-start">
                                                     <span className={`px-3 py-1 rounded-full text-xs font-extrabold border ${
-                                                        student.status === 1 || student.status === 'Approved'
+                                                        student.status === 1 || student.status === 'Approved' || student.status?.key === 'Approved'
                                                             ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
                                                             : 'bg-amber-100 text-amber-800 border-amber-200'
                                                     }`}>
-                                                        {student.status === 1 ? 'Approved' : 'Pending'}
+                                                        {student.status === 1 || student.status?.key === 'Approved' ? 'Approved' : 'Pending'}
                                                     </span>
+                                                    {parseFloat(student.due_amount) > 0 ? (
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-xs" title="Payment Due">
+                                                            Due: ৳{student.due_amount}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-50 text-slate-500 border border-slate-200 shadow-xs" title="Financially Cleared">
+                                                            Cleared
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-5 py-4 text-right space-x-1.5">
                                                     <button

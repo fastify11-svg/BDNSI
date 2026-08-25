@@ -25,25 +25,34 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax() && ! $request->header('X-Inertia')) {
-            return datatables(Student::hide()->select(['id', 'center_id', 'session_id', 'subject_id', 'name', 'status', 'roll'])
+            $policy = new \App\Policies\AcademicAccessPolicy();
+            $center = Auth::user()->center;
+            
+            return datatables(Student::hide()->select(['id', 'center_id', 'session_id', 'subject_id', 'name', 'status', 'roll', 'payment_status', 'paid_amount', 'due_amount'])
                 ->own()
                 ->with(['session', 'subject']))
-                ->addColumn('admit', function ($admit) {
-                    return '<a   style="background-color:green; padding:3px; border-redius:4px 4px 4px 4px; color:white"   target="_blank"   target="_blank" href="'.route('student.show', [$admit->id, 'admit' => 'admit']).'">'.'Admit'.'</a>';
+                ->addColumn('admit', function ($admit) use ($policy, $center) {
+                    if (!$policy->accessRegistrationDocuments($center, $admit)) {
+                        return '<span style="color:red; font-size:12px;">🔒 Locked</span>';
+                    }
+                    return '<a style="background-color:green; padding:3px; border-radius:4px; color:white" target="_blank" href="'.route('student.show', [$admit->id, 'admit' => 'admit']).'">Admit</a>';
                 })
-                ->addColumn('registration', function ($registration) {
-                    $registrationLink = '<a style="background-color:green; padding:3px; border-radius:4px; color:white" target="_blank" href="'
+                ->addColumn('registration', function ($registration) use ($policy, $center) {
+                    if (!$policy->accessRegistrationDocuments($center, $registration)) {
+                        return '<a style="background-color:#BE123C; padding:3px; border-radius:4px; color:white; text-decoration:none;" href="'.route('orders.index').'">Pay Invoice</a>';
+                    }
+                    $registrationLink = '<a style="background-color:green; padding:3px; border-radius:4px; color:white; text-decoration:none;" target="_blank" href="'
                         .route('student.show', [$registration->id, 'registration' => 'registration'])
                         .'">Registration</a>';
 
-                    $idCardLink = '<a style="background-color:green; padding:3px; border-radius:4px; color:white" target="_blank" href="'
+                    $idCardLink = '<a style="background-color:green; padding:3px; border-radius:4px; color:white; text-decoration:none;" target="_blank" href="'
                         .route('student.show', [$registration->id, 'idcard' => 'idcard'])
                         .'">Id Card</a>';
 
                     return $registrationLink.' '.$idCardLink;
                 })
                 ->addColumn('result', function ($result) {
-                    return '<a  style="background-color:green; padding:3px; border-redius:4px 4px 4px 4px; color:white"   target="_blank"       href="'.route('result', ['roll' => $result->roll]).'">'.'Result'.'</a>';
+                    return '<a  style="background-color:green; padding:3px; border-radius:4px; color:white; text-decoration:none;" target="_blank" href="'.route('result', ['roll' => $result->roll]).'">Result</a>';
                 })
                 ->rawColumns(['admit', 'registration', 'result'])
                 ->toJson();
@@ -106,7 +115,25 @@ class StudentController extends Controller
             'course_duration' => 'nullable',
             'picture' => 'nullable',
             'course_type' => 'nullable',
+            'payment_method' => 'nullable|string|in:pay_now,credit',
         ]);
+
+        $center = Auth::user()->center;
+        $paymentMethod = $validated['payment_method'] ?? 'pay_now';
+
+        $pricingService = new \App\Services\PricingService();
+        $priceData = $pricingService->resolvePrice('registration', $center->id);
+        $finalPrice = $priceData['final_price'];
+
+        // Enforce credit rules before creating anything
+        if ($finalPrice > 0 && $paymentMethod === 'credit') {
+            if (!$center || !$center->allow_registration_without_payment) {
+                return back()->withErrors(['payment_method' => 'You are not authorized to use credit. Please select Pay Now.']);
+            }
+            if (!$center->hasSufficientCredit($finalPrice)) {
+                return back()->withErrors(['payment_method' => 'Credit limit exceeded. Please select Pay Now or clear dues.']);
+            }
+        }
 
         $session = Session::find($validated['session_id']);
 
@@ -120,16 +147,62 @@ class StudentController extends Controller
         }
         $validated['roll'] = $validated['roll'] ?? Student::getLastFreeRoll();
         $validated['registration'] = $validated['registration'] ?? Student::getLastFreeRegistration();
-        $validated['center_id'] = Auth::user()->center_id ?? 1;
+        $validated['center_id'] = $center->id;
         $validated['status'] = StudentStatus::Pending;
+        $validated['payment_status'] = 0;
+        $validated['due_amount'] = $finalPrice;
+        $validated['paid_amount'] = 0;
+
         $student = Student::create($validated);
+
+        $order = \App\Models\Order::create([
+            'center_id' => $validated['center_id'],
+            'order_number' => 'ORD-' . strtoupper(uniqid()),
+            'total_amount' => $finalPrice,
+            'discount_amount' => $priceData['discount'],
+            'payable_amount' => $finalPrice,
+            'paid_amount' => 0,
+            'due_amount' => $finalPrice,
+            'status' => 'Pending',
+        ]);
+
+        \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'itemable_id' => $student->id,
+            'itemable_type' => \App\Models\Student::class,
+            'product_type' => 'registration',
+            'unit_price' => $finalPrice,
+            'qty' => 1,
+            'total' => $finalPrice,
+        ]);
+
         $message = 'Congratulations!! '.$student->name.', You have successfully filled the application form for  '
-            .(Auth::user()->center->name ?? '').' Technician '
+            .($center->name ?? '').' Technician '
             .($student->subject->name ?? '').' under  '.config('site.setting.name').' Your Roll No: '
             .$student->roll.' and Registration No: '.$student->registration.'. Thanks for staying with National '.config('site.setting.name');
+        
         SendStudentSmsJob::dispatch($student->phone, $message);
 
-        return redirect()->route('student.index')->with('success', 'Student Created successfully');
+        if ($finalPrice > 0) {
+            if ($paymentMethod === 'credit') {
+                $ledgerService = new \App\Services\FinancialLedgerService();
+                $ledgerService->recordOrder($center, $order, $finalPrice, 'Student Registration Fee - ' . $student->registration);
+                
+                return redirect()->route('student.index')->with('success', 'Student Created successfully. Registration fee added to due.');
+            } else {
+                return redirect()->route('center.orders.show', $order->id)->with('warning', 'Registration saved. Please pay the invoice to unlock documents.');
+            }
+        } else {
+            $student->update([
+                'payment_status' => 1,
+                'paid_amount' => 0,
+                'due_amount' => 0,
+            ]);
+            
+            $order->update(['status' => 'Paid']);
+            
+            return redirect()->route('student.index')->with('success', 'Student Created successfully (Free).');
+        }
     }
 
     public function show(Request $request, Student $student)
@@ -138,6 +211,12 @@ class StudentController extends Controller
             Auth::user()->center_id != $student->center_id,
             403
         );
+
+        $policy = new \App\Policies\AcademicAccessPolicy();
+        if (!$policy->accessRegistrationDocuments(Auth::user()->center, $student)) {
+            abort(403, 'Document access blocked due to unpaid balance.');
+        }
+
         if ($request->admit == 'admit') {
 
             return view('student.admit', [

@@ -17,9 +17,12 @@ export default function Show({ order }) {
                         </h2>
                     </div>
                     {order.payment_status !== 'Paid' && (
-                        <button className="bg-[#D4A359] text-slate-900 font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md hover:bg-[#c5954c] transition">
-                            Pay Now via SSLCommerz
-                        </button>
+                        <Link 
+                            href={route('payment.checkout', { order_id: order.id })}
+                            className="bg-[#D4A359] text-slate-900 font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md hover:bg-[#c5954c] transition inline-block"
+                        >
+                            Pay Now via SSLCommerz / bKash
+                        </Link>
                     )}
                 </div>
 

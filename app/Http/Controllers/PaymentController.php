@@ -15,13 +15,21 @@ class PaymentController extends Controller
         $gateways = \App\Models\PaymentGateway::where('is_active', true)->get();
         $user = auth()->user() ?? auth('admin')->user();
         
-        $amount = $request->input('amount') ?? config('site.setting.registration_fee', 500);
-        $purpose = $request->input('purpose', 'Registration Fee');
+        $order = null;
+        if ($request->has('order_id')) {
+            $order = \App\Models\Order::findOrFail($request->order_id);
+            $amount = $order->due_amount;
+            $purpose = 'Payment for Order #' . $order->order_number;
+        } else {
+            $amount = $request->input('amount') ?? config('site.setting.registration_fee', 500);
+            $purpose = $request->input('purpose', 'Registration Fee');
+        }
 
         return Inertia::render('Payment/Checkout', [
             'amount' => $amount,
             'purpose' => $purpose,
             'gateways' => $gateways,
+            'order_id' => $order ? $order->id : null,
         ]);
     }
 
@@ -30,12 +38,24 @@ class PaymentController extends Controller
         $request->validate([
             'gateway' => 'required|string',
             'amount' => 'required|numeric',
+            'order_id' => 'nullable|exists:orders,id',
         ]);
         
         $gatewayConfig = \App\Models\PaymentGateway::where('slug', $request->gateway)->where('is_active', true)->firstOrFail();
         $trx_id = uniqid('TRX_');
 
         $user = auth()->user() ?? auth('admin')->user();
+        
+        $payableType = $user ? get_class($user) : null;
+        $payableId = $user ? $user->id : null;
+        
+        if ($request->filled('order_id')) {
+            $order = \App\Models\Order::find($request->order_id);
+            if ($order) {
+                $payableType = get_class($order);
+                $payableId = $order->id;
+            }
+        }
 
         // Dynamically Create Pending Transaction
         \App\Models\Transaction::create([
@@ -44,8 +64,8 @@ class PaymentController extends Controller
             'gateway' => $request->gateway,
             'status' => 'pending',
             'purpose' => $request->input('purpose', 'Registration Fee'),
-            'payable_type' => $user ? get_class($user) : null,
-            'payable_id' => $user ? $user->id : null,
+            'payable_type' => $payableType,
+            'payable_id' => $payableId,
         ]);
 
         Log::info('Payment processing initiated via Dynamic Config', [

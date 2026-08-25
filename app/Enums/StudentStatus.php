@@ -20,6 +20,14 @@ final class StudentStatus extends Enum
 
     const Hide = 3;
 
+    const Active = 4;
+
+    const Completed = 5;
+
+    const Cancelled = 6;
+
+    const Rejected = 7;
+
     public static function getStatus()
     {
         return [
@@ -27,6 +35,10 @@ final class StudentStatus extends Enum
             'Requested' => 1,
             'Approved' => 2,
             'Hide' => 3,
+            'Active' => 4,
+            'Completed' => 5,
+            'Cancelled' => 6,
+            'Rejected' => 7,
         ];
     }
 }

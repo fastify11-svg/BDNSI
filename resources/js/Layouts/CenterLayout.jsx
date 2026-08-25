@@ -22,7 +22,9 @@ export default function CenterLayout({ children, title = 'Center Portal' }) {
         { label: 'Dashboard', href: '/dashboard', icon: 'fa-gauge' },
         { label: 'Add Registration', href: '/student/create', icon: 'fa-user-plus' },
         { label: 'Student List', href: '/student', icon: 'fa-users' },
-        { label: 'Student Result', href: '/result', icon: 'fa-graduation-cap' },
+        { label: 'Orders & Financials', href: '/orders', icon: 'fa-file-invoice-dollar' },
+        { label: 'Student Result', href: '/result', icon: 'fa-square-poll-vertical' },
+        { label: 'Certificates', href: '/certificates', icon: 'fa-certificate' },
         { label: 'Student Submission', href: '/submission', icon: 'fa-file-export' },
     ];
 
