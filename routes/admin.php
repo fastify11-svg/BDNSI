@@ -172,6 +172,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('documents/bulk-download/{filename}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'bulkDownload'])->name('documents.bulk-download');
             Route::get('documents/render-pdf/{template}/{student}', [App\Http\Controllers\Admin\BulkDocumentController::class, 'renderSingle'])->name('documents.render-pdf');
 
+            // Phase G - Document Verification Routing
+            Route::get('student-documents', [App\Http\Controllers\Admin\StudentDocumentController::class, 'index'])->name('student-documents.index');
+            Route::post('student-documents/{document}/approve', [App\Http\Controllers\Admin\StudentDocumentController::class, 'approve'])->name('student-documents.approve');
+            Route::post('student-documents/{document}/reject', [App\Http\Controllers\Admin\StudentDocumentController::class, 'reject'])->name('student-documents.reject');
+            Route::get('student-documents/{document}/view', [App\Http\Controllers\Admin\StudentDocumentController::class, 'view'])->name('student-documents.view');
+            
+            // Phase G - Advanced Reporting
+            Route::get('reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+
             Route::resource('slider', SliderController::class);
             Route::get('user/portal/{user}', [UserController::class, 'portal'])->name('user.portal');
 

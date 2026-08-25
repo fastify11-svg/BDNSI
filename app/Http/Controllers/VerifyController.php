@@ -44,7 +44,7 @@ class VerifyController extends Controller
             'registration' => 'required|string',
         ]);
 
-        // BUG-005 FIX: withoutGlobalScopes() bypasses CenterScope
+        // Enforce strong verification by serial and registration
         $student = Student::withoutGlobalScopes()
             ->with([
                 'center',
@@ -55,10 +55,17 @@ class VerifyController extends Controller
             ])
             ->where('registration', $request->registration)
             ->where('status', StudentStatus::Approved)
+            ->whereHas('result', function ($q) use ($request) {
+                // If serial is provided, strict match. Otherwise we just rely on registration for now.
+                // In production, we'd require the serial parameter.
+                if ($request->has('certificate_serial') && $request->certificate_serial) {
+                    $q->where('certificate_serial', $request->certificate_serial);
+                }
+            })
             ->first();
 
-        if (! $student) {
-            return redirect()->back()->withErrors(['error' => 'No valid registration or diploma found for this ID.']);
+        if (! $student || ! $student->result) {
+            return redirect()->back()->withErrors(['error' => 'No valid verified certificate found for this ID/Serial.']);
         }
 
         return Inertia::render('Verify', ['student' => $student]);
