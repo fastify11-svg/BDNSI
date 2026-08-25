@@ -39,7 +39,7 @@ class FinancialController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'amount' => 'required|numeric|min:0',
             'purpose' => 'required|string',
             'status' => 'required|string',
@@ -49,7 +49,7 @@ class FinancialController extends Controller
             'transaction_id' => 'nullable|string',
         ]);
 
-        Payment::create($request->all());
+        Payment::create($validated);
 
         return back()->with('success', 'Payment recorded successfully.');
     }

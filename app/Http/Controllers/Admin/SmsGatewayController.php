@@ -19,7 +19,7 @@ class SmsGatewayController extends Controller
 
     public function update(Request $request, SmsGateway $smsGateway)
     {
-        $request->validate([
+        $validated = $request->validate([
             'provider_name' => 'required|string',
             'base_url' => 'nullable|url',
             'api_key' => 'nullable|string',
@@ -33,7 +33,7 @@ class SmsGatewayController extends Controller
             SmsGateway::where('id', '!=', $smsGateway->id)->update(['is_active' => false]);
         }
 
-        $smsGateway->update($request->all());
+        $smsGateway->update($validated);
 
         return redirect()->back()->with('success', 'SMS Gateway updated successfully.');
     }
