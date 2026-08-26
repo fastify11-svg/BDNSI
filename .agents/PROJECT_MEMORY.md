@@ -7,6 +7,7 @@
 - Canonical Git remote: `https://github.com/fastify11-svg/BDNSI.git`
 - Local commands use `C:\xampp\php\php.exe` and `C:\xampp\mysql\bin\mysql.exe`
 - Tests must use the isolated `bdnsi_testing` MySQL database and `bdnsi_test_user`; `tests/CreatesApplication.php` enforces this.
+- GitHub CI provisions the same isolated MySQL test database. Pushes to `main` verify only; production deployment requires a manually dispatched workflow with `deploy=true` after an explicit release decision.
 
 ## Core Invariants
 

@@ -5,11 +5,33 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy the already verified main branch to production'
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   test-and-deploy:
     name: Autonomous Lifecycle
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: bdnsi_testing
+          MYSQL_USER: bdnsi_test_user
+          MYSQL_PASSWORD: safe_test_password
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
 
     steps:
       # ─── 1. CHECKOUT ─────────────────────────────────────────────────────
@@ -28,15 +50,18 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.example .env
-          touch database/database.sqlite
-          # Use $GITHUB_WORKSPACE for portable absolute path
-          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
-          sed -i "s|DB_DATABASE=.*|DB_DATABASE=${GITHUB_WORKSPACE}/database/database.sqlite|" .env
+          # PHPUnit safety guard requires this isolated MySQL database.
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=bdnsi_testing/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=bdnsi_test_user/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=safe_test_password/' .env
           sed -i 's/APP_DEBUG=.*/APP_DEBUG=true/' .env
           sed -i 's/APP_ENV=.*/APP_ENV=testing/' .env
           sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' .env
           sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env
-          # Remove any redis/mysql-specific env vars that could cause errors
+          # CI does not require Redis or a background queue worker.
           sed -i 's/REDIS_HOST=.*/REDIS_HOST=/' .env
           sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env
           echo "APP_URL=http://127.0.0.1:8000" >> .env
@@ -120,8 +145,7 @@ jobs:
       - name: Run Playwright Tests
         run: |
           # Run only smoke/connectivity tests in CI
-          # Auth-dependent tests (admin, student-enrollment, team-performance) are skipped
-          # because SQLite CI environment has known auth session issues
+          # Auth-dependent specs remain outside this smoke suite for runtime stability.
           npx playwright test \
             tests/e2e/frontend.spec.js \
             tests/e2e/frontend-connectivity.spec.js \
@@ -133,9 +157,9 @@ jobs:
           CENTER_EMAIL: center@gmail.com
           CENTER_PASSWORD: '12345678'
 
-      # ─── 9. DEPLOY (on success, main branch push only) ──────────────────
+      # ─── 9. DEPLOY (manual approval only) ───────────────────────────────
       - name: Deploy to Live Server via SSH
-        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: success() && github.event_name == 'workflow_dispatch' && inputs.deploy == true
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
@@ -143,25 +167,25 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT }}
         run: |
           echo "=== Deploying to Hostinger Live Server ==="
-          if [ -z "$SSH_HOST" ]; then
-            echo "WARNING: SSH_HOST secret not set. Running node auto_deploy.mjs instead..."
-            npm rebuild ssh2 2>/dev/null || true
-            node auto_deploy.mjs && echo "SSH deployment complete." || echo "SSH deployment failed (non-blocking)."
-          else
-            sudo apt-get install -y sshpass
-            sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "
-              cd /home/u881397359/domains/nenobet.live/public_html &&
-              git fetch origin main &&
-              git reset --hard origin/main &&
-              composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs &&
-              php artisan config:cache &&
-              php artisan route:cache &&
-              php artisan view:cache &&
-              php artisan migrate --force &&
-              echo DEPLOYMENT_COMPLETE
-            "
-            echo "Live server deployment triggered."
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PASS" ] || [ -z "$SSH_PORT" ]; then
+            echo "Required SSH deployment secrets are not configured."
+            exit 1
           fi
+          sudo apt-get install -y sshpass
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          sshpass -p "$SSH_PASS" ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "
+            cd /home/u881397359/domains/nenobet.live/public_html &&
+            git fetch origin main &&
+            git reset --hard origin/main &&
+            composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs &&
+            php artisan config:cache &&
+            php artisan route:cache &&
+            php artisan view:cache &&
+            php artisan migrate --force &&
+            echo DEPLOYMENT_COMPLETE
+          "
+          echo "Live server deployment completed."
 
       # ─── 10. ARTIFACTS ON FAILURE ────────────────────────────────────────
       - name: Upload Playwright Report
