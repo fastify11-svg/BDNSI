@@ -166,10 +166,13 @@ jobs:
           SSH_PORT: ${{ secrets.SSH_PORT }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           echo "=== Deploying to Hostinger Live Server ==="
-          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PORT" ] || [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$SSH_KNOWN_HOSTS" ]; then
-            echo "Required SSH deployment secrets are not configured."
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PORT" ] || [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$SSH_KNOWN_HOSTS" ] || [ -z "$DB_DATABASE" ] || [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then
+            echo "Required SSH or database deployment secrets are not configured."
             exit 1
           fi
           mkdir -p ~/.ssh
@@ -178,9 +181,22 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
           ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=yes -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "
             cd /home/u881397359/domains/nenobet.live/public_html &&
-            git fetch origin main &&
-            git reset --hard origin/main &&
+            if [ -d .git ]; then
+              git fetch origin main && git reset --hard origin/main;
+            else
+              git clone --branch main --depth 1 https://github.com/fastify11-svg/BDNSI.git .;
+            fi &&
+            if [ ! -f .env ]; then cp .env.example .env; fi &&
+            sed -i "s/^APP_ENV=.*/APP_ENV=production/" .env &&
+            sed -i "s|^APP_URL=.*|APP_URL=https://nenobet.live|" .env &&
+            sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=mysql/" .env &&
+            sed -i "s/^DB_HOST=.*/DB_HOST=127.0.0.1/" .env &&
+            sed -i "s/^DB_PORT=.*/DB_PORT=3306/" .env &&
+            sed -i "s/^DB_DATABASE=.*/DB_DATABASE=$DB_DATABASE/" .env &&
+            sed -i "s/^DB_USERNAME=.*/DB_USERNAME=$DB_USERNAME/" .env &&
+            sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env &&
             composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs &&
+            if ! grep -q '^APP_KEY=base64:' .env; then php artisan key:generate --force; fi &&
             php artisan config:cache &&
             php artisan route:cache &&
             php artisan view:cache &&
