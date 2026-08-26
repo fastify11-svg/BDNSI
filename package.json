@@ -9,11 +9,9 @@
         "test:debug": "npx playwright test --debug",
         "test:report": "npx playwright show-report",
         "serve": "node -e \"require('child_process').spawn('C:\\\\xampp\\\\php\\\\php.exe', ['artisan', 'serve'], {stdio:'inherit', shell:true})\"",
-        "deploy": "node auto_deploy.mjs",
         "cache:clear": "node -e \"require('child_process').execSync('C:\\\\xampp\\\\php\\\\php.exe artisan optimize:clear', {stdio:'inherit'})\"",
-        "migrate": "node -e \"require('child_process').execSync('C:\\\\xampp\\\\php\\\\php.exe artisan migrate', {stdio:'inherit'})\"",
-        "push": "node -e \"require('child_process').execSync('git add -A && git commit -m \\\"auto: sync\\\" && git push origin main', {stdio:'inherit', shell:true})\"",
-        "lint": "npx eslint resources/js --ext .js,.jsx --fix"
+        "lint": "npx eslint resources/js --ext .js,.jsx",
+        "lint:fix": "npx eslint resources/js --ext .js,.jsx --fix"
     },
     "devDependencies": {
         "@babel/core": "^7.22.0",
