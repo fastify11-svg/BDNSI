@@ -61,7 +61,7 @@ class SystemFinancialReconciliation extends Command
         foreach ($centers as $center) {
             $ledgerSum = DB::table('center_ledgers')
                 ->where('center_id', $center->id)
-                ->selectRaw('SUM(CASE WHEN type = "Debit" THEN amount WHEN type = "Credit" THEN -amount ELSE 0 END) as calculated_due')
+                ->selectRaw("SUM(CASE WHEN type = 'debit' THEN amount WHEN type = 'credit' THEN -amount ELSE 0 END) as calculated_due")
                 ->value('calculated_due') ?? 0;
             
             // Allow small floating point differences

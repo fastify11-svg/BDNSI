@@ -47,11 +47,11 @@ class UpdateOrderFinancialStatus implements ShouldQueue
             $order->due_amount  = max(0, ($order->due_amount ?? 0) - $amount);
 
             if ($order->due_amount <= 0) {
-                $order->status = 'Paid';
+                $order->status = Order::STATUS_PAID;
             } elseif ($order->paid_amount > 0) {
-                $order->status = 'Partially Paid';
+                $order->status = Order::STATUS_PARTIALLY_PAID;
             } else {
-                $order->status = 'Pending';
+                $order->status = Order::STATUS_PENDING;
             }
 
             $order->saveQuietly();

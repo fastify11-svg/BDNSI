@@ -61,6 +61,9 @@ jobs:
           echo "--- Verify admin was seeded ---"
           php artisan tinker --execute="echo 'Admin count: ' . \App\Models\Admin::count() . PHP_EOL . 'Admin email: ' . (\App\Models\Admin::first()->email ?? 'NONE');"
 
+      - name: Run PHP Regression Suite
+        run: php artisan test
+
       # ─── 6. NODE.JS & NPM ────────────────────────────────────────────────
       - name: Setup Node.js
         uses: actions/setup-node@v4

@@ -68,17 +68,13 @@ npx playwright test --reporter=list
 
 All tests must pass (✅) before pushing.
 
-## Step 4 — Push Fixed Code
+## Step 4 — Verification Handoff
 
-```powershell
-git add -A
-git commit -m "fix: [describe the bug fixed]"
-git push origin main
-```
+Report the root cause, changed files, exact regression result, and remaining risk. Commit, push, or deployment requires explicit user approval.
 
 ## Laravel Log Location
 
-`D:\BDNSI\storage\logs\laravel.log`
+`C:\BDNSI\storage\logs\laravel.log`
 
 ## Playwright Report
 

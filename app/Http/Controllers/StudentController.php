@@ -199,7 +199,7 @@ class StudentController extends Controller
                 'due_amount' => 0,
             ]);
             
-            $order->update(['status' => 'Paid']);
+            $order->update(['status' => \App\Models\Order::STATUS_PAID]);
             
             return redirect()->route('student.index')->with('success', 'Student Created successfully (Free).');
         }

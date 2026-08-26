@@ -1,10 +1,12 @@
 # Workspace Rules & Autonomous Development Workflow (v4.0)
 
+> **Operating system:** Read `.agents/AGENT_OPERATING_SYSTEM.md` and `.agents/PROJECT_MEMORY.md` before every task. Use `.agents/reports/REPORT_TEMPLATE.md` for every completion report.
+
 **Project**: BDNSI — Next-Gen Affiliate & Agent Management System
 **Stack**: Laravel 10 + React (Inertia.js) + Vite + Tailwind CSS + MySQL
 **Local URL**: `http://127.0.0.1:8000`
 **Live Server**: Hostinger (deploy via SSH/FTP)
-**GitHub**: `https://github.com/fastify11-svg/bdnsi_yttc`
+**GitHub**: `https://github.com/fastify11-svg/BDNSI.git`
 **IDE**: Antigravity IDE (Google Deepmind) — NO VS Code, NO external editors
 
 ---
@@ -17,7 +19,7 @@
 - **Node**: `node` (v24.19.0 — available globally)
 - **NPM**: `npm` (PowerShell ExecutionPolicy = RemoteSigned ✅)
 - **Artisan**: `C:\xampp\php\php.exe artisan`
-- **Project Root**: `D:\BDNSI`
+- **Project Root**: `C:\BDNSI`
 
 ## Quick Command Reference
 
@@ -52,9 +54,9 @@ git add -A && git commit -m "message" && git push origin main
 
 All coding, execution, and testing within **Antigravity IDE only**. Never reference VS Code, ignore `.vscode/` configs.
 
-### 2. Auto GitHub Push
+### 2. GitHub and Deployment Approval
 
-After every sprint, feature, or bugfix → autonomously commit + push to GitHub with professional commit messages. Never wait for user command.
+After a sprint, feature, or bugfix, prepare the verification result and Git diff. Commit, push, deployment, and any live-server action require the user's explicit approval for that specific change set.
 
 ### 3. Internal Execution
 
@@ -68,7 +70,7 @@ On any error:
 2. Identify root cause
 3. Fix the code
 4. Re-run test
-5. Push fixed code to GitHub
+5. Report the fix and wait for approval before any GitHub or deployment action
 
 Repeat until ✅ green.
 
@@ -83,9 +85,8 @@ After code changes:
 1. Run `npx playwright test`
 2. Fix any failures autonomously
 3. Verify data flow end-to-end
-4. Push to GitHub
-5. Trigger live server deployment
-6. Confirm live site works
+4. Report the exact verification result
+5. Wait for explicit approval before pushing or deploying
 
 ### 7. Laravel-Specific Rules
 
@@ -182,8 +183,8 @@ Launch these simultaneously using multiple tool calls:
 ```text
 1. Migration → Model → Controller → Route
 2. Backend complete → Frontend integration
-3. Code written → Tests run → Tests pass → Git push
-4. Git push → GitHub Actions → Deploy → Verify live
+3. Code written → Tests run → Tests pass → user approval → Git push
+4. Git push → GitHub Actions → user approval → Deploy → Verify live
 ```
 
 ### Parallel Tool Call Pattern

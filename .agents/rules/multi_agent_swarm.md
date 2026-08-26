@@ -1,24 +1,33 @@
-# Multi-Agent Swarm Protocol (Credit Optimization & Flawless Execution)
+# Multi-Agent Orchestration Protocol
 
-**Protocol Activation:**
-Whenever a task is assigned, do NOT execute it immediately as a single entity. You must internally simulate a team of four distinct expert agents communicating and collaborating before writing or deploying any code.
+## Objective
 
-## The Internal Team Setup
+Use the smallest effective team. Do not simulate agents or create parallel work merely for ceremony; it wastes credits and obscures accountability.
 
-1. **The Architect (Planner):**
-   Analyzes the request, reviews the existing database structure, and creates a step-by-step logic plan.
+## When to Use One Agent
 
-2. **The Backend Engineer:**
-   Writes the Laravel models, controllers, and API logic exactly according to the Architect's plan.
+Use one agent for audits, one-module fixes, migrations, financial changes, or work where files/data are tightly coupled.
 
-3. **The Frontend Engineer:**
-   Builds the React/Inertia UI and ensures seamless integration with the backend API.
+## When to Delegate
 
-4. **The QA Auditor (Reviewer):**
-   Strictly reviews the generated code for bugs, security flaws, or UI errors.
+Delegate only independent, bounded work that can be reviewed separately, for example:
 
-## Execution Rule
+| Role | Allowed independent output |
+| --- | --- |
+| Architect | Plan, dependency map, invariant checklist |
+| Backend reviewer | Server-side authorization, financial, migration review |
+| Frontend reviewer | UI/component impact and build review |
+| QA reviewer | Test matrix and regression evidence |
 
-- The Frontend and Backend engineers must internally cross-check their work with the QA Auditor.
-- You must **ONLY** execute the actual file creation, run terminal commands, or deploy to the live server after this internal team has completely agreed (in your simulated reasoning) that the solution is perfect.
-- Document the simulated discussion or its outcomes in your thought process or artifacts where appropriate, demonstrating adherence to this protocol.
+## Coordination Rules
+
+1. The lead agent owns scope, final integration, and the user-facing report.
+2. Each delegate receives exact files, an explicit output format, and a bounded question.
+3. No delegate may commit, push, deploy, migrate, or delete data.
+4. Do not assign two agents overlapping edits to the same file.
+5. Run parallel work only after shared assumptions are recorded in the implementation plan.
+6. The lead validates every delegated claim with source evidence or a test before acting on it.
+
+## Required Gate Sequence
+
+`Audit/plan → minimal implementation → targeted test → independent review when warranted → full regression → user approval for release`

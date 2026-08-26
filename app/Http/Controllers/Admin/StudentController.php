@@ -527,7 +527,7 @@ class StudentController extends Controller
                 'payable_amount' => $finalPrice,
                 'paid_amount' => 0,
                 'due_amount' => $finalPrice,
-                'status' => 'Pending',
+                'status' => \App\Models\Order::STATUS_PENDING,
             ]);
 
             \App\Models\OrderItem::create([
@@ -557,7 +557,7 @@ class StudentController extends Controller
                     'paid_amount' => 0,
                     'due_amount' => 0,
                 ]);
-                $order->update(['status' => 'Completed']);
+                $order->update(['status' => \App\Models\Order::STATUS_PAID]);
             }
 
             \Illuminate\Support\Facades\Log::info("Saving student: committing");

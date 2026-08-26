@@ -20,12 +20,18 @@ class FinancialHealthCheck extends Command
         $this->info("Starting Financial Health Check...");
 
         // 1. Check if Order paid amounts match Student paid amounts
-        $orders = \App\Models\Order::where('status', 'Paid')->orWhere('status', 'Partially Paid')->get();
+        $orders = \App\Models\Order::whereIn('status', [
+            \App\Models\Order::STATUS_PAID,
+            \App\Models\Order::STATUS_PARTIALLY_PAID,
+        ])->with('items.itemable')->get();
         $discrepancies = 0;
         foreach ($orders as $order) {
-            $student = \App\Models\Student::find($order->student_id);
-            if ($student && $student->paid_amount < $order->paid_amount) {
-                $this->error("Discrepancy found: Order {$order->id} paid_amount > Student {$student->id} paid_amount");
+            $allocatedToStudents = $order->items
+                ->filter(fn ($item) => $item->itemable instanceof \App\Models\Student)
+                ->sum(fn ($item) => (float) $item->itemable->paid_amount);
+
+            if ($order->items->isNotEmpty() && $allocatedToStudents + 0.01 < (float) $order->paid_amount) {
+                $this->error("Discrepancy found: Order {$order->id} paid_amount exceeds its linked student allocations");
                 $discrepancies++;
             }
         }
@@ -49,6 +55,6 @@ class FinancialHealthCheck extends Command
             $this->error("Found {$discrepancies} financial discrepancies. Please review immediately.");
         }
 
-        return 0;
+        return $discrepancies === 0 ? 0 : 1;
     }
 }

@@ -73,13 +73,9 @@ npx playwright test
 
 All must pass ✅.
 
-## Step 7 — Commit & Push
+## Step 7 — Verification Handoff
 
-```powershell
-git add -A
-git commit -m "feat(<scope>): <description>"
-git push origin main
-```
+Report the changed files, exact test/build results, migration impact, and Git diff. Commit, push, and deployment require the user's explicit approval for the reviewed change set.
 
 ## Parallel Execution Pattern
 
@@ -93,4 +89,4 @@ These tasks MUST run sequentially:
 
 1. Migration → Model → Controller → Route
 2. Backend done → Frontend integration
-3. Code done → Tests → Push
+3. Code done → Tests → Review report → User approval → Push

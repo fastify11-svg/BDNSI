@@ -14,6 +14,7 @@ description: >-
 - XAMPP MySQL running (Apache not required)
 - All local tests passing: `npx playwright test`
 - `.env` has SSH/FTP credentials
+- The user has explicitly approved this exact reviewed change set for deployment.
 
 ## Step 1 — Run Tests First (MANDATORY)
 
@@ -57,13 +58,9 @@ Use Chrome DevTools MCP to navigate to the live URL and take a screenshot:
 2. Take screenshot and verify page loads correctly
 3. Check no 500 errors in Network tab
 
-## Step 6 — Push to GitHub
+## Step 6 — Record Release State
 
-```powershell
-git add -A
-git commit -m "deploy: live server updated $(Get-Date -Format 'yyyy-MM-dd')"
-git push origin main
-```
+Report the deployed commit, exact verification evidence, and rollback reference. Do not create a new commit merely to deploy.
 
 ## Rollback
 

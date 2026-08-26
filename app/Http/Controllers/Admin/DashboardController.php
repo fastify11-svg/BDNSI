@@ -44,7 +44,10 @@ class DashboardController extends Controller
                 'url' => route('admin.center.index'),
             ],
             'Total Revenue' => [
-                'value' => \App\Models\Order::where('status', 'Paid')->orWhere('status', 'Partially Paid')->sum('paid_amount'),
+                'value' => \App\Models\Order::whereIn('status', [
+                    \App\Models\Order::STATUS_PAID,
+                    \App\Models\Order::STATUS_PARTIALLY_PAID,
+                ])->sum('paid_amount'),
                 'url' => '#',
             ],
             'Total Outstanding Dues' => [
