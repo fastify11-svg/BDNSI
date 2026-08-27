@@ -180,6 +180,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             
             // Phase G - Advanced Reporting
             Route::get('reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+            Route::get('center-risk', [App\Http\Controllers\Admin\CenterRiskController::class, 'index'])->name('center-risk.index');
 
             Route::resource('slider', SliderController::class);
             Route::get('user/portal/{user}', [UserController::class, 'portal'])->name('user.portal');
