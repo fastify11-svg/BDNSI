@@ -83,12 +83,24 @@ class ResultController extends Controller
             // Save final result if provided
             if ($request->has('written') && $request->has('practical') && $request->has('viva') &&
                 $request->written !== null && $request->practical !== null && $request->viva !== null) {
-                Result::updateOrCreate(['student_id' => $request->id],
+                $result = Result::updateOrCreate(['student_id' => $request->id],
                     [
                         'written' => $request->get('written'),
                         'practical' => $request->get('practical'),
                         'viva' => $request->get('viva'),
                     ]);
+
+                \App\Jobs\GenerateCertificateAssets::dispatch($result);
+
+                \App\Models\AuditLog::create([
+                    'user_id' => auth()->id() ?? 1,
+                    'event' => 'RESULT_PUBLISHED',
+                    'auditable_type' => Result::class,
+                    'auditable_id' => $result->id,
+                    'new_values' => ['written' => $request->get('written'), 'practical' => $request->get('practical'), 'viva' => $request->get('viva')],
+                    'ip_address' => request()->ip() ?? '127.0.0.1',
+                    'user_agent' => request()->userAgent() ?? 'System'
+                ]);
             }
 
             // Save semester results if provided

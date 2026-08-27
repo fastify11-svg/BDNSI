@@ -79,10 +79,12 @@ class PhaseIFinalVerificationTest extends TestCase
     {
         $center = Center::factory()->create();
         $session = \App\Models\Session::firstOrCreate(['name' => '2025-2026', 'status' => 1]);
-        $student = Student::factory()->create(['center_id' => $center->id, 'session_id' => $session->id]);
+        $subject = \App\Models\Subject::firstOrCreate(['name' => 'Math', 'code' => 'M101']);
+        $student = Student::factory()->create(['center_id' => $center->id, 'session_id' => $session->id, 'subject_id' => $subject->id]);
+        $docType = \App\Models\DocumentType::firstOrCreate(['name' => 'NID']);
         $document = StudentDocument::create([
             'student_id' => $student->id,
-            'document_type_id' => 1,
+            'document_type_id' => $docType->id,
             'file_path' => 'dummy.pdf',
             'status' => 'Pending'
         ]);

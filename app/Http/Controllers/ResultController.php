@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\StudentStatus;
 use App\Models\Student;
+use App\Http\Resources\StudentPublicResource;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -25,7 +26,7 @@ class ResultController extends Controller
                 ->orWhere('passport', $search)
                 ->first();
 
-            if ($student === null || (isset($student->status) && method_exists($student->status, 'is') && $student->status->is(StudentStatus::Hide()))) {
+            if ($student === null || (is_object($student->status) && method_exists($student->status, 'is') && $student->status->is(StudentStatus::Hide()))) {
                 $student = null;
                 $error = 'Result not found for the entered Roll, Registration, or Passport number.';
             } elseif ($student->result === null) {
@@ -35,7 +36,7 @@ class ResultController extends Controller
         }
 
         return Inertia::render('Result', [
-            'student' => $student,
+            'student' => $student ? new StudentPublicResource($student) : null,
             'error' => $error,
         ]);
     }
