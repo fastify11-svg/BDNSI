@@ -23,6 +23,7 @@ export default function AdminLayout({ children, title = 'Admin Dashboard' }) {
             items: [
                 { label: 'Dashboard', href: '/admin/dashboard', icon: 'fa-gauge' },
                 { label: 'Center', href: '/admin/center', icon: 'fa-building-columns' },
+                { label: 'Center Risk', href: '/admin/center-risk', icon: 'fa-triangle-exclamation' },
                 { label: 'Student', href: '/admin/student', icon: 'fa-user-graduate' },
                 { label: 'Registration Review', href: '/admin/registration-review', icon: 'fa-user-check' },
                 { label: 'Course', href: '/admin/subject', icon: 'fa-book-open' },

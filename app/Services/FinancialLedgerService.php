@@ -16,7 +16,7 @@ class FinancialLedgerService
         DB::transaction(function () use ($center, $order, $amount, $description) {
             $balanceAfter = $center->current_due + $amount;
 
-            CenterLedger::create([
+            $ledger = CenterLedger::create([
                 'center_id' => $center->id,
                 'type' => 'debit',
                 'amount' => $amount,
@@ -27,6 +27,16 @@ class FinancialLedgerService
             ]);
 
             $center->update(['current_due' => $balanceAfter]);
+
+            \App\Models\AuditLog::create([
+                'user_id' => auth()->id() ?? 1,
+                'event' => 'LEDGER_DEBIT',
+                'auditable_type' => CenterLedger::class,
+                'auditable_id' => $ledger->id,
+                'new_values' => ['amount' => $amount, 'balance_after' => $balanceAfter, 'reference' => $order->id],
+                'ip_address' => request()->ip() ?? '127.0.0.1',
+                'user_agent' => request()->userAgent() ?? 'System'
+            ]);
         });
     }
 
@@ -38,7 +48,7 @@ class FinancialLedgerService
         DB::transaction(function () use ($center, $transaction, $amount, $description) {
             $balanceAfter = max(0, $center->current_due - $amount);
 
-            CenterLedger::create([
+            $ledger = CenterLedger::create([
                 'center_id' => $center->id,
                 'type' => 'credit',
                 'amount' => $amount,
@@ -49,6 +59,16 @@ class FinancialLedgerService
             ]);
 
             $center->update(['current_due' => $balanceAfter]);
+
+            \App\Models\AuditLog::create([
+                'user_id' => auth()->id() ?? 1,
+                'event' => 'LEDGER_CREDIT',
+                'auditable_type' => CenterLedger::class,
+                'auditable_id' => $ledger->id,
+                'new_values' => ['amount' => $amount, 'balance_after' => $balanceAfter, 'reference' => $transaction->id],
+                'ip_address' => request()->ip() ?? '127.0.0.1',
+                'user_agent' => request()->userAgent() ?? 'System'
+            ]);
         });
     }
 
@@ -64,7 +84,7 @@ class FinancialLedgerService
                 $balanceAfter = max(0, $center->current_due - $amount);
             }
 
-            CenterLedger::create([
+            $ledger = CenterLedger::create([
                 'center_id' => $center->id,
                 'type' => $type,
                 'amount' => $amount,
@@ -75,6 +95,16 @@ class FinancialLedgerService
             ]);
 
             $center->update(['current_due' => $balanceAfter]);
+
+            \App\Models\AuditLog::create([
+                'user_id' => auth()->id() ?? 1,
+                'event' => 'LEDGER_ADJUSTMENT',
+                'auditable_type' => CenterLedger::class,
+                'auditable_id' => $ledger->id,
+                'new_values' => ['type' => $type, 'amount' => $amount, 'balance_after' => $balanceAfter, 'description' => $description],
+                'ip_address' => request()->ip() ?? '127.0.0.1',
+                'user_agent' => request()->userAgent() ?? 'System'
+            ]);
         });
     }
 }

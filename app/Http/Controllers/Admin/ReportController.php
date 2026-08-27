@@ -16,7 +16,7 @@ class ReportController extends Controller
     /**
      * Display a comprehensive advanced reporting dashboard.
      */
-    public function index(Request $request)
+    public function index(Request $request, \App\Services\AnalyticsService $analyticsService)
     {
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
@@ -27,7 +27,8 @@ class ReportController extends Controller
                                      ->sum('amount');
                                      
         // 2. Pending Dues (Global)
-        $totalPendingDues = CenterLedger::sum('amount') * -1; // Assuming negative balance is due
+        // Fixed: Use AnalyticsService which correctly calculates Debit - Credit.
+        $totalPendingDues = $analyticsService->getCenterCurrentDue(null);
 
         // 3. Center Performance (Registrations & Sales)
         $centerPerformance = Student::with('center')

@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDNSI — Project Master Documentation</title>
+<style>
+  @page { margin: 2cm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #1a1a2e;
+    background: white;
+  }
+  .cover-page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    page-break-after: always;
+    padding: 3cm;
+  }
+  .cover-page h1 { font-size: 36pt; margin-bottom: 0.5cm; color: #e94560; }
+  .cover-page h2 { font-size: 18pt; margin-bottom: 1cm; opacity: 0.9; }
+  .cover-page .meta { font-size: 12pt; opacity: 0.75; line-height: 2; }
+  .cover-page .badge {
+    display: inline-block;
+    background: #e94560;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    margin-top: 1cm;
+    font-weight: bold;
+  }
+  .content { padding: 1cm 0; }
+  h1 { font-size: 22pt; color: #0f3460; border-bottom: 3px solid #e94560; padding-bottom: 6px; margin: 1.2cm 0 0.4cm; page-break-after: avoid; }
+  h2 { font-size: 16pt; color: #16213e; border-left: 4px solid #e94560; padding-left: 10px; margin: 0.8cm 0 0.3cm; page-break-after: avoid; }
+  h3 { font-size: 13pt; color: #0f3460; margin: 0.6cm 0 0.2cm; page-break-after: avoid; }
+  h4 { font-size: 11pt; color: #444; margin: 0.4cm 0 0.1cm; page-break-after: avoid; }
+  p { margin: 0.3cm 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.4cm 0; font-size: 9.5pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #ccc; padding: 5px 8px; text-align: left; vertical-align: top; }
+  tr:nth-child(even) { background: #f5f7ff; }
+  tr:first-child td { background: #1a1a2e; color: white; font-weight: bold; }
+  pre { background: #1a1a2e; color: #a8ff78; padding: 12px; border-radius: 6px; overflow-x: auto; font-family: 'Consolas', monospace; font-size: 8.5pt; margin: 0.3cm 0; page-break-inside: avoid; }
+  code { font-family: 'Consolas', monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
+  pre code { background: none; padding: 0; color: inherit; }
+  ul, ol { margin: 0.2cm 0 0.2cm 1cm; }
+  li { margin: 2px 0; }
+  hr { border: none; border-top: 2px solid #e94560; margin: 0.6cm 0; }
+  strong { font-weight: bold; color: #0f3460; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<div class="cover-page">
+  <h1>BDNSI</h1>
+  <h2>Bangladesh National Skills Institute<br>Management System</h2>
+  <h2 style="font-size:14pt;margin-top:0.5cm;color:#a8d8ea;">PROJECT MASTER DOCUMENTATION</h2>
+  <div class="meta">
+    <div>Documentation Version: 1.0</div>
+    <div>Audit Date: 2026-08-24</div>
+    <div>Audited By: Antigravity AI Architect</div>
+    <div>Based On: Direct source code inspection</div>
+    <div>Project Path: c:\BDNSI</div>
+    <div>Live URL: https://nenobet.live</div>
+  </div>
+  <div class="badge">Completion: ~70-75%</div>
+</div>
+
+<div class="content">
+<h1>PROJECT MASTER DOCUMENTATION</h1>
+<h2>BDNSI — Bangladesh National Skills Institute Management System</h2>
+
+<hr>
+
+<strong>Documentation Version</strong>: 1.0  
+<strong>Audit Date</strong>: 2026-08-24  
+<strong>Audited By</strong>: Antigravity AI Architect  
+<strong>Based On</strong>: Direct source code inspection of `c:\BDNSI`  
+<strong>Completion Estimate</strong>: ~70–75%
+
+<hr>
+
+<h2>TABLE OF CONTENTS</h2>
+
+<ol>
+<li>Executive Summary</li>
+<li>Project Purpose</li>
+<li>Current Status</li>
+<li>Technology Stack</li>
+<li>Complete Project Structure</li>
+<li>System Architecture</li>
+<li>Module Inventory</li>
+<li>Panel Inventory</li>
+<li>Page & Route Inventory</li>
+<li>Database Architecture</li>
+<li>API Documentation</li>
+<li>Authentication</li>
+<li>Authorization</li>
+<li>Business Workflows</li>
+<li>Frontend Architecture</li>
+<li>Backend Architecture</li>
+<li>State Management</li>
+<li>File Management</li>
+<li>Notifications & SMS</li>
+<li>Payment System</li>
+<li>Integrations</li>
+<li>Security Audit</li>
+<li>Performance Audit</li>
+<li>Testing Audit</li>
+<li>Technical Debt</li>
+<li>Bugs & Issues</li>
+<li>Missing Features</li>
+<li>Recommended Improvements</li>
+<li>Final Architecture</li>
+<li>Development Roadmap</li>
+<li>AI Agent Rules</li>
+<li>Final Audit Summary</li>
+<p></ol></p>
+
+<hr>
+
+<h2>1. Executive Summary</h2>
+
+<p>BDNSI is a production Laravel 8 + React (Inertia.js) <strong>multi-tenant Institute Management System</strong> deployed on Hostinger at `https://nenobet.live`. The system serves training institutes across Bangladesh, enabling student enrollment, academic result management, document generation, online payment, and multi-portal access for admins, staff agents, centre operators, and students.</p>
+
+<p>Approximately <strong>70-75% of the system is production-ready</strong>. The core academic lifecycle (enroll → result → document) is solid. Gaps exist in the online examination module, SMS notification wiring, and battle-tested payment verification.</p>
+
+<strong>Two critical security vulnerabilities must be patched immediately</strong>: an unauthenticated `/live_deploy` route and hardcoded SSH credentials in deployment scripts.
+
+<hr>
+
+<h2>2. Project Purpose</h2>
+
+<h3>What It Does</h3>
+<ul>
+<li>Manages vocational training institute operations in Bangladesh</li>
+<li>Supports 3 course types: Regular (1-3 months), Short Course (4-24 months), Diploma (25-48 months)</li>
+<li>Issues digital certificates, ID cards, admit cards, marksheets</li>
+<li>Tracks multi-centre student enrollments with tenant isolation</li>
+<li>Manages a sales agent (staff) referral and KPI system</li>
+<li>Provides public result verification by roll/registration number</li>
+<li>Accepts online payments via bKash and SSLCommerz</li>
+<p></ul></p>
+
+<h3>Who Uses It</h3>
+
+<table><tr><td>User Type</td><td>Panel</td><td>Purpose</td></tr>
+<tr></tr>
+<tr><td>Super Admin</td><td>Admin Panel</td><td>Full system control</td></tr>
+<tr><td>Sub-Admin</td><td>Admin Panel</td><td>Role-limited management</td></tr>
+<tr><td>Staff/Agents</td><td>Staff Portal</td><td>Manage own students, track KPIs</td></tr>
+<tr><td>Centre Operators</td><td>Centre Dashboard</td><td>Manage centre's students</td></tr>
+<tr><td>Students</td><td>Student Portal</td><td>View results, download documents</td></tr>
+<tr><td>Public</td><td>Website</td><td>Browse courses, verify results, contact</td></tr>
+<p></table></p>
+<hr>
+
+<h2>3. Current Status</h2>
+
+<table><tr><td>Area</td><td>Status</td><td>Notes</td></tr>
+<tr></tr>
+<tr><td>Public Website</td><td>85% Complete</td><td>All major sections working</td></tr>
+<tr><td>Admin Panel</td><td>80% Complete</td><td>Most CRUD complete</td></tr>
+<tr><td>Student Portal</td><td>65% Complete</td><td>Docs need testing</td></tr>
+<tr><td>Staff Portal</td><td>60% Complete</td><td>Core flow working</td></tr>
+<tr><td>Centre Portal</td><td>55% Complete</td><td>Data gaps</td></tr>
+<tr><td>Payment System</td><td>70% Integrated</td><td>Not battle-tested</td></tr>
+<tr><td>SMS Notifications</td><td>30%</td><td>Drivers exist, not wired</td></tr>
+<tr><td>Online Examination</td><td>40%</td><td>Backend partial, UI incomplete</td></tr>
+<tr><td>Document Builder</td><td>75% Complete</td><td>Template + bulk PDF working</td></tr>
+<tr><td>Laravel Telescope</td><td>100%</td><td>Secured, deployed</td></tr>
+<tr><td>Testing (PHPUnit)</td><td>31/31 Passing</td><td>All passing</td></tr>
+<tr><td>CI/CD</td><td>60%</td><td>Deploy scripts work, no GitHub Actions</td></tr>
+<p></table></p>
+<hr>
+
+<h2>4. Technology Stack</h2>
+
+<h3>Backend</h3>
+<table><tr><td>Technology</td><td>Version</td><td>Role</td></tr>
+<tr></tr>
+<tr><td>PHP</td><td>^8.2</td><td>Server language</td></tr>
+<tr><td>Laravel</td><td>^8.x</td><td>MVC framework</td></tr>
+<tr><td>Inertia.js server</td><td>^0.6</td><td>SPA bridge</td></tr>
+<tr><td>Sanctum</td><td>^2.11</td><td>API auth</td></tr>
+<tr><td>Laratrust</td><td>^7.1</td><td>RBAC</td></tr>
+<tr><td>Telescope</td><td>4.6</td><td>Debug monitoring</td></tr>
+<tr><td>Intervention/Image</td><td>^2.7</td><td>Image processing</td></tr>
+<tr><td>Simple-QRCode</td><td>^4.2</td><td>QR generation</td></tr>
+<tr><td>GuzzleHTTP</td><td>^7.0</td><td>External API calls</td></tr>
+<p></table></p>
+<h3>Frontend</h3>
+<table><tr><td>Technology</td><td>Version</td><td>Role</td></tr>
+<tr></tr>
+<tr><td>React</td><td>^19.2.7</td><td>UI framework</td></tr>
+<tr><td>Inertia.js React</td><td>^0.8.1</td><td>SPA adapter</td></tr>
+<tr><td>Vite</td><td>^8.2</td><td>Build + HMR</td></tr>
+<tr><td>Tailwind CSS</td><td>^3.0</td><td>Styling</td></tr>
+<tr><td>Recharts</td><td>^3.10</td><td>Charts</td></tr>
+<tr><td>jQuery + DataTables</td><td>^3.6 / ^1.11</td><td>Admin tables</td></tr>
+<tr><td>Lucide React</td><td>^1.33</td><td>Icons</td></tr>
+<p></table></p>
+<h3>Database</h3>
+<ul>
+<li>MySQL (production/local)</li>
+<li>SQLite (testing only)</li>
+<li>Eloquent ORM</li>
+<p></ul></p>
+
+<h3>Infrastructure</h3>
+<ul>
+<li>Hosting: Hostinger VPS (145.79.212.19)</li>
+<li>Domain: nenobet.live</li>
+<li>Local Dev: XAMPP (Windows)</li>
+<li>CI/CD: SSH/SFTP scripts (Node.js)</li>
+<li>Version Control: GitHub</li>
+<p></ul></p>
+
+<hr>
+
+<h2>5. Complete Project Structure</h2>
+
+<pre><code>c:\BDNSI/
+<p>├── app/</p>
+<p>│   ├── Casts/          ImageField cast</p>
+<p>│   ├── Console/        Scheduler (Kernel.php — telescope:prune daily)</p>
+<p>│   ├── Enums/          9 PHP enums (StudentStatus, Gender, CourseType, etc.)</p>
+<p>│   ├── Events/         PaymentSucceeded</p>
+<p>│   ├── Http/</p>
+<p>│   │   ├── Controllers/</p>
+<p>│   │   │   ├── Admin/  38 admin controllers</p>
+<p>│   │   │   ├── Staff/  5 controllers</p>
+<p>│   │   │   ├── Student/ 3 controllers</p>
+<p>│   │   │   └── Auth/   Centre auth</p>
+<p>│   │   ├── Middleware/ 14 middleware files</p>
+<p>│   │   └── Requests/   Form validation classes</p>
+<p>│   ├── Jobs/           3 queued jobs (BulkDoc, PaymentSMS, StudentSMS)</p>
+<p>│   ├── Lib/            Image.php utility + helpers.php (autoloaded)</p>
+<p>│   ├── Listeners/      UpdateStudentFinancialStatus</p>
+<p>│   ├── Models/         35 Eloquent models</p>
+<p>│   ├── Observers/      StudentObserver, ResultObserver</p>
+<p>│   ├── Providers/      5 service providers + TelescopeServiceProvider</p>
+<p>│   ├── Scopes/         CenterScope (tenant isolation)</p>
+<p>│   ├── Services/       DocumentGenerator, PdfEngine, SMS drivers</p>
+<p>│   └── Traits/         BelongsToStaff, ClearsFrontendCache, DeletesImage</p>
+<p>├── config/             Laravel config files (auth.php, telescope.php, etc.)</p>
+<p>├── database/</p>
+<p>│   ├── migrations/     75 migration files (2011-2026)</p>
+<p>│   ├── seeders/</p>
+<p>│   └── factories/</p>
+<p>├── resources/</p>
+<p>│   ├── js/</p>
+<p>│   │   ├── Components/ SmartScanner (Gemini OCR), Document builder</p>
+<p>│   │   ├── Layouts/    5 layouts (Admin, Staff, Student, Centre, Frontend)</p>
+<p>│   │   └── Pages/      70+ React page components</p>
+<p>│   └── views/          Blade templates (admit card, certificate, transcript)</p>
+<p>├── routes/</p>
+<p>│   ├── web.php         Public + centre user routes (145 lines)</p>
+<p>│   ├── admin.php       Admin routes (201 lines)</p>
+<p>│   ├── staff.php       Staff routes (50 lines)</p>
+<p>│   ├── student.php     Student routes (50 lines)</p>
+<p>│   └── auth.php        Centre auth routes</p>
+<p>├── tests/</p>
+<p>│   ├── Feature/        9 PHPUnit test files (31 tests total)</p>
+<p>│   └── e2e/            16 Playwright spec files</p>
+<p>└── PROJECT_DOCUMENTATION/ This documentation folder</p>
+<p></code></pre></p>
+
+<hr>
+
+<h2>6. System Architecture</h2>
+
+<h3>Request Lifecycle</h3>
+<pre><code>Browser Request
+  → Hostinger LiteSpeed → public/index.php
+  → Bootstrap → Http Kernel
+  → Web Middleware: throttle, cookies, session, referral capture,
+                   CSRF, bindings, language, Inertia handler
+  → Route Matching (web/admin/staff/student)
+  → Route Middleware: auth:guard, module:toggle, throttle
+  → Controller → Service → Eloquent Model → MySQL
+  → Inertia::render('PageComponent', $props)
+    + HandleInertiaRequests::share() adds:
+      auth.user/admin/staff/student, flash, site_config,
+      footer_links, footer_logos, locale, app_url
+  → React renders page via Inertia SPA
+<p></code></pre></p>
+
+<h3>Authentication (4 Guards)</h3>
+<pre><code>web guard    → User model    → users table    → /login
+<p>admin guard  → Admin model   → admins table   → /admin/login</p>
+<p>student guard→ Student model → students table  → /students/login</p>
+<p>staff guard  → Team model    → teams table    → /staff/login</p>
+
+<p>All guards: session-based driver, bcrypt passwords</p>
+<p></code></pre></p>
+
+<h3>Tenant Isolation</h3>
+<pre><code>CenterScope (global scope on Student + Result)
+  When auth('web')-&gt;user() has center_id:
+    → Automatically WHERE center_id = {user.center_id}
+  Admin guard: bypasses automatically
+  Staff guard: BelongsToStaff trait (filters by team_id)
+<p></code></pre></p>
+
+<h3>Feature Flag System</h3>
+<pre><code>SiteConfig table → 10 toggle columns (toggle_result_verify, etc.)
+<p>CheckModuleEnabled middleware → SiteConfig::isEnabled($flag)</p>
+<p>If disabled → Inertia::render('Frontend/ComingSoon')</p>
+<p></code></pre></p>
+
+<hr>
+
+<h2>7. Module Inventory</h2>
+
+<h3>COMPLETE MODULES</h3>
+<p>Student Enrollment | Centre Management | Course (Subject) Management |</p>
+<p>Session Management | Result Management | Document Templates |</p>
+<p>Document Generation | Grade Scales | License Management |</p>
+<p>Notice Board | Slider/Banner | Team/Staff Management |</p>
+<p>Team KPI/Performance | Site Config/CMS | Footer Management |</p>
+<p>Translation | Sponsor Management | YouTube Videos |</p>
+<p>WhatsApp Links | Contact Inquiries | Payment Gateway Config |</p>
+<p>SMS Gateway Config | User Management | Sub-admin Management |</p>
+<p>Referral Tracking | Laravel Telescope |</p>
+
+<h3>PARTIAL MODULES</h3>
+<ul>
+<li>Online Examination (backend models done, student exam UI incomplete)</li>
+<li>Payment System (integrated, not production-tested)</li>
+<li>Financial Tracking (manual records, not linked to online transactions)</li>
+<li>Registration Review (endpoint exists, workflow unclear)</li>
+<li>Diploma Management (minimal CRUD only)</li>
+<li>Sub-admin RBAC (role assignment done, enforcement gaps)</li>
+<li>Database Backup (controller exists, no schedule)</li>
+<li>Bulk PDF (job exists, queue worker not set up on production)</li>
+<li>Student Documents (routes exist, template linking unverified)</li>
+<li>SMS Notifications (drivers + jobs exist, no controller triggers)</li>
+<p></ul></p>
+
+<h3>MISSING MODULES</h3>
+<ul>
+<li>Staff Password Reset</li>
+<li>Scheduled Auto-backup</li>
+<li>Queue Worker (Production)</li>
+<li>Report Generation</li>
+<li>Complete i18n</li>
+<p></ul></p>
+
+<hr>
+
+<h2>8. Panel Inventory</h2>
+
+<h3>A. Public Website (/)</h3>
+<p>Layout: FrontendLayout.jsx (27KB)</p>
+<p>Pages: Homepage, All Courses, Course Details, Result Verification,</p>
+       License Verification, Notice Board, Video Gallery, Success Students,
+       Verified Centres, Contact Form, Centre Application, WhatsApp Links
+<p>Features: Multi-language (en/bn/ar), feature flag toggles, referral tracking</p>
+
+<h3>B. Admin Panel (/admin/*)</h3>
+<p>Layout: AdminLayout.jsx (20KB) — auth:admin guard</p>
+<p>Dashboard: Stats cards + analytics charts (monthly registrations, status breakdown, top centres)</p>
+<p>Modules: 30+ sections covering all system data entities</p>
+
+<h3>C. Staff Portal (/staff/*)</h3>
+<p>Layout: StaffLayout.jsx (16KB) — auth:staff guard (Team model)</p>
+<p>Dashboard: KPI metrics, referral link, student stats (Staff/Dashboard.jsx 28KB)</p>
+<p>Modules: My Courses, My Sessions, My Students, Document Generation</p>
+
+<h3>D. Student Portal (/students/*)</h3>
+<p>Layout: StudentLayout.jsx (15KB) — auth:student guard (Student model)</p>
+<p>Gate: portal.student middleware (toggle_student_portal feature flag)</p>
+<p>Dashboard: Enrollment info, payment status, academic summary</p>
+<p>Modules: Results, Documents (ID, admit, registration, marksheet), Online Exam (incomplete)</p>
+
+<h3>E. Centre User Portal (/dashboard, /student/*)</h3>
+<p>Layout: CenterLayout.jsx (18KB) — auth web guard (User model + center_id)</p>
+<p>Dashboard: Basic centre information</p>
+<p>Modules: Student CRUD (auto-scoped to own centre by CenterScope)</p>
+
+<hr>
+
+<h2>9. Page & Route Inventory</h2>
+
+<p>Total routes: ~120+</p>
+
+<h3>Public Routes (24)</h3>
+<p>/ | /all-course | /course-details/{id} | /verify | /result |</p>
+<p>/license-view/{number?} | /all-notice-list | /all-notice-list/{id} |</p>
+<p>/video-gallery | /success-student | /verified-center | /contact-us |</p>
+<p>/center-request | /page/{type} | /health | /lang-change |</p>
+<p>SECURITY: /live_deploy (REMOVE) | /ping | /test-transcript</p>
+
+<h3>Payment Routes (6)</h3>
+<p>/payment/checkout | /payment/process | /payment/callback/{gateway} |</p>
+<p>/payment/success | /payment/failed | /payment/cancel</p>
+
+<h3>Admin Routes (60+) — all require auth:admin</h3>
+<p>/admin/dashboard | /admin/student (CRUD+import/export/admit/certificate) |</p>
+<p>/admin/subject | /admin/session | /admin/exam | /admin/question |</p>
+<p>/admin/result | /admin/center | /admin/notice | /admin/slider |</p>
+<p>/admin/team | /admin/team-performance | /admin/financial |</p>
+<p>/admin/grade-scales | /admin/document-templates | /admin/documents/bulk-* |</p>
+<p>/admin/registration-review | /admin/diplomas | /admin/license |</p>
+<p>/admin/payment-gateway | /admin/sms-gateway | /admin/contactUs |</p>
+<p>/admin/translation | /admin/sponsor | /admin/backup | /admin/user |</p>
+<p>/admin/sub-admin | /admin/upazila-store | /admin/whatapp-link |</p>
+<p>/admin/youtube-video | /admin/footer-link | /admin/footer-logo |</p>
+<p>/admin/api-settings | /telescope</p>
+
+<h3>Staff Routes (15) — all require auth:staff</h3>
+<p>/staff/login | /staff/logout | /staff/dashboard |</p>
+<p>/staff/courses | /staff/sessions | /staff/students | /staff/documents</p>
+
+<h3>Student Routes (15) — all require auth:student + portal.student</h3>
+<p>/students/login | /students/forgot-password | /students/reset-password |</p>
+<p>/students/logout | /students/dashboard | /students/results |</p>
+<p>/students/documents | /students/id-card | /students/admit-card |</p>
+<p>/students/registration-card | /students/marksheet | /students/exam</p>
+
+<hr>
+
+<h2>10. Database Architecture</h2>
+
+<p>Total tables: ~40+ | Total migrations: 75</p>
+
+<h3>Authentication Tables</h3>
+<ul>
+<li>admins (Admin users — Laratrust RBAC)</li>
+<li>users (Centre operators — web guard)</li>
+<li>teams (Staff agents — staff guard, also Team model)</li>
+<li>Laratrust: roles, permissions, role_user, permission_role, permission_user</li>
+<p></ul></p>
+
+<h3>Academic Tables</h3>
+<ul>
+<li>centers (Training centres, tenant key)</li>
+<li>subjects (Courses — linked to team for staff scoping)</li>
+<li>sessions (Academic sessions — linked to team for staff scoping)</li>
+<li>students (All student records — CenterScope applied)</li>
+<li>results (Student exam marks: written + practical + viva)</li>
+<li>semester_results (Per-semester results for diploma students)</li>
+<li>grade_scales (Dynamic grading rules per course_type)</li>
+<li>exams (Exam definitions)</li>
+<li>quations (Exam questions — NOTE: typo in table name)</li>
+<p></ul></p>
+
+<h3>Financial Tables</h3>
+<ul>
+<li>payments (Manual admin-recorded payments)</li>
+<li>transactions (Online payment records — polymorphic)</li>
+<li>payment_gateways (bKash/SSLCommerz credentials + config)</li>
+<li>sms_gateways (Reve/Twilio credentials + config)</li>
+<li>team_sales_targets (KPI targets per staff per month)</li>
+<p></ul></p>
+
+<h3>Content/CMS Tables</h3>
+<ul>
+<li>site_configs (Single-row — all CMS + 10 feature flags)</li>
+<li>sliders, notices, contact_us</li>
+<li>translations, config_dictionaries</li>
+<li>youtube_videos, whatapp_links</li>
+<li>footer_links, footer_partner_logos</li>
+<li>licenses (Credential/certificate registry)</li>
+<p></ul></p>
+
+<h3>Document System Tables</h3>
+<ul>
+<li>document_templates (Canvas template definitions)</li>
+<li>document_fields (Per-field position, style, data mapping)</li>
+<p></ul></p>
+
+<h3>Location Data</h3>
+<ul>
+<li>divisions, districts, upazilas (Bangladesh location hierarchy)</li>
+<p></ul></p>
+
+<h3>Key Relationships</h3>
+<pre><code>Team → Centers → Users
+              → Students → Results
+                        → SemesterResults
+                        → Transactions (polymorphic)
+<p>Session → Students</p>
+<p>Subject → Students</p>
+<p>DocumentTemplate → DocumentFields</p>
+<p>GradeScale → used by Result::gpa()</p>
+<p>Exam → Quations (Questions)</p>
+<p></code></pre></p>
+
+<hr>
+
+<h2>11. API Documentation</h2>
+
+<p>BDNSI uses Inertia.js — there is NO public REST API.</p>
+<p>All data flows through Inertia page renders and form submissions.</p>
+<p>The api.php file exists but contains only unused Sanctum token routes.</p>
+
+<p>External APIs called by BDNSI:</p>
+<ul>
+<li>bKash: token/grant, checkout/create, checkout/execute</li>
+<li>SSLCommerz: gwprocess, validator/api</li>
+<li>Google Gemini: OCR data extraction</li>
+<li>Reve SMS: send SMS</li>
+<li>Twilio: send SMS</li>
+<p></ul></p>
+
+<hr>
+
+<h2>12. Authentication</h2>
+
+<table><tr><td>Guard</td><td>Model</td><td>Table</td><td>Login URL</td><td>Password Reset</td></tr>
+<tr></tr>
+<tr><td>web</td><td>User</td><td>users</td><td>/login</td><td>Yes</td></tr>
+<tr><td>admin</td><td>Admin</td><td>admins</td><td>/admin/login</td><td>Yes</td></tr>
+<tr><td>student</td><td>Student</td><td>students</td><td>/students/login</td><td>Yes</td></tr>
+<tr><td>staff</td><td>Team</td><td>teams</td><td>/staff/login</td><td>NOT IMPLEMENTED</td></tr>
+<p></table></p>
+<p>All: session-based driver, bcrypt passwords</p>
+<p>Admin login: throttled to 5 attempts/min</p>
+<p>Student portal: guarded by toggle_student_portal flag</p>
+
+<hr>
+
+<h2>13. Authorization</h2>
+
+<p>RBAC (Laratrust) applies to Admin model only.</p>
+<p>Roles and permissions stored in database.</p>
+<p>Shared to frontend via auth.admin.permissions prop.</p>
+
+<p>Route-Level Guards:</p>
+<ul>
+<li>auth:admin — all admin routes</li>
+<li>auth:staff — all staff routes</li>
+<li>auth:student — all student routes</li>
+<li>auth (web) — centre user routes</li>
+<li>module:toggle_X — public feature flags</li>
+<p></ul></p>
+
+<p>GAPS:</p>
+<ul>
+<li>Most admin routes use auth:admin only, NOT permission checks</li>
+<li>Sub-admin has near-equal access as super-admin in many areas</li>
+<p></ul></p>
+
+<hr>
+
+<h2>14. Business Workflows</h2>
+
+<h3>Student Enrollment</h3>
+<p>Centre/Admin creates student → fill demographics + session + subject + center</p>
+<p>→ System auto-generates roll + registration numbers</p>
+<p>→ Status: Pending → Admin approves → Approved</p>
+<p>→ Admin sets password → Student can login to portal</p>
+
+<h3>Result Entry</h3>
+<p>Admin selects student → enters marks (written + practical + viva)</p>
+<p>→ Result::saving() validates total <= GradeScale.max_marks</p>
+<p>→ GPA dynamically calculated from GradeScale.rules (JSON array)</p>
+<p>→ Public result checker shows result by roll/registration/name</p>
+
+<h3>Document Generation (System A)</h3>
+<p>Admin selects template + student → DocumentGeneratorService renders HTML</p>
+<p>→ html2pdf.js creates PDF in browser (client-side)</p>
+
+<h3>Document Generation (System B — Bulk)</h3>
+<p>Admin selects students → BulkDocumentController::bulkGenerate()</p>
+<p>→ GenerateBulkDocumentsJob dispatched to queue</p>
+<p>→ PdfEngineService → Node.js pdf_engine.mjs</p>
+<p>→ ZIP created → admin downloads</p>
+<p>[REQUIRES queue worker running on production]</p>
+
+<h3>Online Payment</h3>
+<p>User → /payment/checkout → selects gateway</p>
+<p>→ Process: creates pending Transaction → redirect to gateway</p>
+<p>→ Callback: verify with gateway API → mark success</p>
+<p>→ PaymentSucceeded event → UpdateStudentFinancialStatus listener</p>
+<p>→ Student.paid_amount + payment_status updated</p>
+
+<h3>Referral Tracking</h3>
+<p>Staff shares ?ref=STF-XXXXXX URL</p>
+<p>→ CaptureReferralMiddleware stores ref_code in session</p>
+<p>→ On student creation: links student.team_id to matching team</p>
+
+<hr>
+
+<h2>15. Frontend Architecture</h2>
+
+<h3>Layouts (5 total)</h3>
+<ul>
+<li>FrontendLayout.jsx (27KB) — Public website</li>
+<li>AdminLayout.jsx (20KB) — Admin panel</li>
+<li>CenterLayout.jsx (18KB) — Centre portal</li>
+<li>StaffLayout.jsx (16KB) — Staff portal</li>
+<li>StudentLayout.jsx (15KB) — Student portal</li>
+<p></ul></p>
+
+<h3>Large Components Needing Splitting</h3>
+<ul>
+<li>Result.jsx: 52KB (largest page)</li>
+<li>Welcome.jsx: 43KB (homepage)</li>
+<li>Staff/Dashboard.jsx: 28KB</li>
+<li>Admin/Dashboard.jsx: 21KB</li>
+<p></ul></p>
+
+<h3>Shared Props (via HandleInertiaRequests::share())</h3>
+<p>auth.user | auth.admin | auth.staff | auth.student |</p>
+<p>flash.success | flash.error | site_config | footer_links |</p>
+<p>footer_logos | locale | app_url</p>
+
+<h3>Notable Issues</h3>
+<ul>
+<li>DataTables + jQuery used alongside React — legacy dependency</li>
+<li>No global state management (no Redux/Zustand) — all server-driven</li>
+<li>Recharts used for analytics charts (admin + staff dashboards)</li>
+<p></ul></p>
+
+<hr>
+
+<h2>16. Backend Architecture</h2>
+
+<h3>Controller Pattern</h3>
+<p>All controllers return Inertia::render() for page loads.</p>
+<p>Form submissions use redirect()->back()->with('success', ...) or response()->success().</p>
+
+<h3>Service Layer</h3>
+<ul>
+<li>DocumentGeneratorService — template rendering</li>
+<li>PdfEngineService — Node.js bridge</li>
+<li>FrontendDataService — cached homepage data</li>
+<li>SmsGatewayFactory — SMS driver factory</li>
+<p></ul></p>
+
+<h3>Observer Pattern</h3>
+<ul>
+<li>StudentObserver — fires on student CRUD events</li>
+<li>ResultObserver — fires on result save/delete</li>
+<p></ul></p>
+
+<h3>Event-Listener</h3>
+<ul>
+<li>PaymentSucceeded → UpdateStudentFinancialStatus</li>
+<p></ul></p>
+
+<h3>Rate Limiting (RouteServiceProvider)</h3>
+<ul>
+<li>api: 60/min | web: 120/min</li>
+<li>results: 10/min | contact: 3/min</li>
+<li>admin-login: 5/min | health: 30/min</li>
+<p></ul></p>
+
+<hr>
+
+<h2>17. State Management</h2>
+
+<p>No global state library (Redux/Zustand/etc.).</p>
+<ul>
+<li>Server state: Inertia props → React component props</li>
+<li>Local state: React useState/useEffect</li>
+<li>Form state: local state + Axios POST</li>
+<li>Flash messages: Laravel session → Inertia shared props</li>
+<li>Cache: Server-side (Laravel Cache facade)</li>
+<p></ul></p>
+
+<p>Cache keys: homepage_sliders, homepage_courses, homepage_teams,</p>
+<p>homepage_notices, homepage_centers, homepage_success_students,</p>
+<p>footer_links, footer_logos, site_config_cache, unread_inquiries</p>
+
+<hr>
+
+<h2>18. File Management</h2>
+
+<p>Storage: Local filesystem (storage/app/)</p>
+<p>Public access: Via storage:link</p>
+<p>Image processing: intervention/image v2.7</p>
+<p>Cast: ImageField::class auto-prepends asset URL</p>
+
+<p>Upload paths:</p>
+<ul>
+<li>images/students/ — Student photos</li>
+<li>images/avatar/admin/ — Admin avatars</li>
+<li>center/photo/ — Centre director images</li>
+<li>center/logo/ — Centre logos</li>
+<li>center/nid_photo/ — NID documents</li>
+<li>team/images/ — Team member photos</li>
+<li>license/ — License holder photos</li>
+<li>config/ — Site config images</li>
+<p></ul></p>
+
+<hr>
+
+<h2>19. Notifications & SMS</h2>
+
+<h3>Email: Built-in Laravel (password reset only — no custom templates)</h3>
+
+<h3>SMS — STATUS: 30% (not wired)</h3>
+<p>Infrastructure exists:</p>
+<ul>
+<li>SmsGateway model (DB-stored credentials)</li>
+<li>SmsGatewayFactory (driver factory)</li>
+<li>ReveSmsDriver (Reve SMS API)</li>
+<li>TwilioSmsDriver (Twilio)</li>
+<li>SendStudentSmsJob (queued)</li>
+<li>SendPaymentConfirmationSmsJob (queued)</li>
+<p></ul></p>
+
+<p>GAP: No controller dispatches these jobs. SMS is never actually sent.</p>
+
+<hr>
+
+<h2>20. Payment System</h2>
+
+<p>Gateways: bKash Tokenized, SSLCommerz</p>
+<p>Status: Integrated but not production-tested</p>
+
+<p>Flow:</p>
+<ol>
+<li>/payment/checkout → shows active gateways</li>
+<li>User selects gateway</li>
+<li>/payment/process → creates pending Transaction</li>
+<li>Redirect to gateway</li>
+<li>/payment/callback/{gateway} → verify with API</li>
+<li>Update Transaction.status = 'success'</li>
+<li>Fire PaymentSucceeded event</li>
+<li>Student finances updated via listener</li>
+<p></ol></p>
+
+<p>Issues:</p>
+<ul>
+<li>Credentials stored unencrypted in payment_gateways table</li>
+<li>SSLCommerz IPN URL not configured</li>
+<li>Not tested with real money</li>
+<li>Manual payments table and online transactions table not linked</li>
+<p></ul></p>
+
+<hr>
+
+<h2>21. Integrations</h2>
+
+<table><tr><td>Integration</td><td>Status</td></tr>
+<tr></tr>
+<tr><td>bKash Tokenized API</td><td>Integrated, unverified in production</td></tr>
+<tr><td>SSLCommerz</td><td>Integrated, IPN URL unconfigured</td></tr>
+<tr><td>Reve SMS</td><td>Driver ready, not wired</td></tr>
+<tr><td>Twilio</td><td>Driver ready, not wired</td></tr>
+<tr><td>Google Gemini AI</td><td>Partial (OCR controller exists)</td></tr>
+<tr><td>Hostinger VPS</td><td>Active production host</td></tr>
+<tr><td>GitHub</td><td>Active version control</td></tr>
+<tr><td>Laravel Telescope</td><td>Active, admin-secured</td></tr>
+<p></table></p>
+<hr>
+
+<h2>22. Security Audit</h2>
+
+<h3>CRITICAL (Fix Immediately)</h3>
+<ol>
+<li>/live_deploy route — unauthenticated DB migration + DROP TABLE</li>
+<p></ol></p>
+   Location: routes/web.php lines 130-140 — REMOVE IMMEDIATELY
+
+<ol>
+<li>Debug routes in production — /ping, /test-transcript — no auth</li>
+<p></ol></p>
+   Location: routes/web.php lines 142-144 — REMOVE or RESTRICT
+
+<ol>
+<li>SSH credentials hardcoded in deploy scripts (server IP + password)</li>
+<p></ol></p>
+   Location: direct_deploy.mjs, auto_deploy.mjs — USE .env + SSH keys
+
+<h3>HIGH</h3>
+<ol>
+<li>Payment credentials unencrypted in DB — bKash/SSLCommerz keys at risk</li>
+<li>Sub-admin authorization gaps — routes use auth:admin only, not permissions</li>
+<p></ol></p>
+
+<h3>MEDIUM</h3>
+<ol>
+<li>CORS uses abandoned fruitcake/laravel-cors package</li>
+<li>Staff password reset not implemented</li>
+<li>Raw DB::table() queries may bypass CenterScope</li>
+<li>File upload MIME validation consistency unknown</li>
+<li>CAPTCHA implemented but not applied to login forms</li>
+<p></ol></p>
+
+<h3>IMPLEMENTED (Positive)</h3>
+<ul>
+<li>bcrypt passwords | CSRF protection | Rate limiting</li>
+<li>Security headers (CSP, X-Frame-Options, etc.) — confirmed on live site</li>
+<li>Telescope secured | Session-based auth | Inertia/React XSS protection</li>
+<p></ul></p>
+
+<hr>
+
+<h2>23. Performance Audit</h2>
+
+<h3>Strengths</h3>
+<ul>
+<li>Comprehensive caching for frontend data</li>
+<li>SiteConfig 24-hour cache</li>
+<li>Homepage data cached per key</li>
+<li>Cache auto-cleared on model save</li>
+<p></ul></p>
+
+<h3>Issues</h3>
+<ul>
+<li>Welcome.jsx (43KB) + Result.jsx (52KB) — large bundles, need splitting</li>
+<li>Admin/StudentController.php (32KB) — monolithic, needs service extraction</li>
+<li>Dashboard queries not cached — N+1 risk on top-centres query</li>
+<li>DataTables + jQuery is redundant with React</li>
+<li>No Redis (likely not on Hostinger basic plan) — file-based cache</li>
+<p></ul></p>
+
+<hr>
+
+<h2>24. Testing Audit</h2>
+
+<p>PHPUnit: 31/31 tests passing</p>
+<p>Playwright: 16 E2E spec files</p>
+
+<p>Tested: Routes, feature flags, rate limiting, GPA calculation, tenant isolation,</p>
+        auth flows, admin navigation, student enrollment
+
+<p>Not Tested: Payment flow, SMS, staff password reset,</p>
+            permission enforcement, bulk PDF, queue jobs
+
+<hr>
+
+<h2>25. Technical Debt</h2>
+
+<p>P0 — Critical (Security):</p>
+<ul>
+<li>Remove /live_deploy and debug routes</li>
+<li>Encrypt payment gateway credentials</li>
+<li>Remove hardcoded SSH credentials from deploy scripts</li>
+<p></ul></p>
+
+<p>P1 — High:</p>
+<ul>
+<li>Wire SMS jobs to controller triggers</li>
+<li>Implement staff password reset</li>
+<li>Consistent sub-admin permission enforcement</li>
+<li>Setup production queue worker</li>
+<li>Complete student document template linking</li>
+<p></ul></p>
+
+<p>P2 — Medium:</p>
+<ul>
+<li>Split Welcome.jsx (43KB) into section components</li>
+<li>Split Result.jsx (52KB) into smaller components</li>
+<li>Extract service from Admin/StudentController.php (32KB)</li>
+<li>Consolidate dual PDF systems</li>
+<li>Replace DataTables/jQuery with React-native solution</li>
+<li>Migrate CORS from abandoned package</li>
+<li>Complete i18n across all UI</li>
+<p></ul></p>
+
+<p>P3 — Low:</p>
+<ul>
+<li>Add CAPTCHA to login forms</li>
+<li>Remove duplicate root-level test files (test_login2.js through test_login9.js)</li>
+<li>Fix table name typo: quations should be questions</li>
+<li>Clean up root-level debug/scratch files</li>
+<p></ul></p>
+
+<hr>
+
+<h2>26. Bugs & Issues</h2>
+
+<table><tr><td>ID</td><td>Issue</td><td>Location</td><td>Priority</td></tr>
+<tr></tr>
+<tr><td>BUG-01</td><td>/live_deploy route destroys DB without auth</td><td>routes/web.php:130</td><td>P0</td></tr>
+<tr><td>BUG-02</td><td>Staff cannot reset password</td><td>No route exists</td><td>P1</td></tr>
+<tr><td>BUG-03</td><td>SMS jobs never dispatched</td><td>No controller wiring</td><td>P1</td></tr>
+<tr><td>BUG-04</td><td>Bulk PDF requires queue worker (not set up on prod)</td><td>No supervisor config</td><td>P1</td></tr>
+<tr><td>BUG-05</td><td>Table typo: quations instead of questions</td><td>Migrations</td><td>P3</td></tr>
+<tr><td>BUG-06</td><td>fruitcake/laravel-cors abandoned</td><td>composer.json</td><td>P2</td></tr>
+<tr><td>BUG-07</td><td>fzaninotto/faker abandoned (dev dep)</td><td>composer.json</td><td>P3</td></tr>
+<p></table></p>
+<hr>
+
+<h2>27. Missing Features</h2>
+
+<h3>Required to Finish Current Architecture</h3>
+<ol>
+<li>Staff password reset flow</li>
+<li>SMS trigger wiring (student enrollment, payment confirmation)</li>
+<li>Queue worker setup on production (supervisor config)</li>
+<li>Student document template rendering verification</li>
+<li>SSLCommerz IPN URL configuration</li>
+<li>Complete online exam flow (student exam taking, submission, grading)</li>
+<p></ol></p>
+
+<h3>Recommended for Production</h3>
+<ol>
+<li>Payment credential encryption</li>
+<li>Sub-admin permission enforcement</li>
+<li>Remove /live_deploy route (CRITICAL)</li>
+<li>GitHub Actions CI/CD pipeline</li>
+<li>Automated database backup scheduling</li>
+<li>Application error monitoring (Sentry or similar)</li>
+<p></ol></p>
+
+<h3>Future/Advanced Features</h3>
+<ol>
+<li>Report generation per centre/session/course</li>
+<li>Student attendance tracking</li>
+<li>Fee schedules and installment plans</li>
+<li>Bulk SMS campaigns</li>
+<li>Certificate blockchain verification</li>
+<p></ol></p>
+
+<hr>
+
+<h2>28. Recommended Improvements</h2>
+
+<p>Priority order:</p>
+<ol>
+<li>Fix 3 critical security vulnerabilities</li>
+<li>Wire SMS system</li>
+<li>Setup production queue worker</li>
+<li>Implement staff password reset</li>
+<li>Production-test payment flow</li>
+<li>Split large React files</li>
+<li>GitHub Actions CI/CD</li>
+<li>Complete Bengali translations</li>
+<li>Apply CAPTCHA to logins</li>
+<li>Consolidate PDF systems</li>
+<p></ol></p>
+
+<hr>
+
+<h2>29. Final Architecture Decision</h2>
+
+<h3>PRESERVE</h3>
+<p>Multi-guard authentication | CenterScope tenant isolation |</p>
+<p>Feature flag system | Event-Listener for payments |</p>
+<p>Observer pattern | Inertia.js + Laravel | Laratrust RBAC |</p>
+<p>Rate limiting configuration</p>
+
+<h3>REFACTOR</h3>
+<p>Admin/StudentController.php → extract to StudentService |</p>
+<p>Welcome.jsx → split into section components |</p>
+<p>Result.jsx → split into SearchForm + ResultDisplay |</p>
+<p>Consolidate dual PDF systems (keep System B) |</p>
+<p>Replace DataTables/jQuery with React table</p>
+
+<h3>FIX (Must Fix)</h3>
+<p>Remove /live_deploy route |</p>
+<p>Remove /ping + /test-transcript debug routes |</p>
+<p>Implement staff password reset |</p>
+<p>Wire SMS jobs |</p>
+<p>Setup production queue worker</p>
+
+<h3>COMPLETE</h3>
+<p>Online examination student flow |</p>
+<p>Student document template rendering |</p>
+<p>Financial → online transaction linkage |</p>
+<p>Sub-admin permission enforcement |</p>
+<p>Multi-language translations</p>
+
+<h3>ADD</h3>
+<p>GitHub Actions CI/CD |</p>
+<p>Automated scheduled backups |</p>
+<p>Supervisor queue config |</p>
+<p>Payment credential encryption |</p>
+<p>Redis if available</p>
+
+<h3>AVOID</h3>
+<p>No separate REST API/microservices |</p>
+<p>No framework rewrite |</p>
+<p>No additional payment gateways until existing ones tested |</p>
+<p>No new features until security patched</p>
+
+<hr>
+
+<h2>30. Development Roadmap</h2>
+
+<h3>Sprint 1 — CRITICAL (Week 1)</h3>
+<ul>
+<li>Remove /live_deploy and debug routes</li>
+<li>Encrypt payment credentials in DB</li>
+<li>Move SSH credentials to environment variables</li>
+<li>Setup production queue worker</li>
+<p></ul></p>
+
+<h3>Sprint 2 — HIGH (Weeks 2-3)</h3>
+<ul>
+<li>Wire SMS triggers (student enrollment + payment)</li>
+<li>Implement staff password reset</li>
+<li>Complete student document template linking</li>
+<li>Configure SSLCommerz IPN URL</li>
+<p></ul></p>
+
+<h3>Sprint 3 — MEDIUM (Weeks 4-5)</h3>
+<ul>
+<li>Complete online examination student flow</li>
+<li>Sub-admin permission audit + enforcement</li>
+<li>GitHub Actions CI/CD pipeline</li>
+<li>Automated backup scheduling</li>
+<p></ul></p>
+
+<h3>Sprint 4 — POLISH (Weeks 6-7)</h3>
+<ul>
+<li>Split large React components</li>
+<li>Complete Bengali translations</li>
+<li>Apply CAPTCHA to logins</li>
+<li>Payment sandbox testing</li>
+<p></ul></p>
+
+<hr>
+
+<h2>31. AI Agent Rules</h2>
+
+<h3>MANDATORY PRE-CHANGE CHECKLIST</h3>
+<ol>
+<li>Read this document</li>
+<li>Read the relevant section in PROJECT_DOCUMENTATION/</li>
+<li>View the source file with view_file before editing</li>
+<li>Check related models, routes, controllers, frontend pages</li>
+<li>Check CenterScope implications (tenant isolation)</li>
+<li>Check feature flag implications (module toggles)</li>
+<li>Make the smallest safe change</li>
+<li>Run: C:\xampp\php\php.exe artisan test (all 31 must pass)</li>
+<li>Run: npm run build</li>
+<li>Commit + push + deploy</li>
+<p></ol></p>
+
+<h3>CRITICAL CODE RULES</h3>
+
+<p>GUARD USAGE:</p>
+  NEVER: auth()->user()  (without specifying guard outside web context)
+  ALWAYS specify:
+    auth('admin')->user()   — admin context
+    auth('staff')->user()   — staff context
+    auth('student')->user() — student context
+    auth()->user()          — ONLY for web (centre user) context
+
+<p>TENANT ISOLATION:</p>
+  NEVER bypass CenterScope in centre-user context
+  NEVER use DB::table('students') without manual center_id filter
+  Student and Result have CenterScope global scope applied
+
+<p>FEATURE FLAGS:</p>
+  New toggleable features need:
+    1. Column in site_configs via migration
+    2. Added to SiteConfig::$fillable
+    3. Added to HandleInertiaRequests::share() site_config array
+    4. Toggle UI in admin settings
+    5. ->middleware('module:toggle_column') on route
+
+<p>ENUMS — Always use enum classes:</p>
+  StudentStatus::Pending / ::Approved / ::Hide
+  Gender::Male / ::Female
+  CourseType::Regular / ::Short_Course / ::Diploma
+  (and all other enums in app/Enums/)
+
+<p>IMAGES:</p>
+  Store via Image::store($field, $folder) — returns relative path
+  NEVER store full URLs in database
+
+<p>CACHE:</p>
+  After modifying model data, cache auto-clears via ClearsFrontendCache
+  For manual cache clear: php artisan optimize:clear
+
+<p>PAYMENT:</p>
+  NEVER mark transaction 'success' without gateway API verification
+  ALWAYS wrap payment in DB::beginTransaction() / commit()
+  ALWAYS fire PaymentSucceeded event after successful payment
+
+<p>WHAT NEVER TO DO:</p>
+  Never hardcode center_id values
+  Never store credentials in code — use .env
+  Never skip CSRF on forms
+  Never commit .env files
+  Never run migrate:fresh on production without backup
+  Never create duplicate models (check app/Models/ first)
+  Never create duplicate routes (check routes/*.php first)
+  Never leave /live_deploy route in any code
+
+<hr>
+
+<h2>32. Final Audit Summary</h2>
+
+<h3>Project Statistics</h3>
+
+<table><tr><td>Metric</td><td>Count</td></tr>
+<tr></tr>
+<tr><td>Total modules</td><td>35+</td></tr>
+<tr><td>Total panels</td><td>5 (Public, Admin, Staff, Student, Centre)</td></tr>
+<tr><td>Total React pages</td><td>70+</td></tr>
+<tr><td>Total routes</td><td>120+</td></tr>
+<tr><td>Total database models</td><td>35</td></tr>
+<tr><td>Total database tables</td><td>40+</td></tr>
+<tr><td>Total migrations</td><td>75</td></tr>
+<tr><td>Auth guards</td><td>4</td></tr>
+<tr><td>Feature flag toggles</td><td>10</td></tr>
+<tr><td>PHPUnit tests</td><td>31 (all passing)</td></tr>
+<tr><td>Playwright E2E specs</td><td>16</td></tr>
+<tr><td>Major business workflows</td><td>6</td></tr>
+<p></table></p>
+<h3>Summary</h3>
+<ul>
+<li>Completed: Public website, admin CRUD, enrollment, results, document builder, payment integration, Telescope, tests</li>
+<li>Partial: Online exam, SMS, financial, sub-admin RBAC, staff portal</li>
+<li>Missing: Staff password reset, queue worker, CI/CD, production-tested payments</li>
+<li>Security: 3 critical, 2 high, 5 medium issues identified</li>
+<li>Technical debt: 3 P0, 5 P1, 7 P2, 5 P3 items</li>
+<p></ul></p>
+
+<h3>TOP 10 NEXT ACTIONS</h3>
+
+<table><tr><td>#</td><td>Priority</td><td>Task</td><td>Reason</td></tr>
+<tr></tr>
+<tr><td>1</td><td>CRITICAL</td><td>Remove /live_deploy route</td><td>Anyone can destroy DB</td></tr>
+<tr><td>2</td><td>CRITICAL</td><td>Encrypt payment credentials in DB</td><td>bKash/SSLCommerz keys exposed</td></tr>
+<tr><td>3</td><td>CRITICAL</td><td>Remove SSH credentials from deploy scripts</td><td>Server root access exposed</td></tr>
+<tr><td>4</td><td>HIGH</td><td>Setup production queue worker (supervisor)</td><td>Bulk PDF + SMS silently fail</td></tr>
+<tr><td>5</td><td>HIGH</td><td>Wire SMS triggers to student events</td><td>Core feature not working</td></tr>
+<tr><td>6</td><td>HIGH</td><td>Implement staff password reset</td><td>Locked-out staff need admin help</td></tr>
+<tr><td>7</td><td>MEDIUM</td><td>Test payment flow in sandbox</td><td>Revenue feature unvalidated</td></tr>
+<tr><td>8</td><td>MEDIUM</td><td>Complete student document rendering</td><td>Student portal incomplete</td></tr>
+<tr><td>9</td><td>MEDIUM</td><td>Build GitHub Actions CI/CD</td><td>Manual deploys are fragile</td></tr>
+<tr><td>10</td><td>MEDIUM</td><td>Complete online examination flow</td><td>Feature in progress, unusable</td></tr>
+<p></table></p>
+<hr>
+
+<p>*Document created: 2026-08-24*  </p>
+<p>*All findings verified from direct source code inspection.*  </p>
+<p>*No features were assumed or invented — only documented facts.*  </p>
+<p>*See PROJECT_DOCUMENTATION/ folder for detailed coverage of each area.*</p>
+
+</div>
+
+</body>
+</html>

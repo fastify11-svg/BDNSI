@@ -1,0 +1,103 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import 'select2/dist/css/select2.min.css';
+@import './animations.css';
+
+.font-mono {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+[x-cloak] { display: none !important; }
+
+.datatable td {
+    @apply p-2 text-center;
+}
+
+.datatable .sortable:before {
+    position: absolute;
+    content: 'â–²';
+    top: 0;
+    right: 0;
+    padding: 2px 5px;
+    opacity: .2;
+    font-size: .7em;
+}
+
+.datatable .sortable:after {
+    position: absolute;
+    content: 'â–¼';
+    bottom: 0;
+    right: 0;
+    padding: 2px 5px;
+    opacity: .2;
+    font-size: .7em;
+}
+
+.datatable .sorting_asc:before {
+    opacity: .8;
+}
+
+.datatable .sorting_desc:after {
+    opacity: .8;
+}
+
+
+.shopping-cart {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.card {
+    width: 300px; /* Adjust the width as needed */
+    height: 400px; /* Adjust the height as needed */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.8s;
+}
+
+.card:hover .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1px;
+}
+
+.card-front {
+    background-color: white;
+}
+
+.card-back {
+    background-color: white;
+    transform: rotateY(180deg);
+}
+
+@keyframes scan {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(12rem); }
+  100% { transform: translateY(0); }
+}
+
+
+

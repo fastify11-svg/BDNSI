@@ -39,6 +39,21 @@ class BulkDocumentController extends Controller
             'force_fresh' => $request->boolean('force_fresh', false),
         ];
 
+        // Ensure user is authorized for these students (Tenant Isolation)
+        $user = auth()->guard('web')->user();
+        if ($user && $user->center_id) {
+            $unauthorizedCount = \App\Models\Student::withoutGlobalScopes()
+                ->whereIn('id', $request->student_ids)
+                ->where('center_id', '!=', $user->center_id)
+                ->count();
+            if ($unauthorizedCount > 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized. You can only generate documents for students belonging to your center.',
+                ], 403);
+            }
+        }
+
         // Store initial queue status in cache
         Cache::put("bulk_pdf_{$batchJobId}", [
             'status' => 'queued',
@@ -130,6 +145,14 @@ class BulkDocumentController extends Controller
         $student = Student::withoutGlobalScopes()
             ->with(['center', 'subject', 'session', 'result', 'semesterResults'])
             ->findOrFail($studentId);
+
+        $user = auth()->guard('web')->user();
+        if ($user && $user->center_id && $student->center_id !== $user->center_id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. You can only render documents for students belonging to your center.',
+            ], 403);
+        }
 
         $options = [
             'format' => $request->query('format', $template->document_type === 'idcard' ? 'CR80' : 'A4'),

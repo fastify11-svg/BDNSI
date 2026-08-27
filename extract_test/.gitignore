@@ -1,0 +1,136 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/storage/framework/sessions
+/storage/framework/views
+/storage/logs/laravel-*.log
+/vendor
+.env
+.env.testing
+.env.backup
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/bootstrap/cache/*.php
+
+# Custom ignores for sensitive and debug files
+*.sql
+alter_table.php
+audit_*.php
+check_*.php
+dump_*.php
+e2e_*.php
+fix_*.php
+full_stack_audit.php
+register_demo_student.php
+test_*.php
+update_*.php
+composer.phar
+build_output.log
+audit_report.log
+/archive_backup_2026
+
+# Database dumps - security risk
+*.sql
+*.sql.gz
+archive_backup_2026/
+
+# Debug/scratch scripts
+alter_table.php
+audit_homepage_data.php
+audit_report.log
+build_output.log
+bteb_css.txt
+bteb_footer.html
+check_durations.php
+check_rows.php
+check_rows2.php
+check_tables.php
+check_tables_real.php
+dump_about.php
+dump_cols.php
+dump_setting.php
+e2e_full_site_control.php
+e2e_site_control.php
+e2e_slider_test.php
+e2e_team_test.php
+e2e_type_test.php
+fix_anomalies.php
+fix_durations.php
+fix_marks.php
+fix_sessions.php
+fix_setting_history.php
+fix_youtube_perms.php
+full_stack_audit.php
+local_test.html
+output.html
+register_demo_student.php
+routes.txt
+run_tests.cmd
+test_api.php
+test_approval.php
+test_approval_and_login.php
+test_config_update.php
+test_footer_dom.php
+test_home.php
+test_rejected_login.php
+test_session_lifecycle.php
+update_config.php
+update_config_raw.php
+update_db_logos.php
+update_json_config.php
+update_logos.php
+update_logos2.php
+update_sessions.php
+
+# Build artifacts - should NOT be in git
+# public/build/
+
+test-results/
+playwright-report/
+deploy.tar.gz
+deploy2.tar.gz
+deploy3.tar.gz
+vendor.zip
+vendor.tar.gz
+zip_vendor.js
+zip.php
+storage_public.zip
+update.zip
+public_build.zip
+
+# Large log files
+lh.log
+laravel.log
+lt.log
+lt_out.log
+pinggy.log
+
+# Local setup script (PC-specific)
+# setup_antigravity.ps1  <-- keep this tracked for reference
+
+# Ensure .agents/ config IS tracked (do NOT ignore)
+# .agents/ is intentionally tracked for IDE rules
+
+# Scratch files
+scratch/
+
+# Deployment Scripts & Temp Files
+build_tar.mjs
+full_auto_deploy.mjs
+fix_live_env.js
+zip_it.mjs
+file_list.txt
+file_list2.txt
+validFiles.json
+latest_bdnsi_working_db.sql
+deploy*.zip
+deploy*.tar.gz
+
+# Extra large files to prevent GitHub rejection
+storage_public.tar.gz
+storage_public_py.zip

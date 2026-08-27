@@ -215,4 +215,62 @@ class AnalyticsService
             'unpaid' => max(0, $unpaid),
         ];
     }
+
+    /**
+     * Get Center Current Due based on actual ledger balance.
+     *
+     * @param int|null $centerId
+     * @return float
+     */
+    public function getCenterCurrentDue($centerId = null): float
+    {
+        $query = \App\Models\CenterLedger::query();
+        if ($centerId) {
+            $query->where('center_id', $centerId);
+        }
+        
+        $totalDebit = (float) $query->where('type', 'debit')->sum('amount');
+        
+        $creditQuery = \App\Models\CenterLedger::query();
+        if ($centerId) {
+            $creditQuery->where('center_id', $centerId);
+        }
+        $totalCredit = (float) $creditQuery->where('type', 'credit')->sum('amount');
+        
+        return max(0, $totalDebit - $totalCredit);
+    }
+
+    /**
+     * Get Credit Utilization as a percentage.
+     *
+     * @param int $centerId
+     * @return float
+     */
+    public function getCreditUtilization(int $centerId): float
+    {
+        $center = \App\Models\Center::find($centerId);
+        if (!$center || !$center->credit_enabled || $center->credit_limit <= 0) {
+            return 0;
+        }
+
+        $due = $this->getCenterCurrentDue($centerId);
+        $percentage = ($due / $center->credit_limit) * 100;
+        return round(min(100, $percentage), 2);
+    }
+
+    /**
+     * Get Staff Sales count (number of students registered by a specific staff member).
+     *
+     * @param int $staffId
+     * @param int|null $centerId
+     * @return int
+     */
+    public function getStaffSales(int $staffId, $centerId = null): int
+    {
+        $query = Student::where('created_by', $staffId);
+        if ($centerId) {
+            $query->where('center_id', $centerId);
+        }
+        return $query->count();
+    }
 }
