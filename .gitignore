@@ -136,3 +136,8 @@ storage_public.tar.gz
 storage_public_py.zip
 .env.staging
 .env.upload
+
+review-input.json
+review-output.json
+
+.env.local_backup

@@ -14,6 +14,7 @@ class Lead extends Model
         'phone',
         'source',
         'team_id',
+        'center_id',
         'status',
         'notes',
         'follow_up_date',
@@ -22,5 +23,10 @@ class Lead extends Model
     public function team()
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function center()
+    {
+        return $this->belongsTo(Center::class);
     }
 }

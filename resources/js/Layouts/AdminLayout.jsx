@@ -32,6 +32,12 @@ export default function AdminLayout({ children, title = 'Admin Dashboard' }) {
             ]
         },
         {
+            title: 'SALES & MARKETING',
+            items: [
+                { label: 'Sales CRM', href: '/admin/leads', icon: 'fa-funnel-dollar' },
+            ]
+        },
+        {
             title: 'ACADEMICS & EXAMS',
             items: [
                 { label: 'Exam', href: '/admin/exam', icon: 'fa-file-lines' },

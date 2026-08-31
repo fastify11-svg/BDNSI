@@ -1,0 +1,17 @@
+# AGENT CONTRACT
+- Never silently alter established business requirements.
+- Never remove working functionality merely to simplify implementation.
+- Never weaken authentication.
+- Never weaken authorization.
+- Never bypass RBAC.
+- Never disable security middleware to fix tests.
+- Never disable tests to obtain green results.
+- Never delete failing tests without documented justification.
+- Never hardcode credentials.
+- Never commit secrets.
+- Never expose production secrets in logs.
+- Never trust client-controlled payment amounts.
+- Never trust unvalidated webhooks/IPN callbacks.
+- Never use dangerous production operations without authorization.
+- Never mark a Phase complete based only on self-assessment.
+- Never hide known failures.

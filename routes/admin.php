@@ -183,6 +183,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('center-risk', [App\Http\Controllers\Admin\CenterRiskController::class, 'index'])->name('center-risk.index');
 
             Route::resource('slider', SliderController::class);
+            Route::resource('leads', \App\Http\Controllers\Admin\LeadController::class);
             Route::get('user/portal/{user}', [UserController::class, 'portal'])->name('user.portal');
 
             Route::resource('center', CenterController::class);

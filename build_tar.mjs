@@ -16,7 +16,16 @@ try {
   });
 } catch(e) {}
 
-const allFiles = [...gitFiles, ...buildFiles];
+let vendorFiles = [];
+try {
+  const vendorOutput = execSync('dir /s /b vendor', { encoding: 'utf-8' });
+  const basePath = process.cwd().length + 1;
+  vendorFiles = vendorOutput.replace(/\r/g, '').split('\n').filter(Boolean).map(f => {
+    return f.substring(basePath).replace(/\\/g, '/');
+  });
+} catch(e) {}
+
+const allFiles = [...gitFiles, ...buildFiles, ...vendorFiles];
 // Filter out files that don't exist (like deleted git files)
 const validFiles = allFiles.filter(f => {
   if (f.includes('node_modules/') || f.includes('.agents/') || f.includes('storage/framework/')) return false;
@@ -33,7 +42,7 @@ console.log("Creating deploy.tar.gz...");
 tar.c(
   {
     gzip: true,
-    file: '../deploy.tar.gz',
+    file: 'deploy.tar.gz',
     preservePaths: false,
     portable: true
   },
