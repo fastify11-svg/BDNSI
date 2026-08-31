@@ -4,36 +4,40 @@ on:
   push:
     branches:
       - '**'
-      - '!main' # Run on implementation branches, not direct pushes to main (assuming PR workflow)
+      - '!main'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   supervisor_review:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip-supervisor')"
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Needed for git diffs
-          
+          fetch-depth: 0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          
+
       - name: Run Supervisor Bridge
         env:
           AI_SUPERVISOR_API_KEY: ${{ secrets.AI_SUPERVISOR_API_KEY }}
-          AI_SUPERVISOR_BASE_URL: ${{ vars.AI_SUPERVISOR_BASE_URL || 'https://agentrouter.org/v1' }}
-          AI_SUPERVISOR_MODEL: ${{ vars.AI_SUPERVISOR_MODEL || 'gpt-4o' }}
+          AI_SUPERVISOR_BASE_URL: https://co.agentrouter.org/v1
+          AI_SUPERVISOR_MODEL: ${{ vars.AI_SUPERVISOR_MODEL }}
         run: |
           node scripts/ai-supervisor/supervisor.mjs
-          
+
       - name: Commit Supervisor Reports
+        if: success()
         run: |
           git config --global user.name "AI Supervisor"
           git config --global user.email "supervisor@ai.local"
