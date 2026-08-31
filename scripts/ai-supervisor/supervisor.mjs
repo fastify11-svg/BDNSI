@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 
 const AI_SUPERVISOR_API_KEY = process.env.AI_SUPERVISOR_API_KEY;
 const AI_SUPERVISOR_BASE_URL = process.env.AI_SUPERVISOR_BASE_URL || 'https://agentrouter.org/v1';
-const AI_SUPERVISOR_MODEL = process.env.AI_SUPERVISOR_MODEL || 'gpt-4o';
+const AI_SUPERVISOR_MODEL = process.env.AI_SUPERVISOR_MODEL; // Intentionally no default
 
 const args = process.argv.slice(2);
 const isMockPass = args.includes('--mock-pass');
@@ -18,6 +18,35 @@ function readFileSafely(filePath) {
         }
     } catch (e) {}
     return "Not provided";
+}
+
+// Parse active task details from TASK_QUEUE.md
+function parseTaskQueue() {
+    const content = readFileSafely('.ai/TASK_QUEUE.md');
+    const lines = content.split('\n');
+    
+    let activeTaskId = "UNKNOWN_TASK";
+    let objective = "Unknown objective";
+    let currentPhaseContext = "Unknown Phase";
+    let lastPhaseHeader = "";
+    
+    for (const line of lines) {
+        if (line.startsWith('## ')) {
+            lastPhaseHeader = line.substring(3).trim();
+        }
+        // Look for in-progress or ready tasks. The most recent 'IMPLEMENTING' or top 'READY' is usually active.
+        // Or if the project state says we're in a specific phase.
+        if (line.match(/- \[[ /]\] TASK-/)) {
+            const match = line.match(/TASK-[A-Z0-9-]+/);
+            if (match) {
+                activeTaskId = match[0];
+                objective = line.split(': ')[1] || line;
+                currentPhaseContext = lastPhaseHeader;
+                break; // Take the first open task as active
+            }
+        }
+    }
+    return { activeTaskId, objective, currentPhaseContext };
 }
 
 // Ensure the parsed JSON output has the required fields
@@ -38,6 +67,10 @@ async function runConnectivityTest() {
     console.log("Running AgentRouter Connectivity Test...");
     if (!AI_SUPERVISOR_API_KEY) {
         console.error("FATAL: AI_SUPERVISOR_API_KEY is missing. Cannot test connectivity.");
+        process.exit(1);
+    }
+    if (!AI_SUPERVISOR_MODEL) {
+        console.error("FATAL: AI_SUPERVISOR_MODEL is missing. Model must be explicitly configured.");
         process.exit(1);
     }
     
@@ -88,6 +121,8 @@ function gatherEvidence() {
     let regression = readFileSafely('.ai/REGRESSION_REPORT.md');
     let integration = readFileSafely('.ai/INTEGRATION_REPORT.md');
     
+    const { activeTaskId, objective, currentPhaseContext } = parseTaskQueue();
+
     let gitDiff = "";
     try {
         gitDiff = execSync('git diff --staged').toString();
@@ -101,8 +136,10 @@ function gatherEvidence() {
     const payload = {
         project: "BDNSI",
         phase: projectState.match(/Current Phase: (.*)/)?.[1] || "Unknown",
-        task_id: "Extracted_from_TASK_QUEUE",
-        objective: "Review recent changes",
+        roadmap_context: currentPhaseContext,
+        task_id: activeTaskId,
+        objective: objective,
+        acceptance_criteria: "Must pass all security, logic, integration, and UI tests. No regressions.",
         git_diff: gitDiff,
         reports: {
             implementation, test, security, regression, integration
@@ -161,9 +198,36 @@ async function callSupervisorAPI(payload, isRetry = false) {
         };
     }
     
+    if (args.includes('--mock-pass-notes')) {
+        console.log("Executing MOCK PASS WITH NOTES...");
+        return {
+            task_id: payload.task_id,
+            phase: payload.phase,
+            verdict: "PASS_WITH_NOTES",
+            risk_level: "MEDIUM",
+            summary: "Code mostly works, but there is a security concern regarding SQL injection.",
+            issues: [
+                {
+                    id: "ISSUE-MOCK-02",
+                    severity: "MEDIUM",
+                    category: "security",
+                    description: "Potential SQL injection.",
+                    evidence: "diff line 50",
+                    required_fix: "Use parameterized queries.",
+                    required_tests: ["Test SQL injection payloads."]
+                }
+            ],
+            acceptance_criteria_status: [],
+            security_status: "FAIL",
+            regression_status: "PASS",
+            integration_status: "PASS",
+            next_action: "Review security note."
+        };
+    }
+    
     if (args.includes('--mock-malformed-json')) {
         console.log("Executing MOCK MALFORMED JSON...");
-        let rawContent = "```json\n{ \"verdict\": \"PASS\", \"missing_fields\": true \n```"; // Invalid JSON format and schema
+        let rawContent = "```json\n{ \"verdict\": \"PASS\", \"missing_fields\": true \n```"; 
         
         let parsed;
         try {
@@ -175,7 +239,7 @@ async function callSupervisorAPI(payload, isRetry = false) {
         } catch (e) {
             if (!isRetry) {
                 console.warn("Invalid JSON returned by Supervisor, retrying once...", e.message);
-                return callSupervisorAPI(payload, true); // this will retry
+                return callSupervisorAPI(payload, true);
             } else {
                 console.error("FATAL: Supervisor repeatedly returned invalid JSON or schema violations.");
                 process.exit(1);
@@ -191,6 +255,10 @@ async function callSupervisorAPI(payload, isRetry = false) {
 
     if (!AI_SUPERVISOR_API_KEY) {
         console.error("FATAL: AI_SUPERVISOR_API_KEY is missing. Halting supervisor bridge.");
+        process.exit(1);
+    }
+    if (!AI_SUPERVISOR_MODEL) {
+        console.error("FATAL: MODEL_NOT_CONFIGURED. AI_SUPERVISOR_MODEL must be explicitly set.");
         process.exit(1);
     }
 
@@ -222,7 +290,6 @@ async function callSupervisorAPI(payload, isRetry = false) {
     const data = await response.json();
     let rawContent = data.choices[0].message.content;
     
-    // Safety fallback: Sometimes models wrap json output in markdown blocks despite instructions
     if (rawContent.startsWith('```json')) {
         rawContent = rawContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
     }
@@ -243,7 +310,44 @@ async function callSupervisorAPI(payload, isRetry = false) {
     return parsed;
 }
 
+function processPassWithNotes(verdictJson) {
+    if (verdictJson.verdict !== 'PASS_WITH_NOTES') return verdictJson;
+
+    const criticalCategories = [
+        'acceptance criteria', 'security', 'data integrity', 
+        'financial correctness', 'authorization', 'regression', 'integration'
+    ];
+
+    let isCritical = false;
+    
+    // Check if any issue falls into critical categories
+    if (verdictJson.issues && Array.isArray(verdictJson.issues)) {
+        for (const issue of verdictJson.issues) {
+            const cat = (issue.category || "").toLowerCase();
+            if (criticalCategories.some(c => cat.includes(c))) {
+                isCritical = true;
+                break;
+            }
+        }
+    }
+    
+    // Also check summary text just in case
+    const summary = (verdictJson.summary || "").toLowerCase();
+    if (!isCritical && criticalCategories.some(c => summary.includes(c))) {
+        // We will be strict: if the notes mention critical areas, force REWORK
+        isCritical = true;
+    }
+
+    if (isCritical) {
+        console.log("PASS_WITH_NOTES escalated to REWORK_REQUIRED due to critical category involvement.");
+        verdictJson.verdict = 'REWORK_REQUIRED';
+    }
+    return verdictJson;
+}
+
 function generateReports(verdictJson) {
+    verdictJson = processPassWithNotes(verdictJson);
+
     fs.writeFileSync('.ai/supervisor/review-output.json', JSON.stringify(verdictJson, null, 2));
 
     const reviewReport = `# SUPERVISOR REVIEW REPORT
@@ -269,7 +373,9 @@ ${verdictJson.next_action}
             fixRequest += `**Evidence:** ${issue.evidence}\n`;
             fixRequest += `**Required Fix:** ${issue.required_fix}\n`;
             fixRequest += `**Required Tests:**\n`;
-            issue.required_tests.forEach(test => fixRequest += `- ${test}\n`);
+            if (issue.required_tests) {
+                issue.required_tests.forEach(test => fixRequest += `- ${test}\n`);
+            }
             fixRequest += `\n`;
         });
         fs.writeFileSync('.ai/FIX_REQUEST.md', fixRequest);
@@ -289,11 +395,10 @@ ${verdictJson.next_action}
         }
         console.log("Verdict: PASS. Ready for next task.");
     } else if (verdictJson.verdict === 'PASS_WITH_NOTES') {
-        // According to instructions, evaluate notes later or just allow progression if non-blocking
         let state = readFileSafely('.ai/PROJECT_STATE.md');
         state = state.replace(/Status: .*/, "Status: VERIFIED (WITH NOTES)");
         fs.writeFileSync('.ai/PROJECT_STATE.md', state);
-        console.log("Verdict: PASS_WITH_NOTES. Review notes in REVIEW_REPORT.md.");
+        console.log("Verdict: PASS_WITH_NOTES (non-blocking). Review notes in REVIEW_REPORT.md.");
     } else if (verdictJson.verdict === 'BLOCKED') {
         let state = readFileSafely('.ai/PROJECT_STATE.md');
         state = state.replace(/Status: .*/, "Status: BLOCKED");
@@ -306,7 +411,6 @@ async function main() {
     try {
         if (isConnectivityTest) {
             await runConnectivityTest();
-            // Don't generate reports or modify project state during connectivity test
             process.exit(0);
         }
 
