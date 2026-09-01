@@ -28,6 +28,42 @@ jobs:
         with:
           node-version: '22'
 
+      - name: AgentRouter Auth Preflight
+        env:
+          AI_SUPERVISOR_API_KEY: ${{ secrets.AI_SUPERVISOR_API_KEY }}
+          AI_SUPERVISOR_BASE_URL: https://co.agentrouter.org/v1
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${AI_SUPERVISOR_API_KEY:-}" ]; then
+            echo "FATAL: AI_SUPERVISOR_API_KEY secret is missing."
+            exit 1
+          fi
+          HTTP_CODE=$(curl -sS -o /tmp/agentrouter-preflight.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${AI_SUPERVISOR_API_KEY}" \
+            -H "Accept: application/json" \
+            "${AI_SUPERVISOR_BASE_URL}/models")
+          CONTENT_TYPE=$(file -b --mime-type /tmp/agentrouter-preflight.json || true)
+          echo "AgentRouter preflight HTTP status: ${HTTP_CODE}"
+          echo "AgentRouter preflight response type: ${CONTENT_TYPE}"
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "AgentRouter authentication/connectivity preflight failed."
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('/tmp/agentrouter-preflight.json')
+          raw=p.read_text(errors='replace')[:800] if p.exists() else ''
+          try:
+              obj=json.loads(raw)
+              safe={k:v for k,v in obj.items() if k.lower() not in {'token','api_key','apikey','key','authorization'}}
+              print('Safe provider response:', json.dumps(safe, ensure_ascii=False)[:600])
+          except Exception:
+              print('Provider returned a non-JSON error response.')
+          PY
+            exit 1
+          fi
+          echo "AgentRouter authentication preflight passed."
+
       - name: Run Supervisor Bridge
         env:
           AI_SUPERVISOR_API_KEY: ${{ secrets.AI_SUPERVISOR_API_KEY }}
