@@ -116,5 +116,81 @@ class LeadManagementTest extends TestCase
         $this->assertDatabaseMissing('leads', [
             'id' => $lead->id,
         ]);
+        
+        $this->assertDatabaseHas('audit_logs', [
+            'event' => 'lead_deleted',
+            'auditable_id' => $lead->id,
+            'auditable_type' => Lead::class,
+            'user_id' => $this->admin->id,
+        ]);
+    }
+
+    public function test_unauthenticated_user_cannot_access_leads()
+    {
+        $response = $this->get(route('admin.leads.index'));
+        $response->assertRedirect(route('admin.login'));
+    }
+
+    public function test_sub_admin_without_role_cannot_access_leads()
+    {
+        $subAdminRole = Role::firstOrCreate(['name' => 'sub_admin', 'display_name' => 'Sub Admin']);
+        $subAdmin = Admin::create([
+            'name' => 'Test Sub Admin',
+            'email' => 'subadmin@test.com',
+            'password' => bcrypt('password')
+        ]);
+        $subAdmin->attachRole($subAdminRole);
+
+        $response = $this->actingAs($subAdmin, 'admin')->get(route('admin.leads.index'));
+        $response->assertStatus(403);
+    }
+
+    public function test_lead_creation_records_created_by_and_audit_log()
+    {
+        $leadData = [
+            'name' => 'Audit Lead',
+            'phone' => '01888888888',
+            'status' => 'New',
+        ];
+
+        $this->actingAs($this->admin, 'admin')->post(route('admin.leads.store'), $leadData);
+
+        $this->assertDatabaseHas('leads', [
+            'name' => 'Audit Lead',
+            'created_by' => $this->admin->id,
+        ]);
+
+        $lead = Lead::where('name', 'Audit Lead')->first();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $this->admin->id,
+            'event' => 'lead_created',
+            'auditable_id' => $lead->id,
+            'auditable_type' => Lead::class,
+        ]);
+    }
+
+    public function test_lead_update_records_audit_log()
+    {
+        $lead = Lead::create([
+            'name' => 'Update Audit',
+            'phone' => '01900000000',
+            'status' => 'New'
+        ]);
+
+        $updatedData = [
+            'name' => 'Updated Audit Name',
+            'phone' => '01900000000',
+            'status' => 'Converted',
+        ];
+
+        $this->actingAs($this->admin, 'admin')->put(route('admin.leads.update', $lead), $updatedData);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $this->admin->id,
+            'event' => 'lead_updated',
+            'auditable_id' => $lead->id,
+            'auditable_type' => Lead::class,
+        ]);
     }
 }

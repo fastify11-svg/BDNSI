@@ -1,15 +1,32 @@
 import React, { useState } from 'react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { InertiaLink as Link, useForm } from '@inertiajs/inertia-react';
 import Pagination from '@/Components/Pagination';
 import Modal from '@/Components/Modal';
 
 export default function Index({ leads }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        phone: '',
+        status: 'New',
+        source: '',
+        notes: '',
+    });
+
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('admin.leads.store'), {
+            onSuccess: () => {
+                setShowCreateModal(false);
+                reset();
+            },
+        });
+    };
+    
     return (
         <AdminLayout>
-            <Head title="Sales CRM - Leads" />
 
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-semibold text-gray-800">Sales CRM - Leads</h2>
@@ -68,19 +85,36 @@ export default function Index({ leads }) {
             <Modal show={showCreateModal} onClose={() => setShowCreateModal(false)}>
                 <div className="p-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Lead</h3>
-                    <form action="/admin/leads" method="POST" className="space-y-4">
-                        {/* We use standard HTML form for now, but usually Inertia useForm is better. */}
+                    <form onSubmit={submit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Name</label>
-                            <input type="text" name="name" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                            <input 
+                                type="text" 
+                                value={data.name} 
+                                onChange={e => setData('name', e.target.value)} 
+                                required 
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
+                            />
+                            {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Phone</label>
-                            <input type="text" name="phone" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+                            <input 
+                                type="text" 
+                                value={data.phone} 
+                                onChange={e => setData('phone', e.target.value)} 
+                                required 
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
+                            />
+                            {errors.phone && <div className="text-red-500 text-xs mt-1">{errors.phone}</div>}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Status</label>
-                            <select name="status" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <select 
+                                value={data.status} 
+                                onChange={e => setData('status', e.target.value)} 
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            >
                                 <option value="New">New</option>
                                 <option value="Contacted">Contacted</option>
                                 <option value="Negotiating">Negotiating</option>
@@ -88,10 +122,13 @@ export default function Index({ leads }) {
                                 <option value="Follow-up">Follow-up</option>
                                 <option value="Lost">Lost</option>
                             </select>
+                            {errors.status && <div className="text-red-500 text-xs mt-1">{errors.status}</div>}
                         </div>
                         <div className="mt-6 flex justify-end gap-3">
                             <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
-                            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save Lead</button>
+                            <button type="submit" disabled={processing} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                                {processing ? 'Saving...' : 'Save Lead'}
+                            </button>
                         </div>
                     </form>
                 </div>
