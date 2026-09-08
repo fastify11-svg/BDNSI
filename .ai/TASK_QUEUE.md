@@ -1,24 +1,14 @@
-# BDNSI TASK QUEUE
+# BDNSI Task Queue
 
-## Phase O: AI Document Intelligence
+## Post-Phase U Closure Requirements
 
-### Discovery & Planning
-- [x] Architecture Audit (AI Document Intelligence models, services)
-- [x] Phase O Implementation Plan Generation
+| ID | Status | Task | Description |
+|---|---|---|---|
+| C-1 | In Progress | SAFE_DEVELOPMENT_VALIDATION | Audit codebase against §25. Verify CenterScope, DB, Finance, tests, workflows. |
+| C-2 | Pending | ARCHITECTURE_PERFORMANCE_AUDIT | Execute §26. Audit oversized components, N+1 queries, indexes, cache. |
+| C-3 | Pending | OPERATIONS_HARDENING | Execute §27. Backups, error/queue monitoring, health checks. |
+| C-4 | Pending | FINAL_E2E_VALIDATION | Execute §28. Verify deterministic journeys (Center, Student, Sales, Finance). |
+| C-5 | Pending | FINAL_ACCEPTANCE_RECONCILIATION | Execute §29. Complete evidence matrix. Classify PASS/REWORK/BLOCKED. |
 
-### Implementation & Verification
-- [x] Implement OCR and Document Classification
-- [x] Implement Missing-document detection
-- [x] Implement Name/DOB/course mismatch detection
-- [x] Write/Verify E2E Tests for Document Intelligence
-- [x] Run Backend and Frontend Regression Suite
-- [x] Security Review (AI must not independently approve credentials)
-- [x] Final Gatekeeper Review
-
----
-## Historical Tracking (Preserved Evidence)
-### Phase N (Advanced Reporting)
-- [x] Create Advanced Reporting UI (Index.jsx)
-- [x] Create API endpoints for metrics
-- [x] Write and verify tests
-- [x] Final Gatekeeper Review
+## Completed Phases
+- Phases A through U are completed and verified.

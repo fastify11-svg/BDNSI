@@ -96,6 +96,7 @@ function healState() {
     const state = readJson(STATE_FILE);
     const roadmap = fs.readFileSync(ROADMAP_FILE, 'utf8');
     
+    // Parse Phases
     const phaseRegex = /## \d+\.\s+PHASE\s+([A-Z])\s+—\s+([^\n]+)/g;
     const allPhases = [];
     let match;
@@ -103,24 +104,51 @@ function healState() {
       allPhases.push('PHASE_' + match[1]);
     }
     
-    const completed = new Set(state.completed_phases || []);
-    const truePending = allPhases.filter(p => !completed.has(p));
+    const completedPhases = new Set(state.completed_phases || []);
+    const truePendingPhases = allPhases.filter(p => !completedPhases.has(p));
     
-    if (truePending.length > 0 && state.runner_status === 'COMPLETE') {
+    // Parse Closure Requirements (Sections 25-29)
+    const closureRegex = /## (25|26|27|28|29)\.\s+([^\n]+)/g;
+    const allClosureReqs = [];
+    let cMatch;
+    while ((cMatch = closureRegex.exec(roadmap)) !== null) {
+      // Convert heading to internal constant format
+      let reqName = cMatch[2].replace(/[^A-Z0-9]+/gi, '_').toUpperCase();
+      if (reqName.endsWith('_')) reqName = reqName.slice(0, -1);
+      allClosureReqs.push(reqName);
+    }
+    
+    const completedClosure = new Set(state.completed_closure_requirements || []);
+    const truePendingClosure = allClosureReqs.filter(p => !completedClosure.has(p));
+
+    // Handle runner resuming if work exists
+    if ((truePendingPhases.length > 0 || truePendingClosure.length > 0) && state.runner_status === 'COMPLETE') {
       state.runner_status = 'RUNNING';
       state.gate_status = 'PENDING';
-      state.current_phase = truePending[0];
-      state.current_task = 'DISCOVERY';
-      log('Self-heal: Fixed false COMPLETE state.');
+      
+      if (truePendingPhases.length > 0) {
+        state.current_phase = truePendingPhases[0];
+      } else {
+        state.current_phase = 'CLOSURE_REQUIREMENTS';
+        state.current_task = truePendingClosure[0];
+      }
+      log('Self-heal: Fixed false COMPLETE state. Resuming remaining work.');
     }
 
-    if (completed.has(state.current_phase) && truePending.length > 0) {
-      state.current_phase = truePending[0];
+    if (completedPhases.has(state.current_phase) && truePendingPhases.length > 0) {
+      state.current_phase = truePendingPhases[0];
       state.current_task = 'DISCOVERY';
       log(`Self-heal: Advanced phase to ${state.current_phase}`);
+    } else if (truePendingPhases.length === 0 && completedClosure.has(state.current_task) && truePendingClosure.length > 0) {
+      state.current_phase = 'CLOSURE_REQUIREMENTS';
+      state.current_task = truePendingClosure[0];
+      log(`Self-heal: Advanced closure task to ${state.current_task}`);
     }
     
-    state.pending_phases = truePending;
+    state.pending_phases = truePendingPhases;
+    state.closure_requirements = allClosureReqs;
+    state.pending_closure_requirements = truePendingClosure;
+    
     writeJson(STATE_FILE, state);
   } catch (e) {
     log('Self-heal failed: ' + e.message);
@@ -154,10 +182,12 @@ function checkOwnerDecisionOrBlocked() {
 // This is the bridge between the Windows scheduler and the IDE.
 
 function writeRunnerPrompt(state) {
+  const isClosure = state.current_phase === 'CLOSURE_REQUIREMENTS';
+  
   const prompt = `# BDNSI AUTONOMOUS RUNNER — SCHEDULED WAKE
 
 **Triggered at:** ${new Date().toISOString()}
-**Runner version:** 2.0.0
+**Runner version:** 2.1.0
 
 ## Current State
 
@@ -166,6 +196,8 @@ function writeRunnerPrompt(state) {
 - Last verified phase: ${state.last_verified_phase || 'UNKNOWN'}
 - Last verified commit: ${state.last_verified_commit || 'UNKNOWN'}
 - Gate status: ${state.gate_status || 'UNKNOWN'}
+- Pending Phases: ${(state.pending_phases || []).join(', ') || 'NONE'}
+- Pending Closure Reqs: ${(state.pending_closure_requirements || []).join(', ') || 'NONE'}
 
 ## Your Mission
 
@@ -183,12 +215,12 @@ You are the BDNSI Autonomous Roadmap Runner.
 4. Read \`.ai/TASK_QUEUE.md\`
 5. Read \`.ai/EVIDENCE_INDEX.md\`
 6. Check \`git status\` and \`git log --oneline -5\`
-7. Determine the next dependency-safe unfinished task
+7. Determine the next dependency-safe unfinished task (Phase OR Closure Requirement)
 8. Execute the full implementation → review → test → gate cycle
 9. On PASS: commit, update state, advance to the next task
 10. On REWORK: fix immediately and repeat gates
 11. On genuine OWNER_DECISION_REQUIRED: record and exit
-12. Do NOT stop after phase completion — continue to the next phase
+12. Do NOT stop after phase completion — continue to the next phase OR closure requirement
 
 ## Active Skill
 
