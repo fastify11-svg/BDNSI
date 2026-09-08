@@ -1,20 +1,19 @@
-name: Autonomous CI/CD Pipeline
+name: Autonomous CI Pipeline
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CI-ONLY pipeline — no production SSH deployment.
+# Production deployment is performed directly from Antigravity IDE via SSH.
+# DEPLOYMENT_METHOD = ANTIGRAVITY_DIRECT_SSH → nenobet.live
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      deploy:
-        description: 'Deploy the already verified main branch to production'
-        required: true
-        default: false
-        type: boolean
 
 jobs:
-  test-and-deploy:
+  ci:
     name: Autonomous Lifecycle
     runs-on: ubuntu-latest
     services:
@@ -50,7 +49,6 @@ jobs:
       - name: Setup Environment
         run: |
           cp .env.example .env
-          # PHPUnit safety guard requires this isolated MySQL database.
           sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
           sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
           sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
@@ -61,7 +59,6 @@ jobs:
           sed -i 's/APP_ENV=.*/APP_ENV=testing/' .env
           sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' .env
           sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env
-          # CI does not require Redis or a background queue worker.
           sed -i 's/REDIS_HOST=.*/REDIS_HOST=/' .env
           sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env
           echo "APP_URL=http://127.0.0.1:8000" >> .env
@@ -73,7 +70,6 @@ jobs:
       - name: Install Composer Dependencies
         run: |
           composer install -q --no-ansi --no-interaction --no-progress --prefer-dist
-          # Ensure all packages (Inertia, Laratrust, etc.) are discovered
           php artisan package:discover --ansi
 
       - name: Generate App Key
@@ -97,9 +93,7 @@ jobs:
           cache: 'npm'
 
       - name: Install NPM Dependencies
-        run: |
-          # --legacy-peer-deps: @inertiajs/inertia-react@0.8.1 requires react ^16-18, we have react 19
-          npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
       # ─── 7. BUILD FRONTEND ───────────────────────────────────────────────
       - name: Compile Frontend Assets
@@ -133,15 +127,12 @@ jobs:
           curl -s -o /dev/null -w "Public Result Page: %{http_code}\n" http://127.0.0.1:8000/result
           curl -s -o /dev/null -w "All Courses Page: %{http_code}\n" http://127.0.0.1:8000/all-course
           echo "--- Testing admin login with proper CSRF + session cookie ---"
-          # Step 1: GET the login page to acquire session cookie and extract CSRF form token
           curl -s -c /tmp/admin_cookies.txt http://127.0.0.1:8000/admin/login -o /tmp/admin_login_page.html
-          # Extract _token from the login form (Laravel CSRF hidden input, not meta tag)
           CSRF_TOKEN=$(grep -oP 'name="_token" value="\K[^"]+' /tmp/admin_login_page.html | head -1)
           if [ -z "$CSRF_TOKEN" ]; then
             echo "WARNING: Could not extract CSRF token from admin login form. Skipping login POST check."
           else
             echo "CSRF token extracted: ${CSRF_TOKEN:0:8}..."
-            # Step 2: POST login with session cookie + CSRF token (credentials in CI env only)
             LOGIN_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8000/admin/login \
               -b /tmp/admin_cookies.txt -c /tmp/admin_cookies.txt \
               -H "Content-Type: application/x-www-form-urlencoded" \
@@ -150,7 +141,6 @@ jobs:
               --data-urlencode "password=$ADMIN_PASSWORD" \
               -L --max-redirs 3)
             echo "Admin login response code: $LOGIN_CODE"
-            # 200 = login page (wrong creds), 302 = redirect to dashboard (success), after -L should be 200
             if [ "$LOGIN_CODE" = "200" ] || [ "$LOGIN_CODE" = "302" ]; then
               echo "Admin login smoke check: PASS (HTTP $LOGIN_CODE)"
             else
@@ -163,8 +153,6 @@ jobs:
 
       - name: Run Playwright Tests
         run: |
-          # Run only smoke/connectivity tests in CI
-          # Auth-dependent specs remain outside this smoke suite for runtime stability.
           npx playwright test \
             tests/e2e/frontend.spec.js \
             tests/e2e/frontend-connectivity.spec.js \
@@ -176,68 +164,13 @@ jobs:
           CENTER_EMAIL: center@gmail.com
           CENTER_PASSWORD: '12345678'
 
-      - name: Debug SSH Key Format
-        if: success() && github.event_name == 'workflow_dispatch' && inputs.deploy == true
-        env:
-          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          PASS: ${{ secrets.SSH_PASS }}
-        run: |
-          echo "Key length: ${#KEY}"
-          if echo "$KEY" | grep -q "BEGIN"; then echo "Contains BEGIN header"; fi
-          echo "First 5 chars: ${KEY:0:5}" | sed 's/./& /g'
-          echo "SSH_PASS length: ${#PASS}"
+      # NOTE: Production deployment is NOT handled here.
+      # DEPLOYMENT_METHOD = ANTIGRAVITY_DIRECT_SSH
+      # Target: nenobet.live (u881397359@145.79.212.19 port 65002)
+      # Run deploy script: node deploy_to_production.mjs
+      # See .ai/PROJECT_STATE.md for deployment architecture.
 
-      - name: Setup SSH
-        if: success() && github.event_name == 'workflow_dispatch' && inputs.deploy == true
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      # ─── 9. DEPLOY (manual approval only) ───────────────────────────────
-      - name: Deploy to Live Server via SSH
-        if: success() && github.event_name == 'workflow_dispatch' && inputs.deploy == true
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-          DB_DATABASE: ${{ secrets.DB_DATABASE }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        run: |
-          echo "=== Deploying to Hostinger Live Server ==="
-          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PORT" ] || [ -z "$DB_DATABASE" ] || [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then
-            echo "Required SSH or database deployment secrets are not configured."
-            exit 1
-          fi
-          
-          ssh -o BatchMode=yes -o StrictHostKeyChecking=no -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << EOF
-            set -e
-            cd /home/u881397359/domains/nenobet.live/public_html
-            if [ -d .git ]; then
-              git fetch origin main && git reset --hard origin/main
-            else
-              git clone --branch main --depth 1 https://github.com/fastify11-svg/BDNSI.git .
-            fi
-            if [ ! -f .env ]; then cp .env.example .env; fi
-            sed -i 's/^APP_ENV=.*/APP_ENV=production/' .env
-            sed -i 's|^APP_URL=.*|APP_URL=https://nenobet.live|' .env
-            sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
-            sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env
-            sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env
-            sed -i "s/^DB_DATABASE=.*/DB_DATABASE=$DB_DATABASE/" .env
-            sed -i "s/^DB_USERNAME=.*/DB_USERNAME=$DB_USERNAME/" .env
-            sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env
-            composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
-            if ! grep -q '^APP_KEY=base64:' .env; then php artisan key:generate --force; fi
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan migrate --force
-            echo DEPLOYMENT_COMPLETE
-          EOF
-          echo "Live server deployment completed."
-
-      # ─── 10. ARTIFACTS ON FAILURE ────────────────────────────────────────
+      # ─── 9. ARTIFACTS ON FAILURE ─────────────────────────────────────────
       - name: Upload Playwright Report
         if: failure()
         uses: actions/upload-artifact@v4
