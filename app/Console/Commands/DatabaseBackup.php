@@ -20,10 +20,14 @@ class DatabaseBackup extends Command
 
         $db = config('database.connections.mysql');
 
+        $dumpBinary = file_exists('C:\xampp\mysql\bin\mysqldump.exe') 
+            ? 'C:\xampp\mysql\bin\mysqldump.exe' 
+            : 'mysqldump';
+
         if (! empty($db['password'])) {
-            $command = "mysqldump -u{$db['username']} -p\"{$db['password']}\" {$db['database']} > {$escapedPath}";
+            $command = "{$dumpBinary} -u{$db['username']} -p\"{$db['password']}\" {$db['database']} > {$escapedPath}";
         } else {
-            $command = "mysqldump -u{$db['username']} {$db['database']} > {$escapedPath}";
+            $command = "{$dumpBinary} -u{$db['username']} {$db['database']} > {$escapedPath}";
         }
 
         $result = null;

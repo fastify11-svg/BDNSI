@@ -21,6 +21,14 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 
+Route::get('/health', function () {
+    $exitCode = \Illuminate\Support\Facades\Artisan::call('system:health-check');
+    if ($exitCode === 0) {
+        return response()->json(['status' => 'OK', 'message' => 'All core services are operational.'], 200);
+    }
+    return response()->json(['status' => 'ERROR', 'message' => 'Active System Health Check FAILED. The system is degraded.'], 503);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
