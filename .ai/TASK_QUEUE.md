@@ -26,3 +26,16 @@
 - [x] TASK-K-02: Implement Lead API & Controllers. Status: `CLOSED`.
 - [x] TASK-K-03: Implement CRM React Components (Lead List, Lead Detail, Status transitions). Status: `CLOSED`.
 - [x] TASK-K-04: Secure CRM API with appropriate RBAC policies (Admin/Sales Agent roles). Status: `CLOSED`.
+
+## Phase M: Automation
+- [x] Create WorkflowAutomationService
+- [x] Create CenterSuspended notification
+- [x] Create command to run automations
+- [x] Write and verify tests
+- [x] Final Gatekeeper Review
+
+## Phase N: Advanced Reporting
+- [x] Create Advanced Reporting UI (Index.jsx)
+- [x] Create API endpoints for metrics
+- [x] Write and verify tests
+- [x] Final Gatekeeper Review

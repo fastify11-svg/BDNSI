@@ -1,16 +1,16 @@
 {
   "automation_version": "2.0.0",
   "mode": "AUTONOMOUS",
-  "current_phase": "PHASE_L",
-  "current_task": "COMMISSION_AGGREGATION_UI",
-  "last_verified_phase": "PHASE_L",
-  "last_verified_commit": "98fd581",
+  "current_phase": "PHASE_N",
+  "current_task": "FINAL_VERIFICATION",
+  "last_verified_phase": "PHASE_N",
+  "last_verified_commit": "HEAD",
   "gate_status": "PASS",
   "runner_status": "RUNNING",
   "owner_decision_required": false,
   "owner_decision_reason": null,
   "blocked_reason": null,
-  "last_run_started_at": "2026-09-08T12:06:03.066Z",
+  "last_run_started_at": "2026-09-08T12:21:03.617Z",
   "last_run_finished_at": null,
   "last_heartbeat_at": "2026-09-08T08:40:00Z",
   "active_conversation_id": "3f043b91-4aac-4a93-abdc-71970156f9ec",
@@ -34,11 +34,10 @@
     "PHASE_H",
     "PHASE_I",
     "PHASE_J",
-    "PHASE_K"
-  ],
-  "pending_phases": [
+    "PHASE_K",
     "PHASE_L",
     "PHASE_M",
     "PHASE_N"
-  ]
+  ],
+  "pending_phases": []
 }
