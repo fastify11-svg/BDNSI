@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Scopes\CenterScope;
+
 use App\Casts\ImageField;
 use App\Traits\DeletesImage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +12,12 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CenterScope);
+    }
+
     use DeletesImage, HasFactory, Notifiable;
 
     protected $fillable = [
@@ -36,3 +44,4 @@ class User extends Authenticatable
         return $this->belongsTo(Center::class);
     }
 }
+

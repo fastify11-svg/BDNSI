@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Scopes\CenterScope;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,3 +30,4 @@ class Price extends Model
         return $this->belongsTo(Center::class);
     }
 }
+

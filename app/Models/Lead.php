@@ -2,11 +2,19 @@
 
 namespace App\Models;
 
+use App\Scopes\CenterScope;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Lead extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CenterScope);
+    }
+
     use HasFactory;
 
     protected $fillable = [
@@ -60,3 +68,4 @@ class Lead extends Model
         'New', 'Contacted', 'Negotiating', 'Converted', 'Lost', 'Follow-up',
     ];
 }
+

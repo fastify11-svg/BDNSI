@@ -2,11 +2,19 @@
 
 namespace App\Models;
 
+use App\Scopes\CenterScope;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CenterScope);
+    }
+
     use HasFactory;
 
     public const STATUS_PENDING = 'pending';
@@ -41,3 +49,4 @@ class Order extends Model
         return $this->morphMany(Transaction::class, 'payable');
     }
 }
+

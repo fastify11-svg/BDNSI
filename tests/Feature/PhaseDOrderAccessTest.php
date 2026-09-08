@@ -50,6 +50,6 @@ class PhaseDOrderAccessTest extends TestCase
 
         $response = $this->actingAs($user1)->get(route('center.orders.show', $order2->id));
         
-        $response->assertStatus(403);
+        $response->assertStatus(404);
     }
 }

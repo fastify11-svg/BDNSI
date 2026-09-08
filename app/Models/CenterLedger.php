@@ -2,11 +2,19 @@
 
 namespace App\Models;
 
+use App\Scopes\CenterScope;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CenterLedger extends Model
 {
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new CenterScope);
+    }
+
     use HasFactory;
 
     protected $fillable = [
@@ -29,3 +37,4 @@ class CenterLedger extends Model
         return $this->morphTo();
     }
 }
+
