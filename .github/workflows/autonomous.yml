@@ -197,18 +197,18 @@ jobs:
           
           # Extremely robust key parser to handle Windows \r, literal \n, and single-line pasted keys
           cat << 'PYEOF' > fix_key.py
-import os, re
-key = os.environ.get('SSH_PRIVATE_KEY', '')
-key = key.replace('\\n', '\n').replace('\r', '')
-if key.strip().count('\n') < 2:
-    match = re.search(r'(-----BEGIN.*?-----)\s*(.*?)\s*(-----END.*?-----)', key)
-    if match:
-        body = match.group(2).replace(' ', '')
-        body_wrapped = '\n'.join([body[i:i+70] for i in range(0, len(body), 70)])
-        key = f"{match.group(1)}\n{body_wrapped}\n{match.group(3)}"
-with open(os.path.expanduser('~/.ssh/id_ed25519'), 'w') as f:
-    f.write(key.strip() + '\n')
-PYEOF
+          import os, re
+          key = os.environ.get('SSH_PRIVATE_KEY', '')
+          key = key.replace('\\n', '\n').replace('\r', '')
+          if key.strip().count('\n') < 2:
+              match = re.search(r'(-----BEGIN.*?-----)\s*(.*?)\s*(-----END.*?-----)', key)
+              if match:
+                  body = match.group(2).replace(' ', '')
+                  body_wrapped = '\n'.join([body[i:i+70] for i in range(0, len(body), 70)])
+                  key = f"{match.group(1)}\n{body_wrapped}\n{match.group(3)}"
+          with open(os.path.expanduser('~/.ssh/id_ed25519'), 'w') as f:
+              f.write(key.strip() + '\n')
+          PYEOF
           python3 fix_key.py
           chmod 600 ~/.ssh/id_ed25519
 
