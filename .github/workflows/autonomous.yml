@@ -176,6 +176,17 @@ jobs:
           CENTER_EMAIL: center@gmail.com
           CENTER_PASSWORD: '12345678'
 
+      - name: Debug SSH Key Format
+        if: success() && github.event_name == 'workflow_dispatch' && inputs.deploy == true
+        env:
+          KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          echo "Key length: ${#KEY}"
+          if echo "$KEY" | grep -q "BEGIN"; then echo "Contains BEGIN header"; fi
+          if echo "$KEY" | base64 -d 2>/dev/null | grep -q "BEGIN"; then echo "Is base64 encoded"; fi
+          if echo "$KEY" | grep -q "\r"; then echo "Contains CR"; fi
+          echo "First 5 chars: ${KEY:0:5}" | sed 's/./& /g' # To avoid masking if it's not the whole secret
+
       - name: Setup SSH
         if: success() && github.event_name == 'workflow_dispatch' && inputs.deploy == true
         uses: webfactory/ssh-agent@v0.9.0
