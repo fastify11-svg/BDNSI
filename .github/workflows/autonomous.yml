@@ -176,6 +176,12 @@ jobs:
           CENTER_EMAIL: center@gmail.com
           CENTER_PASSWORD: '12345678'
 
+      - name: Setup SSH
+        if: success() && github.event_name == 'workflow_dispatch' && inputs.deploy == true
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       # ─── 9. DEPLOY (manual approval only) ───────────────────────────────
       - name: Deploy to Live Server via SSH
         if: success() && github.event_name == 'workflow_dispatch' && inputs.deploy == true
@@ -183,36 +189,17 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           DB_DATABASE: ${{ secrets.DB_DATABASE }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           echo "=== Deploying to Hostinger Live Server ==="
-          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PORT" ] || [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$DB_DATABASE" ] || [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then
+          if [ -z "$SSH_HOST" ] || [ -z "$SSH_USER" ] || [ -z "$SSH_PORT" ] || [ -z "$DB_DATABASE" ] || [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then
             echo "Required SSH or database deployment secrets are not configured."
             exit 1
           fi
-          mkdir -p ~/.ssh
           
-          # Extremely robust key parser to handle Windows \r, literal \n, and single-line pasted keys
-          cat << 'PYEOF' > fix_key.py
-          import os, re
-          key = os.environ.get('SSH_PRIVATE_KEY', '')
-          key = key.replace('\\n', '\n').replace('\r', '')
-          if key.strip().count('\n') < 2:
-              match = re.search(r'(-----BEGIN.*?-----)\s*(.*?)\s*(-----END.*?-----)', key)
-              if match:
-                  body = match.group(2).replace(' ', '')
-                  body_wrapped = '\n'.join([body[i:i+70] for i in range(0, len(body), 70)])
-                  key = f"{match.group(1)}\n{body_wrapped}\n{match.group(3)}"
-          with open(os.path.expanduser('~/.ssh/id_ed25519'), 'w') as f:
-              f.write(key.strip() + '\n')
-          PYEOF
-          python3 fix_key.py
-          chmod 600 ~/.ssh/id_ed25519
-
-          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=no -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << EOF
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << EOF
             set -e
             cd /home/u881397359/domains/nenobet.live/public_html
             if [ -d .git ]; then
