@@ -88,6 +88,45 @@ function releaseLock() {
   log('Lock released.');
 }
 
+// ─── State Self-Healing ─────────────────────────────────────────────────────
+
+function healState() {
+  const ROADMAP_FILE = path.join(PROJECT_ROOT, 'MASTER_IMPLEMENTATION_ROADMAP.md');
+  try {
+    const state = readJson(STATE_FILE);
+    const roadmap = fs.readFileSync(ROADMAP_FILE, 'utf8');
+    
+    const phaseRegex = /## \d+\.\s+PHASE\s+([A-Z])\s+—\s+([^\n]+)/g;
+    const allPhases = [];
+    let match;
+    while ((match = phaseRegex.exec(roadmap)) !== null) {
+      allPhases.push('PHASE_' + match[1]);
+    }
+    
+    const completed = new Set(state.completed_phases || []);
+    const truePending = allPhases.filter(p => !completed.has(p));
+    
+    if (truePending.length > 0 && state.runner_status === 'COMPLETE') {
+      state.runner_status = 'RUNNING';
+      state.gate_status = 'PENDING';
+      state.current_phase = truePending[0];
+      state.current_task = 'DISCOVERY';
+      log('Self-heal: Fixed false COMPLETE state.');
+    }
+
+    if (completed.has(state.current_phase) && truePending.length > 0) {
+      state.current_phase = truePending[0];
+      state.current_task = 'DISCOVERY';
+      log(`Self-heal: Advanced phase to ${state.current_phase}`);
+    }
+    
+    state.pending_phases = truePending;
+    writeJson(STATE_FILE, state);
+  } catch (e) {
+    log('Self-heal failed: ' + e.message);
+  }
+}
+
 // ─── State Inspection ───────────────────────────────────────────────────────
 
 function checkOwnerDecisionOrBlocked() {
@@ -181,6 +220,9 @@ function main() {
   
   // Ensure directories exist
   fs.mkdirSync(path.dirname(LOCK_FILE), { recursive: true });
+  
+  // Heal state to prevent false complete
+  healState();
   
   // Acquire lock (exits if another run is active)
   const lock = acquireLock();
