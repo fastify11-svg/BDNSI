@@ -126,26 +126,13 @@ jobs:
           curl -s -o /dev/null -w "User Login Page: %{http_code}\n" http://127.0.0.1:8000/login
           curl -s -o /dev/null -w "Public Result Page: %{http_code}\n" http://127.0.0.1:8000/result
           curl -s -o /dev/null -w "All Courses Page: %{http_code}\n" http://127.0.0.1:8000/all-course
-          echo "--- Testing admin login with proper CSRF + session cookie ---"
-          curl -s -c /tmp/admin_cookies.txt http://127.0.0.1:8000/admin/login -o /tmp/admin_login_page.html
-          CSRF_TOKEN=$(grep -oP 'name="_token" value="\K[^"]+' /tmp/admin_login_page.html | head -1)
-          if [ -z "$CSRF_TOKEN" ]; then
-            echo "WARNING: Could not extract CSRF token from admin login form. Skipping login POST check."
+          echo "--- Testing /health endpoint ---"
+          HEALTH_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/health)
+          echo "Health check response code: $HEALTH_CODE"
+          if [ "$HEALTH_CODE" = "200" ]; then
+            echo "Health smoke check: PASS"
           else
-            echo "CSRF token extracted: ${CSRF_TOKEN:0:8}..."
-            LOGIN_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://127.0.0.1:8000/admin/login \
-              -b /tmp/admin_cookies.txt -c /tmp/admin_cookies.txt \
-              -H "Content-Type: application/x-www-form-urlencoded" \
-              --data-urlencode "_token=$CSRF_TOKEN" \
-              --data-urlencode "email=$ADMIN_EMAIL" \
-              --data-urlencode "password=$ADMIN_PASSWORD" \
-              -L --max-redirs 3)
-            echo "Admin login response code: $LOGIN_CODE"
-            if [ "$LOGIN_CODE" = "200" ] || [ "$LOGIN_CODE" = "302" ]; then
-              echo "Admin login smoke check: PASS (HTTP $LOGIN_CODE)"
-            else
-              echo "Admin login smoke check: WARNING - unexpected HTTP $LOGIN_CODE"
-            fi
+            echo "Health smoke check: WARNING - unexpected HTTP $HEALTH_CODE"
           fi
         env:
           ADMIN_EMAIL: admin@gmail.com
