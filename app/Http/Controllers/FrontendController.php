@@ -23,23 +23,9 @@ class FrontendController extends Controller
         return view('page.verifyInstitute',
             [
                 'centers' => $centers,
-                'divisions' => Division::get(),
-                'districts' => District::get()->mapWithKeys(function ($district) {
-                    return [
-                        $district->id => [
-                            'division_id' => $district->division_id,
-                            'name' => $district->name,
-                        ],
-                    ];
-                }),
-                'upazilas' => Upazila::get()->mapWithKeys(function ($upazila) {
-                    return [
-                        $upazila->id => [
-                            'district_id' => $upazila->district_id,
-                            'name' => $upazila->name,
-                        ],
-                    ];
-                })->toArray()]
+                'divisions' => \App\Helpers\LocationHelper::getDivisions(),
+                'districts' => \App\Helpers\LocationHelper::getDistrictsGroupedByDivision(),
+                'upazilas' => \App\Helpers\LocationHelper::getUpazilasGroupedByDistrict()->toArray(),]
         );
     }
 
