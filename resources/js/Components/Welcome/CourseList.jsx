@@ -7,10 +7,18 @@ export default function CourseList({ courses }) {
     
     if (courseList.length === 0) {
         return (
-            <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm p-8 text-center">
-                <i className="fa-solid fa-graduation-cap text-4xl text-slate-300 mb-3"></i>
-                <h2 className="text-lg font-bold text-slate-400">No active courses available right now.</h2>
-                <p className="text-sm text-slate-500 mt-2">Please check back later.</p>
+            <div data-testid="course-section" className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
+                <div className="bg-[#7024A8] text-white px-4 py-2.5 text-xs font-bold flex justify-between items-center">
+                    <div className="flex items-center gap-2 text-white">
+                        <i className="fa-solid fa-graduation-cap text-white"></i>
+                        <span className="uppercase tracking-wider font-extrabold text-white">OUR COURSES</span>
+                    </div>
+                </div>
+                <div className="p-8 text-center" data-testid="course-empty-state">
+                    <i className="fa-solid fa-graduation-cap text-4xl text-slate-300 mb-3"></i>
+                    <h2 className="text-lg font-bold text-slate-400">No active courses available right now.</h2>
+                    <p className="text-sm text-slate-500 mt-2">Please check back later.</p>
+                </div>
             </div>
         );
     }
@@ -26,7 +34,7 @@ export default function CourseList({ courses }) {
     const coursePairs = groupInPairs(courseList);
 
     return (
-        <div className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
+        <div data-testid="course-section" className="bg-white rounded-md border border-slate-200 overflow-hidden shadow-sm">
             <div className="bg-[#7024A8] text-white px-4 py-2.5 text-xs font-bold flex justify-between items-center">
                 <div className="flex items-center gap-2 text-white">
                     <i className="fa-solid fa-graduation-cap text-white"></i>

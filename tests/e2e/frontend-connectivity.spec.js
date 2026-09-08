@@ -1,22 +1,30 @@
-const { test, expect } = require('@playwright/test');
+﻿const { test, expect } = require('@playwright/test');
 
 test.describe('Frontend Connectivity & Navigation Checks', () => {
 
-  test('Homepage has CourseList and routes to CourseDetails', async ({ page }) => {
+  test('Homepage course section always visible; navigates to CourseDetails when courses exist', async ({ page }) => {
     await page.goto('./');
-    
-    // Check if OUR COURSES section exists
-    await expect(page.locator('text=OUR COURSES').first()).toBeVisible();
-    
+
+    // The "OUR COURSES" section header is always rendered (both empty and populated states)
+    // data-testid="course-section" is present in CourseList in BOTH states
+    await expect(page.locator('[data-testid="course-section"]').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('[data-testid="course-section"] span').filter({ hasText: 'OUR COURSES' }).first()).toBeVisible();
+
     // Check if courses are rendered
     const courseLinks = page.locator('a[href*="/course-details/"]');
-    if (await courseLinks.count() > 0) {
+    const courseCount = await courseLinks.count();
+
+    if (courseCount > 0) {
+      // Populated state: navigate to course details and verify it loads
       const firstCourse = courseLinks.first();
       const href = await firstCourse.getAttribute('href');
-      
-      // Navigate to course details
       await page.goto(href);
       await expect(page.locator('text=Enroll Now').first()).toBeVisible({ timeout: 10000 });
+    } else {
+      // Empty state: verify the empty-state message renders safely (not an error)
+      const emptyState = page.locator('[data-testid="course-empty-state"]');
+      await expect(emptyState).toBeVisible();
+      await expect(emptyState.locator('text=No active courses available right now.')).toBeVisible();
     }
   });
 
