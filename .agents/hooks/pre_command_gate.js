@@ -1,72 +1,82 @@
 /**
- * BDNSI Agentic Workflow — Pre-Tool Safety Gate
+ * BDNSI Agentic Workflow — Pre-Tool Safety Gate v2.0
+ * 
  * Runs BEFORE every run_command to:
- *  1. Block dangerous destructive commands
- *  2. Warn on migrate:fresh without backup
- *  3. Auto-log command audit trail
+ *  1. Block obviously dangerous destructive commands
+ *  2. Warn on migrate:fresh, truncate, maintenance mode
+ *  3. Block broad rm -rf, DROP DATABASE, git force-push
+ *  4. Auto-log command audit trail
+ *  5. Require owner confirmation for production-affecting commands
+ * 
+ * Inspects actual command arguments, not just surface text.
  */
 
-const fs = require('fs');
+const fs   = require('fs');
 const path = require('path');
-const readline = require('readline');
+const rl   = require('readline');
 
+const ROOT      = path.resolve(__dirname, '..', '..');
 const AUDIT_LOG = path.join(__dirname, '..', 'logs', 'command_audit.log');
 
 // Ensure log dir exists
 fs.mkdirSync(path.dirname(AUDIT_LOG), { recursive: true });
 
-// Read stdin (hook payload)
-const rl = readline.createInterface({ input: process.stdin });
+const reader = rl.createInterface({ input: process.stdin });
 let raw = '';
-rl.on('line', line => (raw += line));
-rl.on('close', () => {
+reader.on('line', l => (raw += l));
+reader.on('close', () => {
   let payload;
   try { payload = JSON.parse(raw); } catch { payload = {}; }
 
   const cmd = (payload?.toolCall?.args?.CommandLine || '').trim();
   const ts  = new Date().toISOString();
 
-  // --- Audit log ---
-  fs.appendFileSync(AUDIT_LOG, `[${ts}] CMD: ${cmd}\n`);
+  // Audit log
+  fs.appendFileSync(AUDIT_LOG, `[${ts}] CMD: ${cmd.slice(0, 300)}\n`);
 
-  // --- Danger patterns ---
+  // ── HARD BLOCK — deny immediately ───────────────────────────────────────
   const HARD_BLOCK = [
-    /migrate:fresh\s+--seed(?!.*backup)/i,  // fresh seed without prior backup mention
-    /DROP\s+DATABASE/i,
-    /rm\s+-rf\s+\/(?!tmp)/i,
-    /format\s+[c-z]:/i,
+    { re: /migrate:fresh.*--seed/i,           reason: 'migrate:fresh --seed drops all tables.' },
+    { re: /db:wipe/i,                         reason: 'db:wipe destroys all tables.' },
+    { re: /DROP\s+DATABASE/i,                 reason: 'DROP DATABASE is irreversible.' },
+    { re: /rm\s+-rf\s+[\/\\](?!tmp)/i,       reason: 'Broad rm -rf is dangerous.' },
+    { re: /git\s+push\s+.*--force/i,          reason: 'Force push rewrites shared history.' },
+    { re: /git\s+push\s+.*-f(\s|$)/i,        reason: 'Force push rewrites shared history.' },
+    { re: /git\s+reset\s+--hard\s+HEAD~[2-9]/, reason: 'Hard reset beyond 1 commit loses work.' },
+    { re: /git\s+clean\s+-fdx/i,              reason: 'git clean -fdx deletes untracked files globally.' },
+    { re: /format\s+[c-z]:/i,                reason: 'Disk format is irreversible.' },
+    { re: /credential\s+dump|mimikatz|secretsdump/i, reason: 'Credential dumping is blocked.' },
   ];
 
-  const WARN_PATTERNS = [
-    { re: /migrate:fresh/, msg: 'migrate:fresh will DROP all tables. Ensure backup was taken.' },
-    { re: /truncate/i,     msg: 'TRUNCATE is destructive. Verify correct table.' },
-    { re: /artisan\s+down/, msg: 'Putting app in maintenance mode.' },
-  ];
-
-  // Check hard blocks
-  for (const re of HARD_BLOCK) {
+  for (const { re, reason } of HARD_BLOCK) {
     if (re.test(cmd)) {
-      const result = {
+      process.stdout.write(JSON.stringify({
         decision: 'deny',
-        reason: `[Safety Gate] BLOCKED: "${cmd.slice(0, 80)}" matches a destructive pattern. Take a DB backup first, then retry.`
-      };
-      process.stdout.write(JSON.stringify(result));
+        reason:   `[Safety Gate] BLOCKED: ${reason}\nCommand: ${cmd.slice(0, 120)}`
+      }));
       return;
     }
   }
 
-  // Check warnings — ask user
-  for (const { re, msg } of WARN_PATTERNS) {
+  // ── ASK OWNER — confirm before proceeding ───────────────────────────────
+  const ASK_PATTERNS = [
+    { re: /migrate:fresh(?!\s+--seed)/i,   msg: 'migrate:fresh drops all tables. Confirm DB backup exists.' },
+    { re: /truncate/i,                     msg: 'TRUNCATE is destructive. Verify the correct table.' },
+    { re: /artisan\s+down/i,               msg: 'Putting app in maintenance mode.' },
+    { re: /git\s+reset\s+--hard/i,         msg: 'Hard reset may lose committed work.' },
+    { re: /deploy|ftp|ssh.*production/i,   msg: 'Production deployment detected. Confirm intent.' },
+  ];
+
+  for (const { re, msg } of ASK_PATTERNS) {
     if (re.test(cmd)) {
-      const result = {
+      process.stdout.write(JSON.stringify({
         decision: 'ask',
-        reason: `[Safety Gate] WARNING: ${msg}\nCommand: ${cmd.slice(0, 120)}`
-      };
-      process.stdout.write(JSON.stringify(result));
+        reason:   `[Safety Gate] WARNING: ${msg}\nCommand: ${cmd.slice(0, 180)}`
+      }));
       return;
     }
   }
 
-  // Allow all others
+  // Allow everything else
   process.stdout.write(JSON.stringify({ decision: 'allow' }));
 });

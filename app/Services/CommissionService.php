@@ -33,9 +33,10 @@ class CommissionService
                     return;
                 }
 
-                // Check for duplicate commission for this transaction
+                // Check for duplicate commission for this transaction with exclusive lock
                 $exists = Commission::where('transaction_id', $transaction->id)
                     ->where('order_id', $order->id)
+                    ->lockForUpdate()
                     ->exists();
 
                 if ($exists) {
@@ -83,5 +84,69 @@ class CommissionService
                 'transaction_id' => $transaction->id,
             ]);
         }
+    }
+
+    /**
+     * Approve a commission.
+     */
+    public function approve(Commission $commission, int $userId): void
+    {
+        if ($commission->status !== Commission::STATUS_EARNED) {
+            throw new \Exception("Only earned commissions can be approved.");
+        }
+
+        $commission->status = Commission::STATUS_APPROVED;
+        $commission->save();
+
+        \App\Models\AuditLog::create([
+            'user_id' => $userId,
+            'action' => 'commission_approved',
+            'model_type' => Commission::class,
+            'model_id' => $commission->id,
+            'details' => json_encode(['amount' => $commission->amount])
+        ]);
+    }
+
+    /**
+     * Pay a commission.
+     */
+    public function pay(Commission $commission, int $userId): void
+    {
+        if ($commission->status !== Commission::STATUS_APPROVED) {
+            throw new \Exception("Only approved commissions can be paid.");
+        }
+
+        $commission->status = Commission::STATUS_PAID;
+        $commission->save();
+
+        \App\Models\AuditLog::create([
+            'user_id' => $userId,
+            'action' => 'commission_paid',
+            'model_type' => Commission::class,
+            'model_id' => $commission->id,
+            'details' => json_encode(['amount' => $commission->amount])
+        ]);
+    }
+
+    /**
+     * Reverse a commission.
+     */
+    public function reverse(Commission $commission, int $userId, string $reason): void
+    {
+        if (in_array($commission->status, [Commission::STATUS_CANCELLED, Commission::STATUS_REVERSED])) {
+            throw new \Exception("Commission is already reversed or cancelled.");
+        }
+
+        $oldStatus = $commission->status;
+        $commission->status = Commission::STATUS_REVERSED;
+        $commission->save();
+
+        \App\Models\AuditLog::create([
+            'user_id' => $userId,
+            'action' => 'commission_reversed',
+            'model_type' => Commission::class,
+            'model_id' => $commission->id,
+            'details' => json_encode(['old_status' => $oldStatus, 'amount' => $commission->amount, 'reason' => $reason])
+        ]);
     }
 }

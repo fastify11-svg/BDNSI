@@ -20,29 +20,12 @@ class CheckCenterFinancialRestrictions extends Command
         parent::__construct();
     }
 
-    public function handle()
+    public function handle(\App\Services\WorkflowAutomationService $workflowService)
     {
-        $centers = \App\Models\Center::where('status', '!=', \App\Enums\CenterStatus::Suspended)->get();
-        $restrictedCount = 0;
-
-        foreach ($centers as $center) {
-            if (!$center->auto_restriction) {
-                continue; // Skip if auto restriction is disabled
-            }
-
-            $classification = $center->due_classification;
-            
-            if ($classification === 'CREDIT_LIMIT_REACHED' || $classification === 'RESTRICTED') {
-                if ($center->status !== \App\Enums\CenterStatus::Pending) { // Or whatever status means restricted
-                    // For now we just log, or trigger an event/notification
-                    $this->info("Center {$center->code} reached credit limit.");
-                    $restrictedCount++;
-                    // $center->update(['status' => \App\Enums\CenterStatus::Suspended]); // If we want to suspend
-                }
-            }
-        }
-
-        $this->info("Checked " . $centers->count() . " centers. {$restrictedCount} are at/over limit.");
+        $this->info("Running daily workflow automations...");
+        $workflowService->runDailyAutomations();
+        $this->info("Daily workflow automations completed successfully.");
+        
         return 0;
     }
 }

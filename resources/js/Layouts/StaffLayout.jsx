@@ -33,6 +33,7 @@ export default function StaffLayout({ children, title = 'Staff Operations Hub' }
         { label: 'Student Admissions', href: '/staff/students', icon: 'fa-user-graduate' },
         { label: 'Enroll New Student', href: '/staff/students/create', icon: 'fa-user-plus' },
         { label: 'Document Processing', href: '/staff/documents', icon: 'fa-file-invoice' },
+        { label: 'My Commissions', href: '/staff/commissions', icon: 'fa-hand-holding-dollar' },
     ];
 
     const isActive = (path) => {

@@ -41,7 +41,8 @@ class WorkflowAutomationService
             // If utilization is over 100% and risk is High, auto-suspend to prevent further registrations
             if ($risk['utilization'] >= 100 && $risk['score'] >= 70) {
                 // Double check they haven't already been suspended
-                if ($center->status->value === \App\Enums\CenterStatus::Suspended) {
+                $currentStatus = is_object($center->status) ? $center->status->value : $center->status;
+                if ($currentStatus === \App\Enums\CenterStatus::Suspended) {
                     continue;
                 }
 
@@ -60,6 +61,15 @@ class WorkflowAutomationService
                     'ip_address' => '127.0.0.1',
                     'user_agent' => 'System Automation'
                 ]);
+
+                // Notify the Center
+                $center->notify(new \App\Notifications\CenterSuspended('Your center has been automatically suspended because your credit limit has been exhausted and your account shows high risk. Please contact support.'));
+
+                // Notify Admins
+                $admins = \App\Models\Admin::all();
+                foreach ($admins as $admin) {
+                    $admin->notify(new \App\Notifications\CenterSuspended("Center [{$center->center_code}] has been automatically suspended due to credit exhaustion and high risk."));
+                }
             }
         }
     }

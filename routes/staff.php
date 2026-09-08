@@ -57,5 +57,8 @@ Route::prefix('staff')->name('staff.')->group(function () {
         // Staff Document Generation (ID Cards, Marksheets, Certificates using Admin Templates)
         Route::get('/documents', [DocumentController::class, 'index'])->name('document.index');
         Route::get('/documents/generate/{template}/{student}', [DocumentController::class, 'generate'])->name('document.generate');
+
+        // Phase L - Commission
+        Route::get('/commissions', [\App\Http\Controllers\Staff\CommissionController::class, 'index'])->name('commission.index');
     });
 });

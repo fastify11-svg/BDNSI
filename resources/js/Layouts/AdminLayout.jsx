@@ -35,6 +35,8 @@ export default function AdminLayout({ children, title = 'Admin Dashboard' }) {
             title: 'SALES & MARKETING',
             items: [
                 { label: 'Sales CRM', href: '/admin/leads', icon: 'fa-funnel-dollar' },
+                { label: 'Commissions', href: '/admin/commissions', icon: 'fa-hand-holding-dollar' },
+                { label: 'Commission Rules', href: '/admin/commission-policies', icon: 'fa-scale-balanced' },
             ]
         },
         {

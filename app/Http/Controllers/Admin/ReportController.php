@@ -49,13 +49,49 @@ class ReportController extends Controller
         $totalCommissions = Commission::whereBetween('created_at', [$startDate, $endDate])
                                       ->sum('amount');
 
+        // Phase N Enhancements
+        // Revenue vs Collection Chart Data (Daily)
+        $revenueData = collect($analyticsService->getRevenueOverTime($startDate, $endDate));
+        $collectionData = collect($analyticsService->getCollectionOverTime($startDate, $endDate));
+        
+        // Merge them by date
+        $allDates = $revenueData->pluck('date')->merge($collectionData->pluck('date'))->unique()->sort()->values();
+        $revenueChartData = $allDates->map(function ($date) use ($revenueData, $collectionData) {
+            $rev = $revenueData->firstWhere('date', $date)['revenue'] ?? 0;
+            $col = $collectionData->firstWhere('date', $date)['collection'] ?? 0;
+            return [
+                'date' => $date,
+                'revenue' => $rev,
+                'collection' => $col,
+            ];
+        });
+
+        // Product/Course Demand
+        $productDemand = $analyticsService->getCourseDemand(null)->take(10);
+
+        // Top Sales Agents
+        $topAgents = $analyticsService->getTopSalesAgents();
+
+        // Credit Exposure
+        $creditExposure = $analyticsService->getCreditExposure();
+
+        // Operational Stats
+        $certificateIssuances = $analyticsService->getCertificateIssuanceCount(null);
+        $verifications = $analyticsService->getVerificationStats($startDate, $endDate);
+
         return Inertia::render('Admin/Reports/Index', [
             'metrics' => [
                 'total_revenue' => $totalRevenue,
                 'total_dues' => max(0, $totalPendingDues),
                 'total_commissions' => $totalCommissions,
+                'total_issuances' => $certificateIssuances,
+                'total_verifications' => $verifications,
             ],
+            'revenue_chart_data' => $revenueChartData,
             'center_performance' => $centerPerformance,
+            'product_demand' => $productDemand,
+            'top_agents' => $topAgents,
+            'credit_exposure' => $creditExposure,
             'filters' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate

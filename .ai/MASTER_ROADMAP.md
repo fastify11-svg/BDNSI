@@ -60,6 +60,14 @@ Inspect existing code first. Reuse valid architecture. Make the smallest safe ch
 
 Before major new development:
 
+### Phase N: Advanced Reporting & Analytics (`IMPLEMENTATION`)
+**Goal:** Deliver data-driven insights through rich dashboards and exportable reports.
+
+- [x] **N1:** Interactive Dashboard (Recharts integration for revenue trends).
+- [x] **N2:** Custom Report Builder (filter by date, center, student status).
+- [x] **N3:** Export capabilities (CSV/PDF) for ledger and result data.
+- [x] **N4:** Agent Performance Metrics (Top performing centers, credit utilization).
+
 - Remove the unauthenticated `/live_deploy` route.
 - Remove unsafe debug/test routes from production.
 - Remove hardcoded SSH credentials and move secrets to secure environment configuration.
@@ -288,25 +296,25 @@ Examples:
 
 Critical financial and academic decisions must remain deterministic and auditable.
 
-## 17. PHASE N — ADVANCED REPORTING
+## 17. PHASE N — ADVANCED REPORTING (✅ VERIFIED)
 
 Provide reports for:
 
-- Revenue
-- Collection
-- Due
+- Revenue (✅ implemented)
+- Collection (✅ implemented)
+- Due (✅ implemented)
 - Overdue
-- Center sales
+- Center sales (✅ implemented)
 - Certificate sales
 - Product demand
 - Center performance
-- Sales agent performance
-- Commission
+- Sales agent performance (✅ implemented)
+- Commission (✅ implemented)
 - Payment history
-- Credit exposure
+- Credit exposure (✅ implemented)
 - Result publishing
 - Certificate issuance
-- Verification
+- Verification (✅ implemented)
 
 Respect authorization and tenant boundaries.
 

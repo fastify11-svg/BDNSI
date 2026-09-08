@@ -17,9 +17,17 @@ class LeadController extends Controller
      */
     public function index()
     {
-        $leads = Lead::with(['team', 'center', 'creator'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = Lead::with(['team', 'center', 'creator'])
+            ->orderBy('created_at', 'desc');
+
+        $user = auth()->guard('admin')->user();
+        if (!$user->hasRole('ADMIN')) {
+            $query->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                  ->orWhere('team_id', $user->team_id);
+            });
+        }
+        $leads = $query->paginate(15);
 
         $teams = Team::orderBy('name')->get(['id', 'name']);
         $centers = Center::orderBy('name')->get(['id', 'name']);
@@ -53,6 +61,8 @@ class LeadController extends Controller
             'team_id'        => 'nullable|exists:teams,id',
             'center_id'      => 'nullable|exists:centers,id',
             'status'         => 'required|in:New,Contacted,Negotiating,Converted,Lost,Follow-up',
+            'proposed_price' => 'nullable|numeric|min:0',
+            'last_contacted_at' => 'nullable|date',
             'notes'          => 'nullable|string|max:5000',
             'follow_up_date' => 'nullable|date',
         ]);
@@ -95,6 +105,13 @@ class LeadController extends Controller
      */
     public function update(Request $request, Lead $lead)
     {
+        $user = auth()->guard('admin')->user();
+        if (!$user->hasRole('ADMIN')) {
+            if ($lead->created_by !== $user->id && $lead->team_id !== $user->team_id) {
+                abort(403, 'Unauthorized access to this lead.');
+            }
+        }
+
         $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'phone'          => 'required|string|max:20',
@@ -102,6 +119,8 @@ class LeadController extends Controller
             'team_id'        => 'nullable|exists:teams,id',
             'center_id'      => 'nullable|exists:centers,id',
             'status'         => 'required|in:New,Contacted,Negotiating,Converted,Lost,Follow-up',
+            'proposed_price' => 'nullable|numeric|min:0',
+            'last_contacted_at' => 'nullable|date',
             'notes'          => 'nullable|string|max:5000',
             'follow_up_date' => 'nullable|date',
         ]);
@@ -128,13 +147,20 @@ class LeadController extends Controller
      */
     public function destroy(Lead $lead)
     {
+        $user = auth()->guard('admin')->user();
+        if (!$user->hasRole('ADMIN')) {
+            if ($lead->created_by !== $user->id && $lead->team_id !== $user->team_id) {
+                abort(403, 'Unauthorized access to this lead.');
+            }
+        }
+
         $leadName = $lead->name;
         $leadId   = $lead->id;
 
         $lead->delete();
 
         AuditLog::create([
-            'user_id'        => auth()->guard('admin')->id(),
+            'user_id'        => $user->id,
             'event'          => 'lead_deleted',
             'auditable_id'   => $leadId,
             'auditable_type' => Lead::class,
@@ -144,5 +170,67 @@ class LeadController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Lead deleted successfully.');
+    }
+
+    /**
+     * Convert a Lead to an Active Center and map pricing.
+     */
+    public function convert(Request $request, Lead $lead)
+    {
+        $user = auth()->guard('admin')->user();
+        if (!$user->hasRole('ADMIN')) {
+            if ($lead->created_by !== $user->id && $lead->team_id !== $user->team_id) {
+                abort(403, 'Unauthorized access to this lead.');
+            }
+        }
+
+        if ($lead->status === 'Converted' || $lead->center_id) {
+            return redirect()->back()->withErrors(['message' => 'Lead is already converted.']);
+        }
+
+        try {
+            \DB::beginTransaction();
+
+            $center = Center::create([
+                'name' => $lead->name,
+                'owner_name' => $lead->name, // Required field fallback
+                'mobile' => $lead->phone,
+                'status' => \App\Enums\CenterStatus::Pending,
+                'team_id' => $lead->team_id,
+                'credit_enabled' => false,
+            ]);
+
+            $lead->update([
+                'status' => 'Converted',
+                'center_id' => $center->id
+            ]);
+
+            if ($lead->proposed_price !== null) {
+                \App\Models\Price::create([
+                    'center_id' => $center->id,
+                    'product_type' => 'STUDENT_REGISTRATION', // Map negotiated agreement to primary product
+                    'base_price' => $lead->proposed_price,
+                    'discount' => 0,
+                    'status' => true,
+                ]);
+            }
+
+            AuditLog::create([
+                'user_id' => $user->id,
+                'event' => 'lead_converted',
+                'auditable_id' => $lead->id,
+                'auditable_type' => Lead::class,
+                'new_values' => ['center_id' => $center->id, 'status' => 'Converted'],
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
+
+            \DB::commit();
+
+            return redirect()->back()->with('success', 'Lead converted to Center successfully.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return redirect()->back()->withErrors(['message' => 'Conversion failed: ' . $e->getMessage()]);
+        }
     }
 }

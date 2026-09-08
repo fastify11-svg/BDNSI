@@ -193,4 +193,65 @@ class LeadManagementTest extends TestCase
             'auditable_type' => Lead::class,
         ]);
     }
+
+    public function test_lead_conversion_creates_center_and_price()
+    {
+        $lead = Lead::create([
+            'name' => 'Conversion Test',
+            'phone' => '01500000000',
+            'status' => 'Negotiating',
+            'proposed_price' => 5000.00,
+            'created_by' => $this->admin->id,
+        ]);
+
+        $response = $this->actingAs($this->admin, 'admin')->post(route('admin.leads.convert', $lead));
+
+        $response->assertRedirect();
+        
+        $this->assertDatabaseHas('centers', [
+            'name' => 'Conversion Test',
+            'mobile' => '01500000000',
+        ]);
+
+        $center = Center::where('name', 'Conversion Test')->first();
+
+        $this->assertDatabaseHas('leads', [
+            'id' => $lead->id,
+            'status' => 'Converted',
+            'center_id' => $center->id,
+        ]);
+
+        $this->assertDatabaseHas('prices', [
+            'center_id' => $center->id,
+            'product_type' => 'STUDENT_REGISTRATION',
+            'base_price' => 5000.00,
+            'status' => 1,
+        ]);
+    }
+
+    public function test_sub_admin_cannot_convert_unowned_lead()
+    {
+        $subAdminRole = Role::firstOrCreate(['name' => 'sub_admin', 'display_name' => 'Sub Admin']);
+        // Create permission and attach to role
+        $permission = \App\Models\Permission::firstOrCreate(['name' => 'update-leads', 'display_name' => 'Update Leads']);
+        $subAdminRole->attachPermission($permission);
+
+        $subAdmin = Admin::create([
+            'name' => 'Sales Agent',
+            'email' => 'sales@test.com',
+            'password' => bcrypt('password')
+        ]);
+        $subAdmin->attachRole($subAdminRole);
+
+        // Lead created by someone else
+        $lead = Lead::create([
+            'name' => 'Other Lead',
+            'phone' => '01234567890',
+            'status' => 'New',
+            'created_by' => $this->admin->id,
+        ]);
+
+        $response = $this->actingAs($subAdmin, 'admin')->post(route('admin.leads.convert', $lead));
+        $response->assertStatus(403);
+    }
 }

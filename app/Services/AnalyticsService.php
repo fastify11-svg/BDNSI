@@ -273,4 +273,123 @@ class AnalyticsService
         }
         return $query->count();
     }
+
+    /**
+     * Get Revenue Over Time (Daily aggregation)
+     *
+     * @param string $startDate
+     * @param string $endDate
+     * @return array
+     */
+    public function getRevenueOverTime(string $startDate, string $endDate): array
+    {
+        $query = Order::where('status', '!=', Order::STATUS_CANCELLED)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_amount) as total'))
+            ->groupBy('date')
+            ->orderBy('date');
+
+        return $query->get()->map(function ($item) {
+            return [
+                'date' => $item->date,
+                'revenue' => (float) $item->total,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Get Collection Over Time (Daily aggregation)
+     *
+     * @param string $startDate
+     * @param string $endDate
+     * @return array
+     */
+    public function getCollectionOverTime(string $startDate, string $endDate): array
+    {
+        $query = Transaction::where('status', 'success')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(amount) as total'))
+            ->groupBy('date')
+            ->orderBy('date');
+
+        return $query->get()->map(function ($item) {
+            return [
+                'date' => $item->date,
+                'collection' => (float) $item->total,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Get Top Sales Agents (by commission earned)
+     *
+     * @return array
+     */
+    public function getTopSalesAgents(): array
+    {
+        return Commission::with('team')
+            ->whereNotIn('status', ['Cancelled', 'Reversed'])
+            ->select('team_id', DB::raw('SUM(amount) as total_earned'), DB::raw('COUNT(id) as total_sales'))
+            ->groupBy('team_id')
+            ->orderByDesc('total_earned')
+            ->limit(10)
+            ->get()
+            ->map(function ($commission) {
+                return [
+                    'agent_name' => $commission->team ? $commission->team->name : 'System/Unknown',
+                    'total_earned' => (float) $commission->total_earned,
+                    'total_sales' => $commission->total_sales,
+                ];
+            })->toArray();
+    }
+
+    /**
+     * Get Verification Stats from Audit Logs
+     *
+     * @param string $startDate
+     * @param string $endDate
+     * @return int
+     */
+    public function getVerificationStats(string $startDate, string $endDate): int
+    {
+        return \App\Models\AuditLog::where('event', 'CERTIFICATE_VERIFIED')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+    }
+
+    /**
+     * Get Credit Exposure (Centers with highest due)
+     *
+     * @return array
+     */
+    public function getCreditExposure(): array
+    {
+        // First get centers that have credit enabled
+        $centers = \App\Models\Center::where('credit_enabled', true)
+            ->where('status', \App\Enums\CenterStatus::Approved)
+            ->get();
+            
+        $exposure = [];
+        
+        foreach ($centers as $center) {
+            $due = $this->getCenterCurrentDue($center->id);
+            if ($due > 0) {
+                $exposure[] = [
+                    'center_name' => $center->name,
+                    'center_code' => $center->code ?? 'N/A',
+                    'due' => $due,
+                    'credit_limit' => $center->credit_limit,
+                    'classification' => $center->due_classification,
+                    'utilization' => $center->credit_limit > 0 ? round(($due / $center->credit_limit) * 100, 2) : 0,
+                ];
+            }
+        }
+        
+        // Sort by due descending
+        usort($exposure, function ($a, $b) {
+            return $b['due'] <=> $a['due'];
+        });
+        
+        return array_slice($exposure, 0, 10);
+    }
 }

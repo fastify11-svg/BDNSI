@@ -12,6 +12,7 @@ export default function Index({ leads }) {
         phone: '',
         status: 'New',
         source: '',
+        proposed_price: '',
         notes: '',
     });
 
@@ -46,6 +47,7 @@ export default function Index({ leads }) {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Follow Up</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proposed Price</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
@@ -65,7 +67,19 @@ export default function Index({ leads }) {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {lead.follow_up_date || '-'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                                        {lead.proposed_price ? `৳${lead.proposed_price}` : '-'}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                        {lead.status === 'Converted' && lead.center_id ? (
+                                            <Link href={route('admin.center.edit', lead.center_id)} className="text-green-600 hover:text-green-900">
+                                                View Center
+                                            </Link>
+                                        ) : (
+                                            <Link href={route('admin.leads.convert', lead.id)} method="post" as="button" type="button" className="text-blue-600 hover:text-blue-900">
+                                                Convert
+                                            </Link>
+                                        )}
                                         <button className="text-indigo-600 hover:text-indigo-900">Edit</button>
                                     </td>
                                 </tr>
@@ -90,6 +104,7 @@ export default function Index({ leads }) {
                             <label className="block text-sm font-medium text-gray-700">Name</label>
                             <input 
                                 type="text" 
+                                name="name"
                                 value={data.name} 
                                 onChange={e => setData('name', e.target.value)} 
                                 required 
@@ -101,6 +116,7 @@ export default function Index({ leads }) {
                             <label className="block text-sm font-medium text-gray-700">Phone</label>
                             <input 
                                 type="text" 
+                                name="phone"
                                 value={data.phone} 
                                 onChange={e => setData('phone', e.target.value)} 
                                 required 
@@ -111,6 +127,7 @@ export default function Index({ leads }) {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Status</label>
                             <select 
+                                name="status"
                                 value={data.status} 
                                 onChange={e => setData('status', e.target.value)} 
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -123,6 +140,18 @@ export default function Index({ leads }) {
                                 <option value="Lost">Lost</option>
                             </select>
                             {errors.status && <div className="text-red-500 text-xs mt-1">{errors.status}</div>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Proposed Price (৳)</label>
+                            <input 
+                                type="number" 
+                                name="proposed_price"
+                                step="0.01"
+                                value={data.proposed_price} 
+                                onChange={e => setData('proposed_price', e.target.value)} 
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
+                            />
+                            {errors.proposed_price && <div className="text-red-500 text-xs mt-1">{errors.proposed_price}</div>}
                         </div>
                         <div className="mt-6 flex justify-end gap-3">
                             <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>

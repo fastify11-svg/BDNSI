@@ -16,6 +16,8 @@ class Lead extends Model
         'team_id',
         'center_id',
         'status',
+        'proposed_price',
+        'last_contacted_at',
         'notes',
         'follow_up_date',
         'created_by',
@@ -23,6 +25,8 @@ class Lead extends Model
 
     protected $casts = [
         'follow_up_date' => 'date',
+        'last_contacted_at' => 'datetime',
+        'proposed_price' => 'float',
     ];
 
     /**

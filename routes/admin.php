@@ -184,6 +184,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::resource('slider', SliderController::class);
             Route::resource('leads', \App\Http\Controllers\Admin\LeadController::class);
+            Route::post('leads/{lead}/convert', [\App\Http\Controllers\Admin\LeadController::class, 'convert'])->name('leads.convert');
             Route::get('user/portal/{user}', [UserController::class, 'portal'])->name('user.portal');
 
             Route::resource('center', CenterController::class);
@@ -212,6 +213,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::resource('sms-gateway', App\Http\Controllers\Admin\SmsGatewayController::class)->only(['index', 'update']);
             Route::resource('footer-link', FooterLinkController::class);
             Route::resource('footer-logo', FooterPartnerLogoController::class);
+
+            // Phase L - Commission Module
+            Route::resource('commission-policies', App\Http\Controllers\Admin\CommissionPolicyController::class)->except(['create', 'edit', 'show']);
+            Route::resource('commissions', App\Http\Controllers\Admin\CommissionController::class)->only(['index', 'show']);
+            Route::post('commissions/{commission}/approve', [App\Http\Controllers\Admin\CommissionController::class, 'approve'])->name('commissions.approve');
+            Route::post('commissions/{commission}/pay', [App\Http\Controllers\Admin\CommissionController::class, 'pay'])->name('commissions.pay');
+            Route::post('commissions/{commission}/reverse', [App\Http\Controllers\Admin\CommissionController::class, 'reverse'])->name('commissions.reverse');
         });
     });
 });

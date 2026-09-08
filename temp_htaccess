@@ -1,0 +1,8 @@
+# Temporary .htaccess - allow direct PHP execution
+# Removing Laravel routing to allow extract.php to run
+Options -Indexes
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine Off
+</IfModule>

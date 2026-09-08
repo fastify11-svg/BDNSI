@@ -100,6 +100,7 @@ After code changes:
 - Local DB: MySQL via XAMPP (`DB_DATABASE=yttccomb_bdnsi`, `DB_HOST=127.0.0.1`)
 - Always backup before migrations: `C:\xampp\mysql\bin\mysqldump.exe -u root yttccomb_bdnsi > backup.sql`
 - Use `migrate:fresh --seed` only in CI, never locally without backup
+- **SAFETY RULE**: `migrate:fresh`, `db:wipe`, destructive resets, or destructive schema cleanup MUST NEVER execute against production or valuable shared staging data. Such commands are allowed ONLY in explicitly verified disposable local test environments.
 
 ### 9. Frontend Rules
 
