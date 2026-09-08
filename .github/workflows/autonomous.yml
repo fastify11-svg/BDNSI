@@ -194,32 +194,34 @@ jobs:
             exit 1
           fi
           mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          # Ensure newlines are properly formatted if they were pasted as literal \n
+          echo -e "${SSH_PRIVATE_KEY//\\n/\n}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=no -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "
-            cd /home/u881397359/domains/nenobet.live/public_html &&
+          ssh -i ~/.ssh/id_ed25519 -o BatchMode=yes -o StrictHostKeyChecking=no -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" << EOF
+            set -e
+            cd /home/u881397359/domains/nenobet.live/public_html
             if [ -d .git ]; then
-              git fetch origin main && git reset --hard origin/main;
+              git fetch origin main && git reset --hard origin/main
             else
-              git clone --branch main --depth 1 https://github.com/fastify11-svg/BDNSI.git .;
-            fi &&
-            if [ ! -f .env ]; then cp .env.example .env; fi &&
-            sed -i "s/^APP_ENV=.*/APP_ENV=production/" .env &&
-            sed -i "s|^APP_URL=.*|APP_URL=https://nenobet.live|" .env &&
-            sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=mysql/" .env &&
-            sed -i "s/^DB_HOST=.*/DB_HOST=127.0.0.1/" .env &&
-            sed -i "s/^DB_PORT=.*/DB_PORT=3306/" .env &&
-            sed -i "s/^DB_DATABASE=.*/DB_DATABASE=$DB_DATABASE/" .env &&
-            sed -i "s/^DB_USERNAME=.*/DB_USERNAME=$DB_USERNAME/" .env &&
-            sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env &&
-            composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs &&
-            if ! grep -q '^APP_KEY=base64:' .env; then php artisan key:generate --force; fi &&
-            php artisan config:cache &&
-            php artisan route:cache &&
-            php artisan view:cache &&
-            php artisan migrate --force &&
+              git clone --branch main --depth 1 https://github.com/fastify11-svg/BDNSI.git .
+            fi
+            if [ ! -f .env ]; then cp .env.example .env; fi
+            sed -i 's/^APP_ENV=.*/APP_ENV=production/' .env
+            sed -i 's|^APP_URL=.*|APP_URL=https://nenobet.live|' .env
+            sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+            sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+            sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env
+            sed -i "s/^DB_DATABASE=.*/DB_DATABASE=$DB_DATABASE/" .env
+            sed -i "s/^DB_USERNAME=.*/DB_USERNAME=$DB_USERNAME/" .env
+            sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env
+            composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+            if ! grep -q '^APP_KEY=base64:' .env; then php artisan key:generate --force; fi
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan migrate --force
             echo DEPLOYMENT_COMPLETE
-          "
+EOF
           echo "Live server deployment completed."
 
       # ─── 10. ARTIFACTS ON FAILURE ────────────────────────────────────────
