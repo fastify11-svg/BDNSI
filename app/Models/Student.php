@@ -49,6 +49,13 @@ class Student extends Authenticatable
     protected static function booted()
     {
         static::addGlobalScope(new CenterScope);
+
+        static::saving(function ($student) {
+            // Enforce absolute Business Integrity constraint
+            if ($student->payment_status == 1 && $student->due_amount > 0) {
+                throw new \Exception('Business Integrity Violation: Cannot set payment_status to 1 (Paid) while due_amount is greater than 0.');
+            }
+        });
     }
 
     protected $fillable = [
