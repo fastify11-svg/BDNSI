@@ -29,6 +29,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:backup')->hourly()->withoutOverlapping();
         $schedule->command('student:delete-unpublished')->daily()->withoutOverlapping();
         $schedule->command('telescope:prune --hours=48')->daily()->withoutOverlapping();
+        
+        // System Health & Integrity Checks
+        $schedule->command('system:health-check')->dailyAt('02:00')->appendOutputTo(storage_path('logs/health-check.log'))->withoutOverlapping();
+        $schedule->command('system:db-integrity-check')->dailyAt('02:30')->appendOutputTo(storage_path('logs/db-integrity.log'))->withoutOverlapping();
+        $schedule->command('system:financial-health-check')->dailyAt('03:00')->appendOutputTo(storage_path('logs/financial-health.log'))->withoutOverlapping();
     }
 
     /**
