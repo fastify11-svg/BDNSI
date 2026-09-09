@@ -17,30 +17,39 @@ class TeamPerformanceController extends Controller
     {
         $date = $request->input('date', Carbon::today()->toDateString());
 
-        $teams = Team::all()->map(function ($team) use ($date) {
-            // Get Target for this date
-            $target = TeamSalesTarget::where('team_id', $team->id)
-                ->whereDate('target_date', $date)
-                ->first();
+        // 1. Pre-fetch all targets for this date
+        $targets = TeamSalesTarget::whereDate('target_date', $date)
+            ->get()
+            ->keyBy('team_id');
 
-            // Calculate Actual Students
-            // Direct students (team_id on student) OR students from their centers
-            $actualStudents = Student::whereDate('created_at', $date)
-                ->where(function ($query) use ($team) {
-                    $query->where('team_id', $team->id)
-                          ->orWhereHas('center', function ($q) use ($team) {
-                              $q->where('team_id', $team->id);
-                          });
-                })
-                ->count();
+        // 2. Pre-fetch all students created on this date with their center
+        $studentsToday = Student::with('center')
+            ->whereDate('created_at', $date)
+            ->get();
 
-            // Calculate Actual B2B Certificates (Results created today)
-            $actualCertificates = Result::whereDate('created_at', $date)
-                ->where('certificate', 1)
-                ->whereHas('student.center', function ($q) use ($team) {
-                    $q->where('team_id', $team->id);
-                })
-                ->count();
+        // 3. Pre-fetch all certificates created on this date with their student->center
+        $certificatesToday = Result::with('student.center')
+            ->whereDate('created_at', $date)
+            ->where('certificate', 1)
+            ->get();
+
+        $teams = Team::all()->map(function ($team) use ($targets, $studentsToday, $certificatesToday) {
+            
+            // Get Target for this date from the pre-fetched collection
+            $target = $targets->get($team->id);
+
+            // Calculate Actual Students using collection filtering
+            $actualStudents = $studentsToday->filter(function ($student) use ($team) {
+                return $student->team_id == $team->id || 
+                       ($student->center && $student->center->team_id == $team->id);
+            })->count();
+
+            // Calculate Actual B2B Certificates using collection filtering
+            $actualCertificates = $certificatesToday->filter(function ($result) use ($team) {
+                return $result->student && 
+                       $result->student->center && 
+                       $result->student->center->team_id == $team->id;
+            })->count();
 
             return [
                 'id' => $team->id,
