@@ -54,11 +54,11 @@ class CenterStoreRequest extends FormRequest
             'center_logo' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
             'director_photo' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
             'director_signature' => 'nullable|mimes:png|max:2048',
-            'photo' => 'nullable',
-            'director_image' => 'nullable',
-            'authority_signature' => 'nullable',
-            'nid_photo' => 'nullable',
-            'nid_back_photo' => 'nullable',
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'director_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'authority_signature' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'nid_photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'nid_back_photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
             'team_id' => 'nullable|exists:teams,id',
         ];
     }

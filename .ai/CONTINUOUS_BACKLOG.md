@@ -12,7 +12,7 @@
   - Added a global `selectRaw` analytics query to `CenterController` and fixed the frontend React dashboard calculating KPIs on paginated subsets instead of global totals. (N+1 in list queries were already resolved via `with` arrays in earlier React refactor).
 
 ## P2 - Medium Value Improvements
-- [ ] [LANE 1] Security: Audit file upload endpoints (e.g. Center logos, Student photos) to ensure strict MIME type and file size validation.
+*None active.*
 
 ## P3 - Low Priority Polish
 *None active.*
@@ -21,6 +21,7 @@
 *None active.* (Previous blocker moved to P1 to resolve via SQLite).
 
 ## COMPLETED (Cycle 4)
+- [x] [LANE 1] Security: Audited file upload endpoints across the application. Added strict `image|mimes:jpeg,jpg,png,webp|max:2048` validation constraints to 15 different unvalidated or loosely validated photo fields in Student Controllers, Center Requests, Team Controllers, Slider Controller, and Config Dictionary.
 - [x] [LANE 3] Testing: Migrated the test environment from `mysql` to `sqlite` `:memory:`. Overrode the `CRITICAL SAFETY ABORT` in `CreatesApplication.php` to allow SQLite. Installed `doctrine/dbal` to fix migration `RENAME COLUMN` incompatibilities in SQLite. The test runner now successfully boots and executes, unblocking the environment (though legacy tests now require state refactoring).
 
 ## COMPLETED (Cycle 3)

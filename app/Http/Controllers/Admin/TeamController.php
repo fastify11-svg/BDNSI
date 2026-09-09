@@ -55,6 +55,8 @@ class TeamController extends Controller
             'linkedin_link' => 'nullable|string',
             'order_index' => 'nullable|integer',
             'status' => 'nullable|boolean',
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('photo')) {
@@ -112,6 +114,8 @@ class TeamController extends Controller
             'linkedin_link' => 'nullable|string',
             'order_index' => 'nullable|integer',
             'status' => 'nullable|boolean',
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('photo')) {

@@ -100,7 +100,7 @@ class StudentController extends Controller
             'session_id' => 'required|exists:sessions,id',
             'subject_id' => 'required|exists:subjects,id',
             'center_id' => 'nullable|exists:centers,id',
-            'picture' => 'nullable',
+            'picture' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
         $session = Session::find($validated['session_id']);

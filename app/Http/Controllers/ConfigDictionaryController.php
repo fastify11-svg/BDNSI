@@ -13,6 +13,12 @@ class ConfigDictionaryController extends Controller
     {
         $config = SiteConfig::first() ?? new SiteConfig;
 
+        $request->validate([
+            'header_logo' => 'nullable|image|mimes:jpeg,jpg,png,webp,svg|max:2048',
+            'main_logo' => 'nullable|image|mimes:jpeg,jpg,png,webp,svg|max:2048',
+            'favicon' => 'nullable|image|mimes:ico,png,jpg|max:1024',
+        ]);
+
         $data = $request->except(['header_logo', 'main_logo', 'favicon']);
 
         if ($request->hasFile('header_logo')) {

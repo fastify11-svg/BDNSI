@@ -39,7 +39,7 @@ class SliderController extends Controller
             'button_link' => 'nullable|string',
             'status' => 'nullable|boolean',
             'order_index' => 'nullable|integer',
-            'photo' => 'required|image',
+            'photo' => 'required|image|mimes:jpeg,jpg,png,webp|max:5120',
             'type' => 'required',
         ]);
 
@@ -62,7 +62,7 @@ class SliderController extends Controller
             'button_link' => 'nullable|string',
             'status' => 'nullable|boolean',
             'order_index' => 'nullable|integer',
-            'photo' => 'nullable|image',
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:5120',
             'type' => 'required',
         ]);
 
