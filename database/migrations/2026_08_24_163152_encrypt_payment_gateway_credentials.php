@@ -16,10 +16,12 @@ class EncryptPaymentGatewayCredentials extends Migration
      */
     public function up()
     {
-        $columns = ['store_id', 'store_password', 'signature_key', 'app_key', 'app_secret', 'username', 'password'];
-        foreach ($columns as $column) {
-            DB::statement("ALTER TABLE payment_gateways MODIFY {$column} TEXT");
-        }
+        Schema::table('payment_gateways', function (Blueprint $table) {
+            $columns = ['store_id', 'store_password', 'signature_key', 'app_key', 'app_secret', 'username', 'password'];
+            foreach ($columns as $column) {
+                $table->text($column)->nullable()->change();
+            }
+        });
 
         $gateways = DB::table('payment_gateways')->get();
         foreach ($gateways as $gateway) {
@@ -64,9 +66,11 @@ class EncryptPaymentGatewayCredentials extends Migration
             }
         }
 
-        $columns = ['store_id', 'store_password', 'signature_key', 'app_key', 'app_secret', 'username', 'password'];
-        foreach ($columns as $column) {
-            DB::statement("ALTER TABLE payment_gateways MODIFY {$column} VARCHAR(255)");
-        }
+        Schema::table('payment_gateways', function (Blueprint $table) {
+            $columns = ['store_id', 'store_password', 'signature_key', 'app_key', 'app_secret', 'username', 'password'];
+            foreach ($columns as $column) {
+                $table->string($column, 255)->nullable()->change();
+            }
+        });
     }
 }

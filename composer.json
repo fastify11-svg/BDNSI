@@ -25,7 +25,7 @@
         "yajra/laravel-datatables-oracle": "^9.19"
     },
     "require-dev": {
-        "doctrine/dbal": "*",
+        "doctrine/dbal": "^3.0",
         "facade/ignition": "^2.3.6",
         "fzaninotto/faker": "^1.9.1",
         "laravel/breeze": "^1.9",
