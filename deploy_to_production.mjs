@@ -100,9 +100,12 @@ async function deploy() {
       git reset --hard origin/main
       echo "Git pull complete"
     else
-      cd /home/u881397359/domains/nenobet.live
-      git clone --branch main --depth 5 ${REPO_URL} public_html
-      echo "Git clone complete"
+      cd ${REMOTE_PATH}
+      git init
+      git remote add origin ${REPO_URL}
+      git fetch origin main
+      git reset --hard origin/main
+      echo "Git init and fetch complete"
     fi
   `, 'Git fetch & reset');
 
@@ -122,7 +125,7 @@ async function deploy() {
   // Step 5: Composer install (no-dev, production)
   ssh(`
     cd ${REMOTE_PATH}
-    composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs 2>&1 | tail -5
+    composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs --no-scripts 2>&1 | tail -5
     echo "Composer install complete"
   `, 'Composer install --no-dev');
 
