@@ -3,8 +3,8 @@
     "file": "assets/rolldown-runtime-C0FnF6B9.js",
     "name": "rolldown-runtime"
   },
-  "_vendor-Dmbvqj-9.js": {
-    "file": "assets/vendor-Dmbvqj-9.js",
+  "_vendor-D9mlRmbC.js": {
+    "file": "assets/vendor-D9mlRmbC.js",
     "name": "vendor",
     "imports": [
       "_rolldown-runtime-C0FnF6B9.js"
@@ -19,12 +19,12 @@
       "assets/fa-v4compatibility-CErXDOsT.woff2"
     ]
   },
-  "_vendor-react-DjgBmxJ6.js": {
-    "file": "assets/vendor-react-DjgBmxJ6.js",
+  "_vendor-react-8g-eWGEE.js": {
+    "file": "assets/vendor-react-8g-eWGEE.js",
     "name": "vendor-react",
     "imports": [
       "_rolldown-runtime-C0FnF6B9.js",
-      "_vendor-Dmbvqj-9.js"
+      "_vendor-D9mlRmbC.js"
     ]
   },
   "_vendor-zXd8mtO7.css": {
@@ -57,17 +57,17 @@
     "isEntry": true
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-Cv-ItpH_.js",
+    "file": "assets/app-DXFRCjW6.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-C0FnF6B9.js",
-      "_vendor-Dmbvqj-9.js",
-      "_vendor-react-DjgBmxJ6.js"
+      "_vendor-D9mlRmbC.js",
+      "_vendor-react-8g-eWGEE.js"
     ],
     "dynamicImports": [
-      "_vendor-Dmbvqj-9.js"
+      "_vendor-D9mlRmbC.js"
     ]
   }
 }

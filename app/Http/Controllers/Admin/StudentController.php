@@ -206,30 +206,36 @@ class StudentController extends Controller
         $subjects = Subject::select(['id', 'name'])->orderBy('name', 'asc')->get();
         $sessions = Session::select(['id', 'name'])->get();
 
-        // Analytics Logic
-        $totalStudents = Student::count();
-        $activeStudents = Student::where('status', StudentStatus::Approved)->count();
-
-        $maleCount = Student::where('gender', Gender::Male)->count();
-        $femaleCount = Student::where('gender', Gender::Female)->count();
-
-        $regularCount = Student::where('course_type', CourseType::Regular)->count();
-        $shortCount = Student::where('course_type', CourseType::Short_Course)->count();
-        $diplomaCount = Student::where('course_type', CourseType::Diploma)->count();
-
-        $totalDue = Student::sum('due_amount');
-        $totalPaid = Student::sum('paid_amount');
+        // Analytics Logic - Optimized into a single query to prevent excessive DB hits
+        $analyticsData = Student::selectRaw("
+            count(id) as total,
+            sum(case when status = ? then 1 else 0 end) as active,
+            sum(case when gender = ? then 1 else 0 end) as male,
+            sum(case when gender = ? then 1 else 0 end) as female,
+            sum(case when course_type = ? then 1 else 0 end) as regular,
+            sum(case when course_type = ? then 1 else 0 end) as short,
+            sum(case when course_type = ? then 1 else 0 end) as diploma,
+            sum(due_amount) as due,
+            sum(paid_amount) as paid
+        ", [
+            StudentStatus::Approved,
+            Gender::Male,
+            Gender::Female,
+            CourseType::Regular,
+            CourseType::Short_Course,
+            CourseType::Diploma
+        ])->first();
 
         $analytics = [
-            'total' => $totalStudents,
-            'active' => $activeStudents,
-            'male' => $maleCount,
-            'female' => $femaleCount,
-            'regular' => $regularCount,
-            'short' => $shortCount,
-            'diploma' => $diplomaCount,
-            'due' => $totalDue,
-            'paid' => $totalPaid,
+            'total' => $analyticsData->total ?? 0,
+            'active' => $analyticsData->active ?? 0,
+            'male' => $analyticsData->male ?? 0,
+            'female' => $analyticsData->female ?? 0,
+            'regular' => $analyticsData->regular ?? 0,
+            'short' => $analyticsData->short ?? 0,
+            'diploma' => $analyticsData->diploma ?? 0,
+            'due' => $analyticsData->due ?? 0,
+            'paid' => $analyticsData->paid ?? 0,
         ];
 
         return Inertia::render('Admin/Student/Index', [

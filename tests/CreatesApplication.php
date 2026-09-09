@@ -25,14 +25,22 @@ trait CreatesApplication
 
         // STAGE 2: Post-bootstrap strict config whitelist validation
         $defaultConnection = $app['config']->get('database.default');
-        $dbName = $app['config']->get('database.connections.mysql.database');
-        $dbUser = $app['config']->get('database.connections.mysql.username');
 
-        if ($defaultConnection !== 'mysql' || $dbName !== 'bdnsi_testing' || $dbUser !== 'bdnsi_test_user') {
-            die(sprintf(
-                "CRITICAL SAFETY ABORT: Unsafe database configuration resolved!\nExpected Connection: mysql, Got: %s\nExpected DB: bdnsi_testing, Got: %s\nExpected User: bdnsi_test_user, Got: %s\n",
-                $defaultConnection, $dbName, $dbUser
-            ));
+        if ($defaultConnection === 'sqlite') {
+            $dbName = $app['config']->get('database.connections.sqlite.database');
+            if ($dbName !== ':memory:') {
+                 die("CRITICAL SAFETY ABORT: SQLite database must be in-memory (:memory:).\n");
+            }
+        } else {
+            $dbName = $app['config']->get('database.connections.mysql.database');
+            $dbUser = $app['config']->get('database.connections.mysql.username');
+
+            if ($defaultConnection !== 'mysql' || $dbName !== 'bdnsi_testing' || $dbUser !== 'bdnsi_test_user') {
+                die(sprintf(
+                    "CRITICAL SAFETY ABORT: Unsafe database configuration resolved!\nExpected Connection: mysql, Got: %s\nExpected DB: bdnsi_testing, Got: %s\nExpected User: bdnsi_test_user, Got: %s\n",
+                    $defaultConnection, $dbName, $dbUser
+                ));
+            }
         }
 
         return $app;

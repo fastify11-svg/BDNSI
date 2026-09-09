@@ -4,7 +4,7 @@ import { Link, usePage } from '@inertiajs/inertia-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import { getUrl } from '../../../utils/urlHelper';
 
-export default function CenterIndex({ centers = {}, filters = {} }) {
+export default function CenterIndex({ centers = {}, filters = {}, analytics = {} }) {
     const { app_url } = usePage().props;
     const centerList = centers?.data || centers || [];
 
@@ -14,10 +14,10 @@ export default function CenterIndex({ centers = {}, filters = {} }) {
     const [processing, setProcessing] = useState(false);
 
     // Calculate Analytics Metrics
-    const totalCount = centers.total || centerList.length;
-    const approvedCount = centerList.filter(c => Number(c.status) === 1 || c.status === 'Approved').length;
-    const pendingCount = centerList.filter(c => Number(c.status) === 0 || c.status === 'Pending').length;
-    const totalStudentsSum = centerList.reduce((acc, c) => acc + (c.all_students_count ?? c.students_count ?? 0), 0);
+    const totalCount = analytics?.total || centers.total || centerList.length;
+    const approvedCount = analytics?.approved || 0;
+    const pendingCount = analytics?.pending || 0;
+    const totalStudentsSum = analytics?.totalStudents || 0;
 
     // Debounced real-time filter trigger
     useEffect(() => {

@@ -62,9 +62,25 @@ class CenterController extends Controller
             'status' => $request->input('status', 'all'),
         ];
 
+        $analyticsData = Center::selectRaw("
+            count(id) as total,
+            sum(case when status = ? then 1 else 0 end) as approved,
+            sum(case when status = ? then 1 else 0 end) as pending,
+            sum(case when status = ? then 1 else 0 end) as suspended
+        ", [CenterStatus::Approved, CenterStatus::Pending, CenterStatus::Suspended])->first();
+
+        $analytics = [
+            'total' => $analyticsData->total ?? 0,
+            'approved' => $analyticsData->approved ?? 0,
+            'pending' => $analyticsData->pending ?? 0,
+            'suspended' => $analyticsData->suspended ?? 0,
+            'totalStudents' => Student::count(),
+        ];
+
         return Inertia::render('Admin/Center/Index', [
             'centers' => $centers,
             'filters' => $filters,
+            'analytics' => $analytics,
         ]);
     }
 
