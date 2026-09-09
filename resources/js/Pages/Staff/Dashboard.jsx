@@ -183,17 +183,17 @@ export default function Dashboard({ staff, metrics, recentStudents, topCourses, 
                                 <div>
                                     <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">B2B Certificate Target</p>
                                     <h3 className="text-xl font-black text-slate-900 mt-0.5">
-                                        0 <span className="text-sm font-semibold text-slate-400">/ {metrics.target_b2b}</span>
+                                        {metrics.actual_b2b_certificates} <span className="text-sm font-semibold text-slate-400">/ {metrics.target_b2b}</span>
                                     </h3>
                                 </div>
                                 <div className="text-right">
-                                    <span className={`text-xs font-bold px-2 py-1 rounded ${0 >= metrics.target_b2b && metrics.target_b2b > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
-                                        {metrics.target_b2b > 0 ? Math.min(100, Math.round((0 / metrics.target_b2b) * 100)) : 0}% Achieved
+                                    <span className={`text-xs font-bold px-2 py-1 rounded ${metrics.actual_b2b_certificates >= metrics.target_b2b && metrics.target_b2b > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                                        {metrics.target_b2b > 0 ? Math.min(100, Math.round((metrics.actual_b2b_certificates / metrics.target_b2b) * 100)) : 0}% Achieved
                                     </span>
                                 </div>
                             </div>
                             <div className="w-full bg-slate-100 rounded-full h-2.5">
-                                <div className={`h-2.5 rounded-full ${0 >= metrics.target_b2b && metrics.target_b2b > 0 ? 'bg-emerald-500' : 'bg-[#7024A8]'}`} style={{ width: `${metrics.target_b2b > 0 ? Math.min(100, Math.round((0 / metrics.target_b2b) * 100)) : 0}%` }}></div>
+                                <div className={`h-2.5 rounded-full ${metrics.actual_b2b_certificates >= metrics.target_b2b && metrics.target_b2b > 0 ? 'bg-emerald-500' : 'bg-[#7024A8]'}`} style={{ width: `${metrics.target_b2b > 0 ? Math.min(100, Math.round((metrics.actual_b2b_certificates / metrics.target_b2b) * 100)) : 0}%` }}></div>
                             </div>
                         </div>
                     </div>

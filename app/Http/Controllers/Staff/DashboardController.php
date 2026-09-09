@@ -14,28 +14,27 @@ use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, \App\Services\TeamPerformanceService $performanceService)
     {
         $staff = Auth::guard('staff')->user();
-
-        // StaffScope automatically isolates all queries to this staff's team_id
         $today = Carbon::today();
 
-        $target = \App\Models\TeamSalesTarget::where('team_id', $staff->id)
-            ->whereDate('target_date', $today)
-            ->first();
+        // Use the centralized TeamPerformanceService to ensure targets and achievements
+        // are calculated identically to the Admin dashboard, bypassing faulty `StaffScope`.
+        $teamPerformance = $performanceService->getTeamPerformanceMetrics($staff, $today);
 
         $metrics = [
-            'today_students' => Student::whereDate('created_at', $today)->count(),
-            'total_students' => Student::count(),
+            'today_students' => $teamPerformance['achieved']['students'],
+            'total_students' => Student::count(), // Scoped correctly by StaffScope
             'approved_students' => Student::where('status', StudentStatus::Approved)->count(),
             'pending_students' => Student::whereIn('status', [StudentStatus::Pending, StudentStatus::Requested])->count(),
             'total_courses' => Subject::count(),
             'total_sessions' => Session::count(),
             'referral_code' => $staff->referral_code,
             'referral_link' => url('/?ref=' . $staff->referral_code),
-            'target_students' => $target ? $target->student_target : 0,
-            'target_b2b' => $target ? $target->b2b_certificate_target : 0,
+            'target_students' => $teamPerformance['target']['student_target'] ?? 0,
+            'target_b2b' => $teamPerformance['target']['b2b_certificate_target'] ?? 0,
+            'actual_b2b_certificates' => $teamPerformance['achieved']['b2b_certificates'],
         ];
 
         // Recent 8 student registrations

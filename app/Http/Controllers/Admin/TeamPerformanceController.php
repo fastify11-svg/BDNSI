@@ -13,61 +13,14 @@ use Carbon\Carbon;
 
 class TeamPerformanceController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, \App\Services\TeamPerformanceService $performanceService)
     {
-        $date = $request->input('date', Carbon::today()->toDateString());
+        $date = Carbon::parse($request->input('date', Carbon::today()->toDateString()));
 
-        // 1. Pre-fetch all targets for this date
-        $targets = TeamSalesTarget::whereDate('target_date', $date)
-            ->get()
-            ->keyBy('team_id');
-
-        // 2. Pre-fetch all students created on this date with their center
-        $studentsToday = Student::with('center')
-            ->whereDate('created_at', $date)
-            ->get();
-
-        // 3. Pre-fetch all certificates created on this date with their student->center
-        $certificatesToday = Result::with('student.center')
-            ->whereDate('created_at', $date)
-            ->where('certificate', 1)
-            ->get();
-
-        $teams = Team::all()->map(function ($team) use ($targets, $studentsToday, $certificatesToday) {
-            
-            // Get Target for this date from the pre-fetched collection
-            $target = $targets->get($team->id);
-
-            // Calculate Actual Students using collection filtering
-            $actualStudents = $studentsToday->filter(function ($student) use ($team) {
-                return $student->team_id == $team->id || 
-                       ($student->center && $student->center->team_id == $team->id);
-            })->count();
-
-            // Calculate Actual B2B Certificates using collection filtering
-            $actualCertificates = $certificatesToday->filter(function ($result) use ($team) {
-                return $result->student && 
-                       $result->student->center && 
-                       $result->student->center->team_id == $team->id;
-            })->count();
-
-            return [
-                'id' => $team->id,
-                'name' => $team->name,
-                'designation' => $team->designation,
-                'target' => $target ? [
-                    'student_target' => $target->student_target,
-                    'b2b_certificate_target' => $target->b2b_certificate_target,
-                ] : null,
-                'achieved' => [
-                    'students' => $actualStudents,
-                    'b2b_certificates' => $actualCertificates,
-                ]
-            ];
-        });
+        $teams = $performanceService->getBulkPerformanceMetrics($date);
 
         return Inertia::render('Admin/TeamPerformance/Index', [
-            'date' => $date,
+            'date' => $date->toDateString(),
             'teams' => $teams,
         ]);
     }
