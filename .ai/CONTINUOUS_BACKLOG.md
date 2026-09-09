@@ -5,7 +5,7 @@
 
 ## P1 - High Value Security / Core
 - [ ] Audit and resolve NPM vulnerabilities (Axios, PDF.js, etc.)
-- [ ] Fix severe O(N) N+1 query loop and memory leak in `Admin\CommissionController@index`.
+- [x] Fix severe O(N) N+1 query loop and memory leak in `Admin\CommissionController@index`.
 
 ## P2 - Medium Value Improvements
 - [ ] Add further test coverage where lacking.
