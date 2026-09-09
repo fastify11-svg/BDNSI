@@ -67,13 +67,16 @@ jobs:
           grep -E '^(DB_|SESSION_|CACHE_|APP_URL|APP_ENV|QUEUE_)' .env
 
       # ─── 4. COMPOSER ─────────────────────────────────────────────────────
+      # Install without Composer scripts first so Laravel boots only after the
+      # CI environment has a valid APP_KEY. Then run package discovery explicitly.
       - name: Install Composer Dependencies
-        run: |
-          composer install -q --no-ansi --no-interaction --no-progress --prefer-dist
-          php artisan package:discover --ansi
+        run: composer install --no-scripts --no-ansi --no-interaction --no-progress --prefer-dist
 
       - name: Generate App Key
         run: php artisan key:generate
+
+      - name: Discover Composer Packages
+        run: php artisan package:discover --ansi
 
       # ─── 5. DATABASE ─────────────────────────────────────────────────────
       - name: Run Database Migrations & Seeding
