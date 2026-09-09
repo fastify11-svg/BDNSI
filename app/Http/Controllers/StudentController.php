@@ -155,7 +155,7 @@ class StudentController extends Controller
             'payable_amount' => $finalPrice,
             'paid_amount' => 0,
             'due_amount' => $finalPrice,
-            'status' => 'Pending',
+            'status' => \App\Models\Order::STATUS_PENDING,
         ]);
 
         \App\Models\OrderItem::create([

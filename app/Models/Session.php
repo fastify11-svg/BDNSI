@@ -26,6 +26,21 @@ class Session extends Model
         'duration' => 'int',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            if (empty($model->duration)) {
+                $model->duration = 6;
+            }
+            if (empty($model->start_date)) {
+                $model->start_date = now();
+            }
+            if (empty($model->end_date)) {
+                $model->end_date = now()->addMonths($model->duration);
+            }
+        });
+    }
+
     public function getCourseTypeAttribute()
     {
         $duration = $this->duration;

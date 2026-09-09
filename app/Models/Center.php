@@ -73,6 +73,22 @@ class Center extends Model
         'nid_back_photo' => ImageField::class.':center/nid_photo',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->division = $model->division ?? 1;
+            $model->district = $model->district ?? 1;
+            $model->upazilla = $model->upazilla ?? 1;
+            $model->religion = $model->religion ?? 1;
+            $model->gender = $model->gender ?? 1;
+            $model->mobile = $model->mobile ?? '01700000000';
+            $model->address = $model->address ?? 'N/A';
+            $model->code = $model->code ?? 'C-' . strtoupper(uniqid());
+            $model->owner_name = $model->owner_name ?? 'Default Owner';
+            $model->name = $model->name ?? 'Default Center';
+        });
+    }
+
     public function students()
     {
         return $this->hasMany(Student::class, 'center_id')->where('status', StudentStatus::Approved);

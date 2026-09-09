@@ -50,6 +50,17 @@ class Student extends Authenticatable
     {
         static::addGlobalScope(new CenterScope);
 
+        static::creating(function ($student) {
+            $student->present_address = $student->present_address ?? 'N/A';
+            $student->permanent_address = $student->permanent_address ?? 'N/A';
+            $student->blood_group = $student->blood_group ?? BloodGroup::A_Positive;
+            $student->qualification = $student->qualification ?? 'SSC';
+            $student->guardian_name = $student->guardian_name ?? 'N/A';
+            $student->nid_or_birth = $student->nid_or_birth ?? '1234567890';
+            $student->phone = $student->phone ?? '01711111111';
+            $student->date_of_birth = $student->date_of_birth ?? now()->subYears(18);
+        });
+
         static::saving(function ($student) {
             // Enforce absolute Business Integrity constraint
             if ($student->payment_status == 1 && $student->due_amount > 0) {

@@ -32,7 +32,7 @@ class PhaseGDocumentManagementTest extends TestCase
         $this->centerB = Center::factory()->create(['id' => 2, 'name' => 'Center B', 'code' => 'C-002']);
         $this->centerUserB = User::factory()->create(['center_id' => $this->centerB->id, 'username' => 'center_b_test', 'phone' => '01711111112']);
 
-        $sessionId = \Illuminate\Support\Facades\DB::table('sessions')->insertGetId(['name' => '2026']);
+        $sessionId = \App\Models\Session::create(['name' => '2026'])->id;
         $subjectId = \Illuminate\Support\Facades\DB::table('subjects')->insertGetId(['name' => 'Math']);
 
         $this->studentA = Student::factory()->create([

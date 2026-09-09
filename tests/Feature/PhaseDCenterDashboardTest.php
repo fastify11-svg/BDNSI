@@ -26,7 +26,7 @@ class PhaseDCenterDashboardTest extends TestCase
             'center_id' => $center->id,
             'order_number' => 'ORD-' . time(),
             'total_amount' => 1000,
-            'status' => 'Pending',
+            'status' => \App\Models\Order::STATUS_PENDING,
             'payment_status' => 'Unpaid'
         ]);
 
@@ -67,7 +67,7 @@ class PhaseDCenterDashboardTest extends TestCase
             'center_id' => $center2->id,
             'order_number' => 'ORD-C2',
             'total_amount' => 1000,
-            'status' => 'Pending',
+            'status' => \App\Models\Order::STATUS_PENDING,
             'payment_status' => 'Unpaid'
         ]);
 

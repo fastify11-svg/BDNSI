@@ -21,7 +21,7 @@ class PhaseGCertificateVerificationTest extends TestCase
         
         $this->center = Center::factory()->create(['id' => 1, 'name' => 'Center A', 'code' => 'C-001']);
         
-        $sessionId = \Illuminate\Support\Facades\DB::table('sessions')->insertGetId(['name' => '2026']);
+        $sessionId = \App\Models\Session::create(['name' => '2026'])->id;
         $subjectId = \Illuminate\Support\Facades\DB::table('subjects')->insertGetId(['name' => 'Math']);
         
         $this->student = Student::factory()->create([

@@ -22,7 +22,7 @@ class PhaseDOrderAccessTest extends TestCase
             'center_id' => $center->id,
             'order_number' => 'ORD-123',
             'total_amount' => 500,
-            'status' => 'Pending',
+            'status' => \App\Models\Order::STATUS_PENDING,
             'payment_status' => 'Unpaid'
         ]);
 
@@ -44,7 +44,7 @@ class PhaseDOrderAccessTest extends TestCase
             'center_id' => $center2->id,
             'order_number' => 'ORD-456',
             'total_amount' => 500,
-            'status' => 'Pending',
+            'status' => \App\Models\Order::STATUS_PENDING,
             'payment_status' => 'Unpaid'
         ]);
 

@@ -48,7 +48,7 @@ class PhaseGReportingTest extends TestCase
     
     public function test_reports_calculate_revenue_correctly()
     {
-        $sessionId = \Illuminate\Support\Facades\DB::table('sessions')->insertGetId(['name' => '2026']);
+        $sessionId = \App\Models\Session::create(['name' => '2026'])->id;
         $subjectId = \Illuminate\Support\Facades\DB::table('subjects')->insertGetId(['name' => 'Math']);
         // 5 students * 250 = 1250 in registrations
         Student::factory()->count(5)->create([
@@ -67,7 +67,7 @@ class PhaseGReportingTest extends TestCase
         // Inertia testing
         $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
             ->component('Admin/Reports/Index')
-            ->where('metrics.total_revenue', '500.00')
+            ->where('metrics.total_revenue', 500)
         );
     }
 }

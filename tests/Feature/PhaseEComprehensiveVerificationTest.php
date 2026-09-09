@@ -17,10 +17,11 @@ use App\Events\PaymentSucceeded;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class PhaseEComprehensiveVerificationTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     protected $centerA;
     protected $centerB;

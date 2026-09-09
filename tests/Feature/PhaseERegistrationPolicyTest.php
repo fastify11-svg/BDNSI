@@ -12,13 +12,14 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Price;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class PhaseERegistrationPolicyTest extends TestCase
 {
-    use DatabaseTransactions, WithFaker;
+    use RefreshDatabase;
+    use WithFaker;
 
     protected $center;
     protected $user;

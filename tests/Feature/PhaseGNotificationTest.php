@@ -21,7 +21,7 @@ class PhaseGNotificationTest extends TestCase
         Notification::fake();
 
         $center = Center::factory()->create(['id' => 1, 'code' => 'C-001']);
-        $sessionId = \Illuminate\Support\Facades\DB::table('sessions')->insertGetId(['name' => '2026']);
+        $sessionId = \App\Models\Session::create(['name' => '2026'])->id;
         $subjectId = \Illuminate\Support\Facades\DB::table('subjects')->insertGetId(['name' => 'Math']);
         $student = Student::factory()->create(['center_id' => $center->id, 'session_id' => $sessionId, 'subject_id' => $subjectId]);
         $docType = DocumentType::create(['name' => 'NID']);
@@ -47,7 +47,7 @@ class PhaseGNotificationTest extends TestCase
         Notification::fake();
 
         $center = Center::factory()->create(['id' => 1, 'code' => 'C-002']);
-        $sessionId = \Illuminate\Support\Facades\DB::table('sessions')->insertGetId(['name' => '2026']);
+        $sessionId = \App\Models\Session::create(['name' => '2026'])->id;
         $subjectId = \Illuminate\Support\Facades\DB::table('subjects')->insertGetId(['name' => 'Math']);
         $student = Student::factory()->create(['center_id' => $center->id, 'session_id' => $sessionId, 'subject_id' => $subjectId]);
         $docType = DocumentType::create(['name' => 'NID']);

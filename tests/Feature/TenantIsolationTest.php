@@ -19,7 +19,9 @@ class TenantIsolationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        \DB::statement("SET SESSION sql_mode=''");
+        if (\DB::connection()->getDriverName() === 'mysql') {
+            \DB::statement("SET SESSION sql_mode=''");
+        }
         \Schema::disableForeignKeyConstraints();
     }
 

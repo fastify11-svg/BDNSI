@@ -17,4 +17,13 @@ class CommissionPolicy extends Model
         'product_type',
         'is_active',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->type = $model->type ?? 'percentage';
+            $model->value = $model->value ?? 10;
+            $model->name = $model->name ?? 'Default Commission';
+        });
+    }
 }

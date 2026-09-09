@@ -17,7 +17,7 @@ class PhaseGQueueTest extends TestCase
     public function test_generate_certificate_assets_job_dispatches_and_executes()
     {
         $center = Center::factory()->create(['id' => 1, 'code' => 'C-001']);
-        $sessionId = \Illuminate\Support\Facades\DB::table('sessions')->insertGetId(['name' => '2026']);
+        $sessionId = \App\Models\Session::create(['name' => '2026'])->id;
         $subjectId = \Illuminate\Support\Facades\DB::table('subjects')->insertGetId(['name' => 'Math']);
 
         $student = Student::factory()->create([

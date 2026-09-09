@@ -6,9 +6,11 @@ use App\Enums\CourseType;
 use App\Models\Result;
 use App\Models\Student;
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class StudentLifecycleTest extends TestCase
 {
+    use RefreshDatabase;
     public function test_gpa_viva_for_regular_course()
     {
         $student = new Student;
