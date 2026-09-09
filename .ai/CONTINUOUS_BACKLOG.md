@@ -7,6 +7,9 @@
 *None active.*
 
 ### Lane 4: Performance & Optimization (P3)
+- [x] **ADD_PERFORMANCE_INDEXES_TO_FINANCIAL_TABLES (COMPLETED)**
+  - Added missing indexes to `orders.status`, `orders.created_at`, `payments.status`, and `payments.created_at` to prevent N+1 full table scans on history list endpoints.
+
 - [x] **RESOLVE_ADMIN_LIST_N_PLUS_1_QUERIES (COMPLETED)**
   - Optimized 9 aggregate analytics queries into a single `selectRaw` query in `StudentController`.
   - Added a global `selectRaw` analytics query to `CenterController` and fixed the frontend React dashboard calculating KPIs on paginated subsets instead of global totals. (N+1 in list queries were already resolved via `with` arrays in earlier React refactor).
