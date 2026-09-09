@@ -11,6 +11,27 @@ import axios from 'axios';
 window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.axios.defaults.timeout = 30000; // 30 second global timeout
+
+window.axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (!error.response) {
+            // Network error (no response)
+            console.error('Network Error:', error);
+            if (error.message && error.message.includes('timeout')) {
+                alert('Request timed out. Please check your connection.');
+            } else if (!window.navigator.onLine) {
+                alert('You are offline. Please check your internet connection.');
+            }
+        } else if (error.response.status === 419) {
+            // CSRF Token mismatch / Session Expired
+            alert('Your session has expired. The page will now refresh.');
+            window.location.reload();
+        }
+        return Promise.reject(error);
+    }
+);
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
