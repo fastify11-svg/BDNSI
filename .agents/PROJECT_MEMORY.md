@@ -27,6 +27,6 @@
 ## Known Guardrails
 
 - Local backup files belong in `storage/app/backups/` and must never be committed.
-- No commit, push, or deployment without explicit user approval for the reviewed change set.
+- No production database changes, data deletion, or live deployment without explicit user approval for the reviewed change set. (Routine development commits and branch pushes are pre-authorized).
 - Production deployment uses GitHub Actions SSH key secrets and strict host-key verification; password-based deployment scripts are retired. See `.github/DEPLOYMENT_SECRETS_SETUP.md` before configuring a release.
 - Cleanup is inventory-first: classify candidates as generated, cache/log, archival, source, or unknown before proposing deletion.

@@ -27,7 +27,7 @@ Before any change, read in order:
 - Never create a second financial source of truth.
 - Never bypass tenant scope or server-side authorization.
 - Never represent a test/build/health check as passing without its exact result.
-- Never migrate, delete, commit, push, deploy, or contact an external system without the user's current explicit approval.
+- Never migrate, delete, deploy to production, or contact an external system without the user's current explicit approval. (Routine git commit and push are pre-authorized).
 - Never remove files based on filename alone. Inventory, classify, and preserve a recovery path first.
 
 ## Efficient Execution

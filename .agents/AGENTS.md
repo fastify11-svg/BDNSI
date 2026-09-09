@@ -54,9 +54,31 @@ git add -A && git commit -m "message" && git push origin main
 
 All coding, execution, and testing within **Antigravity IDE only**. Never reference VS Code, ignore `.vscode/` configs.
 
-### 2. GitHub and Deployment Approval
+### 2. Standing Authorization for Routine Work
 
-After a sprint, feature, or bugfix, prepare the verification result and Git diff. Commit, push, deployment, and any live-server action require the user's explicit approval for that specific change set.
+Standing authorization is granted for SAFE, REVIEWED, REVERSIBLE development actions including:
+- code edits
+- tests
+- documentation updates
+- creation/update of internal .ai state files
+- safe dependency updates
+- git commits
+- git pushes to the normal project branch
+- CI verification
+- non-destructive local development commands
+
+Do NOT request repetitive approval for these routine actions.
+Owner approval is STILL REQUIRED before:
+1. destructive or irreversible operations
+2. deleting or overwriting real production data
+3. production database reset / migrate:fresh / db:wipe / DROP
+4. using or changing unavailable credentials/secrets
+5. changing financial/business policy
+6. changing certificate/result approval policy
+7. major framework/platform migration
+8. infrastructure changes with material production risk
+9. destructive git history rewriting
+10. any action whose impact cannot be safely reversed
 
 ### 3. Internal Execution
 
@@ -86,7 +108,9 @@ After code changes:
 2. Fix any failures autonomously
 3. Verify data flow end-to-end
 4. Report the exact verification result
-5. Wait for explicit approval before pushing or deploying
+5. Automatically push to branch and wait for GitHub CI
+6. If CI FAIL, automatically enter REWORK. If CI PASS, mark task COMPLETED.
+7. Only wait for explicit approval before DEPLOYING to the live server.
 
 ### 7. Laravel-Specific Rules
 
