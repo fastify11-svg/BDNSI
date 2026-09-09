@@ -19,33 +19,46 @@ class CommissionController extends Controller
 
     public function index(Request $request)
     {
-        \Log::info("=== ADMIN COMMISSIONS INDEX HIT ===");
-        \Log::info("DB Connection: " . \DB::connection()->getDatabaseName());
-        \Log::info("Commissions count in DB: " . Commission::count());
-        $all = Commission::all();
-        \Log::info("Commissions: ", $all->toArray());
-        
         $commissions = Commission::with(['team', 'order', 'transaction', 'policy'])
             ->latest()
             ->paginate(20);
             
-        // Build agent summaries safely — avoid MySQL strict mode issues with selectRaw+groupBy
+        // Pre-fetch aggregate stats for all teams to avoid N+1 and O(N) loops
         $teamIds = Commission::distinct()->pluck('team_id')->filter()->values();
-        \Log::info("Team IDs: ", $teamIds->toArray());
+        
+        $teams = \App\Models\Team::whereIn('id', $teamIds)->get()->keyBy('id');
+        
+        $policies = \App\Models\CommissionPolicy::where('is_active', true)
+            ->where(function ($q) use ($teamIds) {
+                $q->whereIn('team_id', $teamIds)->orWhereNull('team_id');
+            })
+            ->orderBy('team_id', 'desc')
+            ->get()
+            ->keyBy('team_id');
 
-        $agentSummaries = $teamIds->map(function ($teamId) {
-            $team   = \App\Models\Team::find($teamId);
-            $policy = \App\Models\CommissionPolicy::where('is_active', true)
-                ->where(function ($q) use ($teamId) {
-                    $q->where('team_id', $teamId)->orWhereNull('team_id');
-                })
-                ->orderBy('team_id', 'desc')
-                ->first();
+        // Note: null key might exist for universal policies, handled below
 
-            $earned  = (float) Commission::where('team_id', $teamId)->whereIn('status', ['Earned', 'Pending'])->sum('amount');
-            $approved = (float) Commission::where('team_id', $teamId)->where('status', 'Approved')->sum('amount');
-            $paid    = (float) Commission::where('team_id', $teamId)->where('status', 'Paid')->sum('amount');
-            $revenue = (float) Commission::where('team_id', $teamId)->sum('calculated_revenue');
+        $aggregates = Commission::whereIn('team_id', $teamIds)
+            ->selectRaw('
+                team_id,
+                SUM(CASE WHEN status IN ("Earned", "Pending") THEN amount ELSE 0 END) as earned,
+                SUM(CASE WHEN status = "Approved" THEN amount ELSE 0 END) as approved,
+                SUM(CASE WHEN status = "Paid" THEN amount ELSE 0 END) as paid,
+                SUM(calculated_revenue) as revenue
+            ')
+            ->groupBy('team_id')
+            ->get()
+            ->keyBy('team_id');
+
+        $agentSummaries = $teamIds->map(function ($teamId) use ($teams, $policies, $aggregates) {
+            $team   = $teams->get($teamId);
+            $policy = $policies->get($teamId) ?? $policies->get(null) ?? $policies->first();
+            $agg    = $aggregates->get($teamId);
+
+            $earned   = (float) ($agg->earned ?? 0);
+            $approved = (float) ($agg->approved ?? 0);
+            $paid     = (float) ($agg->paid ?? 0);
+            $revenue  = (float) ($agg->revenue ?? 0);
 
             return [
                 'team_id'         => $teamId,
