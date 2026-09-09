@@ -10,12 +10,13 @@
 - [ ] [LANE 3] Testing: Add explicit Playwright E2E tests for the Center Certificates hub and Order invoices.
 
 ## P3 - Low Priority Polish
-- [ ] [LANE 8] Code Quality: Audit and remove unused/obsolete Blade templates that were replaced by React/Inertia pages.
+*None active.*
 
 ## BLOCKED
 - [BLOCKED] `FIX_ADMIN_RBAC_TEST_FAILURES` - Local test database connection (`bdnsi_testing` on 127.0.0.1:3306) refuses connection, preventing local PHPUnit execution.
 
 ## COMPLETED (Cycle 2)
+- [x] [LANE 8] Code Quality: Audited Blade templates. Discovered that templates like `admin.center.create` and `student.edit` are still actively used as HTML fragments returned for legacy jQuery AJAX modals. Removal deferred until DataTables are fully replaced by native React grids.
 - [x] [LANE 6] Operations: Scheduled `system:health-check` and `system:db-integrity-check` to run daily via `app/Console/Kernel.php` and log failures locally.
 - [x] [LANE 2] Business Integrity: Enforced strict payment constraints on the `Student` model `saving` event to prevent `payment_status = 1` if `due_amount > 0`.
 - [x] [LANE 7] Safe minor dependency updates via `npm update` (Playwright, Vite, Tailwind, etc).
