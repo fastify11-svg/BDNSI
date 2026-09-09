@@ -199,10 +199,7 @@ class StudentController extends Controller
 
     public function show(Request $request, Student $student)
     {
-        abort_if(
-            Auth::user()->center_id != $student->center_id,
-            403
-        );
+
 
         $policy = new \App\Policies\AcademicAccessPolicy();
         if (!$policy->accessRegistrationDocuments(Auth::user()->center, $student)) {
@@ -236,10 +233,7 @@ class StudentController extends Controller
 
     public function edit(Student $student)
     {
-        abort_if(
-            Auth::user()->center_id != $student->center_id,
-            403
-        );
+
 
         if ($student->status->isNot(StudentStatus::Pending())) {
             return response()->error('Can\'t update student which is not in pending status');
@@ -258,10 +252,7 @@ class StudentController extends Controller
 
     public function update(Request $request, Student $student)
     {
-        abort_if(
-            Auth::user()->center_id != $student->center_id,
-            403
-        );
+
 
         if ($student->status->isNot(StudentStatus::Pending())) {
             return response()->error('Can\'t delete student which is not in pending status');
@@ -299,10 +290,7 @@ class StudentController extends Controller
 
     public function destroy(Student $student)
     {
-        abort_if(
-            Auth::user()->center_id != $student->center_id,
-            403
-        );
+
 
         if ($student->status->isNot(StudentStatus::Pending())) {
             return response()->error('Can\'t delete student which is not in pending status');

@@ -20,74 +20,49 @@ class FrontendDataService
 {
     public function getHomepageData()
     {
-        $config = SiteConfig::firstCached();
+        return Cache::remember('homepage_payload_v2', 3600, function () {
+            $config = SiteConfig::first() ?: (object) [];
 
-        $sliders = Cache::remember('homepage_sliders', 3600, function () {
-            return Slider::where('type', SliderType::Slider)
+            $sliders = Slider::where('type', SliderType::Slider)
                 ->where('status', 1)
                 ->orderBy('order_index', 'asc')
                 ->orderBy('created_at', 'desc')
                 ->get();
-        });
 
-        $sponsors = Cache::remember('homepage_sponsors', 3600, function () {
-            return SiteConfig::isEnabled('toggle_sponsors') ? Slider::where('type', SliderType::Sponsor)->where('status', 1)->orderBy('order_index', 'asc')->take(30)->get() : collect([]);
-        });
+            $sponsors = SiteConfig::isEnabled('toggle_sponsors') ? Slider::where('type', SliderType::Sponsor)->where('status', 1)->orderBy('order_index', 'asc')->take(30)->get() : collect([]);
+            $photo_gallery = SiteConfig::isEnabled('toggle_photo_gallery') ? Slider::where('type', SliderType::Gallery)->where('status', 1)->orderBy('order_index', 'asc')->take(20)->get() : collect([]);
+            $courses = Subject::orderBy('name', 'asc')->limit(7)->get();
+            $teams = Team::where('status', 1)->orderBy('order_index', 'asc')->get();
+            $youtube_videos = SiteConfig::isEnabled('toggle_video_gallery') ? YoutubeVideo::where('status', 1)->take(6)->get() : collect([]);
+            $notices = SiteConfig::isEnabled('toggle_notice_board') ? Notice::latest()->take(5)->get() : collect([]);
+            $centers = SiteConfig::isEnabled('toggle_verified_centers') ? Center::where('status', CenterStatus::Approved)->take(8)->get() : collect([]);
+            $success_students = SiteConfig::isEnabled('toggle_success_students') ? Student::where('status', StudentStatus::Approved)->take(12)->get() : collect([]);
 
-        $photo_gallery = Cache::remember('homepage_photo_gallery', 3600, function () {
-            return SiteConfig::isEnabled('toggle_photo_gallery') ? Slider::where('type', SliderType::Gallery)->where('status', 1)->orderBy('order_index', 'asc')->take(20)->get() : collect([]);
-        });
+            $notice = $config->marquee_notice ?? config('site.defaults.notice');
+            $about_us = $config->about_short ?? config('site.defaults.about_us');
 
-        $courses = Cache::remember('homepage_courses', 3600, function () {
-            return Subject::orderBy('name', 'asc')->limit(7)->get();
-        });
-
-        $teams = Cache::remember('homepage_teams', 3600, function () {
-            return Team::where('status', 1)->orderBy('order_index', 'asc')->get();
-        });
-
-        $youtube_videos = Cache::remember('homepage_youtube_videos', 3600, function () {
-            return SiteConfig::isEnabled('toggle_video_gallery') ? YoutubeVideo::where('status', 1)->take(6)->get() : collect([]);
-        });
-
-        $notices = Cache::remember('homepage_notices', 3600, function () {
-            return SiteConfig::isEnabled('toggle_notice_board') ? Notice::latest()->take(5)->get() : collect([]);
-        });
-
-        $centers = Cache::remember('homepage_centers', 3600, function () {
-            return SiteConfig::isEnabled('toggle_verified_centers') ? Center::where('status', CenterStatus::Approved)->take(8)->get() : collect([]);
-        });
-
-        $success_students = Cache::remember('homepage_success_students', 3600, function () {
-            return SiteConfig::isEnabled('toggle_success_students') ? Student::where('status', StudentStatus::Approved)->take(12)->get() : collect([]);
-        });
-
-        $notice = $config->marquee_notice ?? config('site.defaults.notice');
-        $about_us = $config->about_short ?? config('site.defaults.about_us');
-
-        $counts = Cache::remember('homepage_counts', 3600, function () {
-            return [
+            $counts = [
                 'total_centers' => Center::count() ?: config('site.defaults.total_centers'),
                 'total_courses' => Subject::count() ?: config('site.defaults.total_courses'),
                 'total_exams' => Exam::count() ?: config('site.defaults.total_exams', 176),
                 'total_students' => Student::count() ?: config('site.defaults.total_students', 54512),
             ];
-        });
 
-        return [
-            'sliders' => $sliders,
-            'sponsors' => $sponsors,
-            'photo_gallery' => $photo_gallery,
-            'courses' => $courses,
-            'teams' => $teams,
-            'youtube_videos' => $youtube_videos,
-            'notices' => $notices,
-            'centers' => $centers,
-            'success_students' => $success_students,
-            'notice' => $notice,
-            'about_us' => $about_us,
-            'counts' => $counts,
-            'site_config' => $config ?: (object) [],
-        ];
+            return [
+                'sliders' => $sliders,
+                'sponsors' => $sponsors,
+                'photo_gallery' => $photo_gallery,
+                'courses' => $courses,
+                'teams' => $teams,
+                'youtube_videos' => $youtube_videos,
+                'notices' => $notices,
+                'centers' => $centers,
+                'success_students' => $success_students,
+                'notice' => $notice,
+                'about_us' => $about_us,
+                'counts' => $counts,
+                'site_config' => $config,
+            ];
+        });
     }
 }

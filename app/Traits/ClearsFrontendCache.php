@@ -19,15 +19,6 @@ trait ClearsFrontendCache
 
     protected static function clearRelatedFrontendCache()
     {
-        Cache::forget('homepage_counts');
-        Cache::forget('homepage_sliders');
-        Cache::forget('homepage_sponsors');
-        Cache::forget('homepage_photo_gallery');
-        Cache::forget('homepage_courses');
-        Cache::forget('homepage_teams');
-        Cache::forget('homepage_youtube_videos');
-        Cache::forget('homepage_notices');
-        Cache::forget('homepage_centers');
-        Cache::forget('homepage_success_students');
+        Cache::forget('homepage_payload_v2');
     }
 }
