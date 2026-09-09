@@ -4,7 +4,7 @@
 *None active.*
 
 ## P1 - High Value Security / Core
-- [ ] [LANE 1] Security: Verify that password reset tokens have strict expiration times and limit token generation per IP.
+*None active.*
 
 ## P2 - Medium Value Improvements
 *None active.*
@@ -16,6 +16,7 @@
 - [BLOCKED] `FIX_ADMIN_RBAC_TEST_FAILURES` - Local test database connection (`bdnsi_testing` on 127.0.0.1:3306) refuses connection, preventing local PHPUnit execution.
 
 ## COMPLETED (Cycle 3)
+- [x] [LANE 1] Security: Verified token expiration natively (60m) and implemented global IP-based rate limiting (3/minute) for `forgot-password` endpoints on all 4 guards to prevent token generation spam.
 - [x] [LANE 3] Testing: Implemented Playwright E2E test suite (`tests/e2e/staff-portal.spec.js`) for the `Staff` portal to verify authentication and basic navigation.
 - [x] [LANE 8] Code Quality: Standardized authorization by removing obsolete `abort_if` center_id checks in `StudentController` that were completely redundant due to global `CenterScope` auto-applied by Route Model Binding.
 - [x] [LANE 4] Performance: Consolidated `FrontendDataService` fragmented cache keys into a single `homepage_payload_v2` payload, drastically reducing Redis/Cache I/O roundtrips on the public homepage. Updated `ClearsFrontendCache` trait to clear only the unified key.

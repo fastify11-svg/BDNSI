@@ -18,7 +18,8 @@ Route::prefix('staff')->name('staff.')->group(function () {
                     ->name('password.request');
 
         Route::post('/forgot-password', [\App\Http\Controllers\Staff\Auth\PasswordResetLinkController::class, 'store'])
-                    ->name('password.email');
+            ->middleware('throttle:password-reset')
+            ->name('password.email');
 
         Route::get('/reset-password/{token}', [\App\Http\Controllers\Staff\Auth\NewPasswordController::class, 'create'])
                     ->name('password.reset');

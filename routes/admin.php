@@ -76,7 +76,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('password.request');
 
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->middleware('guest:admin')
+        ->middleware(['guest:admin', 'throttle:password-reset'])
         ->name('password.email');
 
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
