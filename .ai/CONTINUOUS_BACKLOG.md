@@ -4,7 +4,7 @@
 *None active.*
 
 ## P1 - High Value Security / Core
-- [ ] [LANE 2] Business Integrity: Enforce strict payment constraints on the `Student` model `saving` event. Prevent `payment_status = 1` if `due_amount > 0`.
+*None active.*
 
 ## P2 - Medium Value Improvements
 - [ ] [LANE 3] Testing: Add explicit Playwright E2E tests for the Center Certificates hub and Order invoices.
@@ -16,7 +16,8 @@
 ## BLOCKED
 - [BLOCKED] `FIX_ADMIN_RBAC_TEST_FAILURES` - Local test database connection (`bdnsi_testing` on 127.0.0.1:3306) refuses connection, preventing local PHPUnit execution.
 
-## COMPLETED (Cycle 1)
+## COMPLETED (Cycle 2)
+- [x] [LANE 2] Business Integrity: Enforced strict payment constraints on the `Student` model `saving` event to prevent `payment_status = 1` if `due_amount > 0`.
 - [x] [LANE 7] Safe minor dependency updates via `npm update` (Playwright, Vite, Tailwind, etc).
 - [x] [LANE 5] Frontend Error States: Added `@inertiajs/progress` and global axios interceptors for timeouts, offline states, and 419 session expiration.
 - [x] [LANE 1] Audited Center routes (`OrderController`, `CertificateController`, `StudentController`, etc.). Confirmed `CenterScope` global scope natively mitigates IDOR, and controllers include defense-in-depth explicit `center_id` validation. No vulnerabilities found.
