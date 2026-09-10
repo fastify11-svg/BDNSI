@@ -11,7 +11,7 @@
 - **Evidence**: Recent changes fixed session bleeding, need to ensure CenterScope global scopes cannot be bypassed via API routes.
 - **Affected files**: `app/Models/Center.php`, `routes/api.php`
 - **Targeted tests**: `tests/Feature/TenantIsolationTest.php`
-- **Status**: READY
+- **Status**: PASS
 
 ### TSK-2: Audit Admin Logout Timeout/Fallback
 - **Lane**: Lane 1 — Security / Auth / RBAC / Tenant Isolation
