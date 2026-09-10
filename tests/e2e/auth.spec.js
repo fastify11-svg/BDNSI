@@ -15,7 +15,7 @@ test.describe('Authentication E2E Tests', () => {
 
   const getAdminEmail = () => process.env.ADMIN_EMAIL || 'admin@gmail.com';
   const getAdminPassword = () => process.env.ADMIN_PASSWORD || '12345678';
-  const getCenterEmail = () => process.env.CENTER_EMAIL || 'user@gmail.com';
+  const getCenterEmail = () => process.env.CENTER_EMAIL || 'center@bdnsi.com';
   const getCenterPassword = () => process.env.CENTER_PASSWORD || '12345678';
 
 
