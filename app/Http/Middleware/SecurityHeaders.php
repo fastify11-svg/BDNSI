@@ -40,6 +40,24 @@ class SecurityHeaders
             'camera=(), microphone=(), geolocation=(), payment=()'
         );
 
+        // Content-Security-Policy — baseline policy for Inertia.js + Vite SPA.
+        // 'unsafe-inline' is required for Inertia's SSR hydration scripts.
+        // Tighten further by adding nonce-based CSP if a dedicated nonce middleware is added.
+        $response->headers->set(
+            'Content-Security-Policy',
+            implode('; ', [
+                "default-src 'self'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+                "font-src 'self' https://fonts.gstatic.com data:",
+                "img-src 'self' data: blob: https:",
+                "connect-src 'self' https://generativelanguage.googleapis.com",
+                "frame-ancestors 'self'",
+                "base-uri 'self'",
+                "form-action 'self'",
+            ])
+        );
+
         return $response;
     }
 }
