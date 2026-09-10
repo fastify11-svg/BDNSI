@@ -18,7 +18,7 @@
   "deployment_ssh_key_local": ".deploy_key",
   "deployment_remote_path": "/home/u881397359/domains/nenobet.live/public_html",
   "ci_status": "CI_ONLY_GITHUB_ACTIONS",
-  "ci_verified": true,
+  "ci_verified": false,
   "github_actions_ssh_deploy": "REMOVED",
   "last_run_started_at": "2026-09-10T03:21:04.266Z",
   "last_run_finished_at": "2026-09-09T02:22:00.000Z",
@@ -71,5 +71,5 @@
     "FINAL_ACCEPTANCE"
   ],
   "pending_closure_requirements": [],
-  "notes": "Autonomous Closure Runner has successfully verified all closure requirements (§25-§29) and the CI pipeline is green. The BDNSI Implementation Roadmap is now 100% complete and fully accepted."
+  "notes": "Original autonomous closure requirements remain completed and accepted. Latest continuous-development CI run #77 is currently failing in the PHP regression suite (3 failures), so ci_verified is intentionally false until a later green run re-verifies the repository state."
 }
