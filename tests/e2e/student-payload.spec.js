@@ -89,7 +89,10 @@ test.describe('Student Enrollment and License E2E Flow', () => {
                 const select = document.querySelector(`select[name="${name}"]`);
                 return select && select.options.length > 1;
             }, districtName);
-            await selects.nth(i).selectOption({ index: 1 });
+            const distVal = await page.evaluate((name) => {
+                return document.querySelector(`select[name="${name}"]`).options[1].value;
+            }, districtName);
+            await selects.nth(i).selectOption(distVal);
             console.log('? District selected');
             
             if (i + 1 < totalSelects) {
@@ -98,7 +101,10 @@ test.describe('Student Enrollment and License E2E Flow', () => {
                     const select = document.querySelector(`select[name="${name}"]`);
                     return select && select.options.length > 1;
                 }, upazilaName);
-                await selects.nth(i+1).selectOption({ index: 1 });
+                const upaVal = await page.evaluate((name) => {
+                    return document.querySelector(`select[name="${name}"]`).options[1].value;
+                }, upazilaName);
+                await selects.nth(i+1).selectOption(upaVal);
                 console.log('? Upazila selected');
             }
         }

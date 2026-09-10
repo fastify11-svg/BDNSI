@@ -11,18 +11,23 @@ test.describe('Student Enrollment and License E2E Flow', () => {
   let licenseNumber = null;
 
   test('Admin should be able to create student and approve them to generate license', async ({ page }) => {
-    // 1. Admin logs in
+    // 1. Ensure test prerequisites (Center, Session, Subject)
+    const util = require('util');
+    const exec = util.promisify(require('child_process').exec);
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="if(App\\Models\\Session::count()===0) App\\Models\\Session::create(['name'=>'2024-2025','status'=>1]); if(App\\Models\\Subject::count()===0) App\\Models\\Subject::create(['name'=>'E2E Subject','code'=>'E2E101','status'=>1]); if(App\\Models\\Center::count()===0) App\\Models\\Center::create(['name'=>'E2E Center','code'=>'E2E01','email'=>'e2ecenter@bdnsi.com','status'=>1]);"`);
+
+    // 2. Admin logs in
     await page.goto('./admin/login');
     await page.fill('input[name="email"]', getAdminEmail());
     await page.fill('input[name="password"]', getAdminPassword());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*admin\/dashboard/);
     
-    // 2. Navigate to Student creation page
+    // 3. Navigate to Student creation page
     await page.goto('./admin/student/create');
     await expect(page.locator('text=Add New Student Registration').first()).toBeVisible();
 
-    // 3. Fill out Student form
+    // 4. Fill out Student form
     // Note: To make test robust without relying on specific centers/sessions, 
     // we use first available options for selects if possible, or we just rely on dummy inputs
     

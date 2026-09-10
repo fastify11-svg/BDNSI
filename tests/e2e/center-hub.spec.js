@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Center Hub E2E Tests (Orders & Certificates)', () => {
 
-  const getCenterEmail = () => process.env.CENTER_EMAIL || 'user@gmail.com';
+  const getCenterEmail = () => process.env.CENTER_EMAIL || 'center@bdnsi.com';
   const getCenterPassword = () => process.env.CENTER_PASSWORD || '12345678';
 
   test.beforeEach(async ({ page }) => {
