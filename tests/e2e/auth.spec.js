@@ -58,6 +58,10 @@ test.describe('Authentication E2E Tests', () => {
   });
 
   test('Logout works', async ({ page }) => {
+    // Clear rate limit cache to avoid Too Many Login Attempts
+    const util = require('util');
+    const exec = util.promisify(require('child_process').exec);
+    await exec('C:\\xampp\\php\\php.exe artisan cache:clear');
     await page.goto('./admin/login');
     await page.fill('input[name="email"]', getAdminEmail());
     await page.fill('input[name="password"]', getAdminPassword());

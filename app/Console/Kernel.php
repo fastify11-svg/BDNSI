@@ -34,6 +34,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('system:health-check')->dailyAt('02:00')->appendOutputTo(storage_path('logs/health-check.log'))->withoutOverlapping();
         $schedule->command('system:db-integrity-check')->dailyAt('02:30')->appendOutputTo(storage_path('logs/db-integrity.log'))->withoutOverlapping();
         $schedule->command('system:financial-health-check')->dailyAt('03:00')->appendOutputTo(storage_path('logs/financial-health.log'))->withoutOverlapping();
+        $schedule->command('system:financial-reconciliation')->dailyAt('03:30')->appendOutputTo(storage_path('logs/financial-reconciliation.log'))->withoutOverlapping();
     }
 
     /**
