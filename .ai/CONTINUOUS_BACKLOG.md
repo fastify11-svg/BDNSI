@@ -23,6 +23,10 @@
 ## BLOCKED
 *None active.*
 
+## COMPLETED (Cycle 9)
+- [x] [LANE 1] Security: Verified file upload handling. All images are processed through Intervention Image and strictly validated. Application does not host sensitive private files (IDs, PDFs) that require server-authorization; all generated documents (Admit Cards, Certificates) are dynamically rendered via signed data without permanent static storage, making them immune to path traversal or public enumeration.
+- [x] [LANE 1] Security: Verified orphan cleanup is automatically handled natively via the `ImageField` Cast which safely executes `Image::delete` upon field replacement.
+
 ## COMPLETED (Cycle 8)
 - [x] [LANE 1] Security: Audited all guards (Admin, Staff, Center, Student). Verified `inactive`/`blocked` user states are strictly enforced during authentication. Added constraints to `Student/Auth/LoginRequest.php` to prevent `Hide`, `Cancelled`, or `Rejected` students from logging in. Center and Staff login controllers already strictly enforce their respective active statuses.
 - [x] [LANE 1] Security: Verified route-model binding, middleware consistency, IDOR protection, and CenterScope/global scope behavior across all privileged routes and AJAX endpoints. Tenant boundaries remain secure.
