@@ -146,7 +146,7 @@ class PaymentController extends Controller
 
     public function callback(Request $request, $gateway)
     {
-        Log::info("Payment Webhook/Callback received for {$gateway}", $request->all());
+        Log::info("Payment Webhook/Callback received for {$gateway}", $request->except(['store_passwd', 'password', 'card_no', 'card_name', 'cus_name', 'cus_email', 'cus_phone', 'bank_tran_id']));
         
         $gatewayConfig = \App\Models\PaymentGateway::where('slug', $gateway)->where('is_active', true)->first();
         if (!$gatewayConfig) {

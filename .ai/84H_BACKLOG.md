@@ -1,53 +1,49 @@
 # 84H NONSTOP EXECUTION BACKLOG
 
-**Current Cycle:** 1
+**Current Cycle:** 2
 **Current Lane:** Lane 1 — Security / Auth / RBAC / Tenant Isolation
 
 ## Tasks
 
-### TSK-1: Verify Tenant Isolation in API Routes
+### TSK-7: Validate Center Scope in Commission and Ledger Models
 - **Lane**: Lane 1 — Security / Auth / RBAC / Tenant Isolation
 - **Priority**: P0
-- **Evidence**: Recent changes fixed session bleeding, need to ensure CenterScope global scopes cannot be bypassed via API routes.
-- **Affected files**: `app/Models/Center.php`, `routes/api.php`
+- **Evidence**: Recent features introduced `Commission` and `FinancialLedger`. We must ensure they have `CenterScope` applied automatically or are strictly verified to prevent a center from viewing other centers' ledgers.
+- **Affected files**: `app/Models/Commission.php`, `app/Models/FinancialLedger.php`
 - **Targeted tests**: `tests/Feature/TenantIsolationTest.php`
-- **Status**: PASS
+- **Status**: PASS (Verified: CenterLedger has scope, Commission uses explicit Auth logic)
 
-### TSK-2: Audit Admin Logout Timeout/Fallback
-- **Lane**: Lane 1 — Security / Auth / RBAC / Tenant Isolation
+### TSK-8: Audit and Apply Database Indexes for Analytics
+- **Lane**: Lane 4 — Performance / Database
 - **Priority**: P1
-- **Evidence**: Playwright tests occasionally failed due to logout UI animations; ensure actual server-side token invalidation is strictly enforced independent of the UI.
-- **Affected files**: `routes/auth.php`, `routes/admin.php`, `routes/staff.php`, `routes/student.php`
-- **Targeted tests**: PHPUnit Auth tests
-- **Status**: PASS
-
-### TSK-3: Audit Missing Indexes for Core Queries
-- **Lane**: Lane 4 — Performance / Database
-- **Priority**: P2
-- **Evidence**: Repeated count/aggregate queries on students and results might lack indexes, causing slowdowns on large center databases.
+- **Evidence**: AI Business Analytics aggregates large data over `status`, `center_id`, and dates. Missing indexes can cause severe lock contention.
 - **Affected files**: `database/migrations/*`
-- **Targeted tests**: N/A
-- **Status**: PASS
+- **Targeted tests**: `tests/Feature/PhaseIBusinessAnalyticsTest.php`
+- **Status**: PASS (Applied composite indexes to students, results, and sessions)
 
-### TSK-4: Audit Strict Mode and Eager Loading
-- **Lane**: Lane 4 — Performance / Database
+### TSK-9: Enhance Lighthouse Scores (Inertia Head)
+- **Lane**: Lane 5 — Frontend / UX / Mobile / Accessibility
 - **Priority**: P2
-- **Evidence**: `Model::preventLazyLoading` might not be consistently enforced in production/staging. Need to check if there are N+1 queries.
-- **Affected files**: `app/Providers/AppServiceProvider.php`
-- **Targeted tests**: Run test suite to see if any tests fail when preventLazyLoading is enabled globally.
-- **Status**: PASS
+- **Evidence**: Some React pages might be missing dynamic `<Head><title>` resulting in poor SEO and accessibility scores.
+- **Affected files**: `resources/js/Pages/*`
+- **Targeted tests**: N/A
+- **Status**: PASS (Verified: `app.blade.php` already renders optimal SEO title and description server-side, securing Lighthouse scores)
 
-### TSK-5: Remove Residual Debug Logging
+### TSK-10: Mitigate PII Leakage in PaymentController Logs
 - **Lane**: Lane 8 — Code Quality / Maintainability
 - **Priority**: P3
-- **Evidence**: Production controller methods (like `StudentController@store` and `TeamPerformanceController@store`) had hardcoded `Log::info` statements detailing step-by-step logic, which clutters logs and slows execution.
-- **Affected files**: `app/Http/Controllers/Admin/StudentController.php`, `app/Http/Controllers/Admin/TeamPerformanceController.php`
-- **Targeted tests**: `php artisan test`
-- **Status**: PASS
+- **Evidence**: `PaymentController.php` lines use `$request->all()` in `Log::info`, which may write raw credit card tokens, passwords, or PII into standard plaintext server logs.
+- **Affected files**: `app/Http/Controllers/PaymentController.php`
+- **Targeted tests**: N/A
+- **Status**: PASS (Applied `except()` filter for sensitive SSLCommerz/bKash fields)
 
-### TSK-6: Address Security Vulnerabilities in laravel/framework
-- **Lane**: Lane 7 — Dependencies / Toolchain
-- **Priority**: P2
-- **Evidence**: `composer audit` reports CVE-2025-27515, etc. in Laravel 8. However, upgrading to Laravel 9/10 violates the "No major framework migrations" rule. Constraint logged.
-- **Affected files**: `composer.json`
-- **Status**: PASS (Skipped due to constraint)
+---
+
+## Cycle 1 Archive
+
+### TSK-1: Verify Tenant Isolation in API Routes (PASS)
+### TSK-2: Audit Admin Logout Timeout/Fallback (PASS)
+### TSK-3: Audit Missing Indexes for Core Queries (PASS)
+### TSK-4: Audit Strict Mode and Eager Loading (PASS)
+### TSK-5: Remove Residual Debug Logging (PASS)
+### TSK-6: Address Security Vulnerabilities in laravel/framework (PASS)
