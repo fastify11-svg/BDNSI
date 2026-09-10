@@ -21,8 +21,9 @@ class ReportController extends Controller
         $startDate = $request->get('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->get('end_date', Carbon::now()->endOfMonth()->toDateString());
 
-        // 1. Revenue & Collections
-        $totalRevenue = CenterLedger::whereBetween('created_at', [$startDate, $endDate])
+        // 1. Revenue & Collections. Cast decimal aggregates so the Inertia contract
+        // is stable across database drivers (MySQL PDO returns DECIMAL sums as strings).
+        $totalRevenue = (float) CenterLedger::whereBetween('created_at', [$startDate, $endDate])
                                      ->where('type', 'credit')
                                      ->sum('amount');
                                      
@@ -46,7 +47,7 @@ class ReportController extends Controller
             });
 
         // 4. Staff Commissions
-        $totalCommissions = Commission::whereBetween('created_at', [$startDate, $endDate])
+        $totalCommissions = (float) Commission::whereBetween('created_at', [$startDate, $endDate])
                                       ->sum('amount');
 
         // Phase N Enhancements
