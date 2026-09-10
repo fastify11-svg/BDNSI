@@ -48,6 +48,12 @@ class AcademicAccessPolicy
             return true;
         }
 
+        static $cache = [];
+        $key = "{$center->id}_{$student->id}";
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+
         if ($center->allow_registration_without_payment) {
             $orderItem = \App\Models\OrderItem::where('itemable_id', $student->id)
                 ->where('itemable_type', \App\Models\Student::class)
@@ -55,15 +61,16 @@ class AcademicAccessPolicy
                 ->first();
 
             if ($orderItem) {
-                return \App\Models\CenterLedger::where('reference_id', $orderItem->order_id)
+                $hasLedger = \App\Models\CenterLedger::where('reference_id', $orderItem->order_id)
                     ->where('reference_type', \App\Models\Order::class)
                     ->where('type', 'debit')
                     ->exists();
+                return $cache[$key] = $hasLedger;
             }
 
-            return true;
+            return $cache[$key] = true;
         }
 
-        return false;
+        return $cache[$key] = false;
     }
 }
