@@ -27,4 +27,12 @@
 - **Evidence**: Repeated count/aggregate queries on students and results might lack indexes, causing slowdowns on large center databases.
 - **Affected files**: `database/migrations/*`
 - **Targeted tests**: N/A
+- **Status**: PASS
+
+### TSK-4: Audit Strict Mode and Eager Loading
+- **Lane**: Lane 4 — Performance / Database
+- **Priority**: P2
+- **Evidence**: `Model::preventLazyLoading` might not be consistently enforced in production/staging. Need to check if there are N+1 queries.
+- **Affected files**: `app/Providers/AppServiceProvider.php`
+- **Targeted tests**: Run test suite to see if any tests fail when preventLazyLoading is enabled globally.
 - **Status**: DISCOVERED
