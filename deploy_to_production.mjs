@@ -96,14 +96,14 @@ async function deploy() {
   ssh(`
     if [ -d ${REMOTE_PATH}/.git ]; then
       cd ${REMOTE_PATH}
-      git fetch origin main
+      git fetch origin
       git reset --hard origin/main
       echo "Git pull complete"
     else
       cd ${REMOTE_PATH}
       git init
       git remote add origin ${REPO_URL}
-      git fetch origin main
+      git fetch origin
       git reset --hard origin/main
       echo "Git init and fetch complete"
     fi
