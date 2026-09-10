@@ -1,0 +1,20 @@
+{
+  "mode": "BDNSI_84H_UNATTENDED_EXECUTION",
+  "status": "RUNNING",
+  "window_started_at": "2026-09-10T18:12:58+06:00",
+  "window_deadline_at": "2026-09-14T06:12:58+06:00",
+  "cycle_number": 1,
+  "current_lane": "Lane 1 — Security / Auth / RBAC / Tenant Isolation",
+  "current_task": "TSK-1",
+  "gate_status": "WORKING",
+  "last_heartbeat_at": "2026-09-10T18:20:00+06:00",
+  "latest_verified_commit": "14549ba",
+  "latest_ci_run": "88",
+  "latest_ci_conclusion": "success",
+  "deployment_target": "nenobet.live",
+  "deployment_method": "ANTIGRAVITY_DIRECT_SSH",
+  "persistent_runner_status": "HEALTHY",
+  "blocked_tasks": [],
+  "owner_decision_required": false,
+  "last_run_started_at": "2026-09-10T12:21:04.004Z"
+}

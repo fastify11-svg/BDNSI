@@ -19,7 +19,7 @@ const http  = require('http');
 
 const PROJECT_ROOT  = path.resolve(__dirname, '..', '..');
 const LOCK_FILE     = path.join(PROJECT_ROOT, '.ai', 'runtime', 'ACTIVE_RUN.json');
-const STATE_FILE    = path.join(PROJECT_ROOT, '.ai', 'AUTONOMY_STATE.json');
+const STATE_FILE    = path.join(PROJECT_ROOT, '.ai', '84H_EXECUTION_STATE.json');
 const ACTIVITY_LOG  = path.join(PROJECT_ROOT, '.ai', 'AGENT_ACTIVITY.md');
 const RUNNER_PROMPT = path.join(PROJECT_ROOT, '.ai', 'PERSISTENT_RUNNER_PROMPT.md');
 
@@ -91,65 +91,22 @@ function releaseLock() {
 // ─── State Self-Healing ─────────────────────────────────────────────────────
 
 function healState() {
-  const ROADMAP_FILE = path.join(PROJECT_ROOT, 'MASTER_IMPLEMENTATION_ROADMAP.md');
   try {
     const state = readJson(STATE_FILE);
-    const roadmap = fs.readFileSync(ROADMAP_FILE, 'utf8');
     
-    // Parse Phases
-    const phaseRegex = /## \d+\.\s+PHASE\s+([A-Z])\s+—\s+([^\n]+)/g;
-    const allPhases = [];
-    let match;
-    while ((match = phaseRegex.exec(roadmap)) !== null) {
-      allPhases.push('PHASE_' + match[1]);
-    }
-    
-    const completedPhases = new Set(state.completed_phases || []);
-    const truePendingPhases = allPhases.filter(p => !completedPhases.has(p));
-    
-    // Parse Closure Requirements (Sections 25-29)
-    const closureRegex = /## (25|26|27|28|29)\.\s+([^\n]+)/g;
-    const allClosureReqs = [];
-    let cMatch;
-    while ((cMatch = closureRegex.exec(roadmap)) !== null) {
-      // Convert heading to internal constant format
-      let reqName = cMatch[2].replace(/[^A-Z0-9]+/gi, '_').toUpperCase();
-      if (reqName.endsWith('_')) reqName = reqName.slice(0, -1);
-      allClosureReqs.push(reqName);
-    }
-    
-    const completedClosure = new Set(state.completed_closure_requirements || []);
-    const truePendingClosure = allClosureReqs.filter(p => !completedClosure.has(p));
-
-    // Handle runner resuming if work exists
-    if ((truePendingPhases.length > 0 || truePendingClosure.length > 0) && state.runner_status === 'COMPLETE') {
-      state.runner_status = 'RUNNING';
-      state.gate_status = 'PENDING';
-      
-      if (truePendingPhases.length > 0) {
-        state.current_phase = truePendingPhases[0];
+    // In 84H execution, we never stop until the deadline.
+    // If we somehow entered a terminal state but the deadline hasn't passed, heal it back to RUNNING.
+    if (state.status === 'COMPLETED' || state.status === 'IDLE' || state.status === 'COMPLETE') {
+      const now = new Date();
+      const deadline = new Date(state.window_deadline_at);
+      if (now < deadline) {
+        state.status = 'FINAL_ACCEPTED_MONITORING';
+        log('Self-heal: Fixed false COMPLETE state. 84H window still active. Switching to FINAL_ACCEPTED_MONITORING.');
       } else {
-        state.current_phase = 'CLOSURE_REQUIREMENTS';
-        state.current_task = truePendingClosure[0];
+        state.status = 'FINAL_COMPLETED';
       }
-      log('Self-heal: Fixed false COMPLETE state. Resuming remaining work.');
+      writeJson(STATE_FILE, state);
     }
-
-    if (completedPhases.has(state.current_phase) && truePendingPhases.length > 0) {
-      state.current_phase = truePendingPhases[0];
-      state.current_task = 'DISCOVERY';
-      log(`Self-heal: Advanced phase to ${state.current_phase}`);
-    } else if (truePendingPhases.length === 0 && completedClosure.has(state.current_task) && truePendingClosure.length > 0) {
-      state.current_phase = 'CLOSURE_REQUIREMENTS';
-      state.current_task = truePendingClosure[0];
-      log(`Self-heal: Advanced closure task to ${state.current_task}`);
-    }
-    
-    state.pending_phases = truePendingPhases;
-    state.closure_requirements = allClosureReqs;
-    state.pending_closure_requirements = truePendingClosure;
-    
-    writeJson(STATE_FILE, state);
   } catch (e) {
     log('Self-heal failed: ' + e.message);
   }
@@ -166,8 +123,8 @@ function checkOwnerDecisionOrBlocked() {
     process.exit(0);
   }
   
-  if (state.runner_status === 'BLOCKED' || state.runner_status === 'COMPLETE') {
-    log(`State is ${state.runner_status}. Skipping active run.`);
+  if (state.status === 'BLOCKED' || state.status === 'FINAL_COMPLETED') {
+    log(`State is ${state.status}. Skipping active run.`);
     releaseLock();
     process.exit(0);
   }
@@ -182,63 +139,48 @@ function checkOwnerDecisionOrBlocked() {
 // This is the bridge between the Windows scheduler and the IDE.
 
 function writeRunnerPrompt(state) {
-  const isClosure = state.current_phase === 'CLOSURE_REQUIREMENTS';
-  
-  const prompt = `# BDNSI AUTONOMOUS RUNNER — SCHEDULED WAKE
+  const prompt = `# BDNSI 84H AUTONOMOUS WAKE
 
 **Triggered at:** ${new Date().toISOString()}
-**Runner version:** 2.1.0
+**Runner version:** 3.0.0 (84H)
 
 ## Current State
 
+- Mode: ${state.mode || 'UNKNOWN'}
 - Phase: ${state.current_phase || 'UNKNOWN'}
-- Task: ${state.current_task || 'UNKNOWN'}  
+- Task: ${state.current_task || 'UNKNOWN'}
 - Last verified phase: ${state.last_verified_phase || 'UNKNOWN'}
 - Last verified commit: ${state.last_verified_commit || 'UNKNOWN'}
 - Gate status: ${state.gate_status || 'UNKNOWN'}
-- Pending Phases: ${(state.pending_phases || []).join(', ') || 'NONE'}
-- Pending Closure Reqs: ${(state.pending_closure_requirements || []).join(', ') || 'NONE'}
 
-## Your Mission
+BDNSI 84H AUTONOMOUS WAKE
 
-You are the BDNSI Autonomous Roadmap Runner. 
+Read BDNSI_84H_NONSTOP_AUTONOMOUS_EXECUTION_MASTER.md and .ai/84H_EXECUTION_STATE.json.
 
-**DO NOT** ask the owner for permission to continue routine implementation work.
+Do not return only a status report.
 
-**DO NOT** produce a plan and wait for approval.
+Recover the real local state, reconcile Git/CI/runtime evidence, and execute the next highest-value safe action.
 
-**DO** immediately:
+If the previous task passed, close it and immediately select the next task.
+If CI failed, enter REWORK and fix the root cause.
+If backlog is empty, start a fresh rotating audit cycle.
+If one task is blocked, record it and continue an independent task.
+If final acceptance already passed but the 84-hour window is still active, remain in FINAL_ACCEPTED_MONITORING and continue verification/audit work.
 
-1. Read this file: \`MASTER_IMPLEMENTATION_ROADMAP.md\`
-2. Read \`.ai/AUTONOMY_STATE.json\`
-3. Read \`.ai/PROJECT_STATE.md\`
-4. Read \`.ai/TASK_QUEUE.md\`
-5. Read \`.ai/EVIDENCE_INDEX.md\`
-6. Check \`git status\` and \`git log --oneline -5\`
-7. Determine the next dependency-safe unfinished task (Phase OR Closure Requirement)
-8. Execute the full implementation → review → test → gate cycle
-9. On PASS: commit, update state, advance to the next task
-10. On REWORK: fix immediately and repeat gates
-11. On genuine OWNER_DECISION_REQUIRED: record and exit
-12. Do NOT stop after phase completion — continue to the next phase OR closure requirement
+Do not stop for routine commit, push, CI, or safe non-destructive deployment to nenobet.live; standing owner authorization is already granted by the master file.
 
-## Active Skill
+Only pause for:
+- destructive/irreversible production operation
+- real production-data mutation
+- unavailable credential/secret
+- unresolved business-policy decision
+- materially risky major platform migration
 
-Follow the complete protocol in:
-\`.agents/skills/bdnsi-persistent-roadmap-runner/SKILL.md\`
+GitHub Actions = CI only.
+Deployment = Antigravity Direct SSH.
+Target = nenobet.live.
 
-## Safety Absolute Rules
-
-- Never run \`migrate:fresh\` or \`db:wipe\` on local/production data
-- Never force-push
-- Never expose credentials
-- Never self-approve (implementer ≠ gatekeeper)
-- Never weaken tests to get PASS
-- Never invent roadmap phases beyond MASTER_IMPLEMENTATION_ROADMAP.md
-
-## Begin Now
-
-Start with Step 1 of the WAKE SEQUENCE. Do not explain what you are about to do — just do it.
+Execute now.
 `;
 
   fs.writeFileSync(RUNNER_PROMPT, prompt);

@@ -18,13 +18,23 @@ class CenterScope implements Scope
      */
     public function apply(Builder $builder, Model $model)
     {
-        $guard = auth()->guard('web');
-        if (! $guard->hasUser()) {
-            return;
+        $user = auth()->user();
+        
+        // If auth()->user() is null, try to find an authenticated user across typical guards
+        if (! $user) {
+            foreach (['web', 'api', 'sanctum'] as $guard) {
+                try {
+                    if (auth()->guard($guard)->check()) {
+                        $user = auth()->guard($guard)->user();
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    continue; // Guard might not be configured
+                }
+            }
         }
 
-        $user = $guard->user();
-        if ($user && $user->center_id) {
+        if ($user && $user instanceof \App\Models\User && $user->center_id) {
             $centerId = $user->center_id;
 
             if ($this->tableHasColumn($model->getTable(), 'center_id')) {
