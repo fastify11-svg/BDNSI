@@ -27,9 +27,14 @@ test.describe('Student Enrollment and License E2E Flow', () => {
     // we use first available options for selects if possible, or we just rely on dummy inputs
     
     // Selecting first center
-    const centerSelect = page.locator('select[name="center_id"]');
-    const firstCenterValue = await centerSelect.evaluate(el => el.options.length > 1 ? el.options[1].value : el.options[0].value);
-    await centerSelect.selectOption(firstCenterValue);
+    // Select center
+    const centerLocator = page.locator('select[name="center_id"]');
+    await page.waitForFunction(() => {
+        const select = document.querySelector('select[name="center_id"]');
+        return select && select.options.length > 1;
+    });
+    const firstCenterValue = await centerLocator.evaluate(el => el.options[1].value);
+    await centerLocator.selectOption(firstCenterValue);
 
     await page.fill('input[name="name"]', testStudentName);
     await page.fill('input[name="fathers_name"]', 'Test Father');
@@ -38,22 +43,35 @@ test.describe('Student Enrollment and License E2E Flow', () => {
     await page.fill('input[name="nid_or_birth"]', testCnic);
     await page.fill('input[name="phone"]', '01700000000');
 
+    // Wait for cascading dropdowns to populate from server based on Center selection
+    // The UI fetches sessions and subjects for the selected center
+    
     // Selecting first session
+    await page.waitForFunction(() => {
+        const select = document.querySelector('select[name="session_id"]');
+        return select && select.options.length > 1;
+    });
     const sessionSelect = page.locator('select[name="session_id"]');
-    const firstSessionValue = await sessionSelect.evaluate(el => el.options.length > 1 ? el.options[1].value : el.options[0].value);
+    const firstSessionValue = await sessionSelect.evaluate(el => el.options[1].value);
     await sessionSelect.selectOption(firstSessionValue);
 
     // Selecting first subject
+    await page.waitForFunction(() => {
+        const select = document.querySelector('select[name="subject_id"]');
+        return select && select.options.length > 1;
+    });
     const subjectSelect = page.locator('select[name="subject_id"]');
-    const firstSubjectValue = await subjectSelect.evaluate(el => el.options.length > 1 ? el.options[1].value : el.options[0].value);
+    const firstSubjectValue = await subjectSelect.evaluate(el => el.options[1].value);
     await subjectSelect.selectOption(firstSubjectValue);
 
-    // Instead of fixed indexes which can be brittle if data is not loaded, we evaluate and select first available
+    // A helper to wait for and select the first real option
     const getFirstRealOptionValue = async (selectName) => {
+        await page.waitForFunction((name) => {
+            const select = document.querySelector(`select[name="${name}"]`);
+            return select && select.options.length > 1;
+        }, selectName);
         const selectLocator = page.locator(`select[name="${selectName}"]`);
-        // wait for at least 2 options
-        await selectLocator.evaluate(el => el.options.length > 1);
-        return await selectLocator.evaluate(el => el.options.length > 1 ? el.options[1].value : el.options[0].value);
+        return await selectLocator.evaluate(el => el.options[1].value);
     };
 
     await page.selectOption('select[name="course_type"]', { index: 1 });

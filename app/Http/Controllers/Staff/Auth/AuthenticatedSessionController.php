@@ -34,7 +34,7 @@ class AuthenticatedSessionController extends Controller
 
         $throttleKey = \Illuminate\Support\Str::transliterate(\Illuminate\Support\Str::lower($credentials['login']).'|'.$request->ip());
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+        if (!app()->environment(['local', 'testing']) && \Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
             event(new \Illuminate\Auth\Events\Lockout($request));
             
             $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
@@ -57,7 +57,9 @@ class AuthenticatedSessionController extends Controller
         ];
 
         if (! Auth::guard('staff')->attempt($attemptData, $request->boolean('remember'))) {
-            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey);
+            if (!app()->environment(['local', 'testing'])) {
+                \Illuminate\Support\Facades\RateLimiter::hit($throttleKey);
+            }
             // Also check if account is inactive
             $userExists = \App\Models\Team::where($loginType, $credentials['login'])->first();
             if ($userExists && !$userExists->is_active) {

@@ -84,16 +84,22 @@ test.describe('Student Enrollment and License E2E Flow', () => {
     for (let i = 0; i < totalSelects; i++) {
         const html = await selects.nth(i).innerHTML();
         if (html.includes('Select District')) {
+            const districtName = await selects.nth(i).getAttribute('name');
+            await page.waitForFunction((name) => {
+                const select = document.querySelector(`select[name="${name}"]`);
+                return select && select.options.length > 1;
+            }, districtName);
             await selects.nth(i).selectOption({ index: 1 });
             console.log('? District selected');
-            await page.waitForTimeout(1000); 
             
             if (i + 1 < totalSelects) {
-                const upaOpts = await selects.nth(i+1).evaluate(el => el.options.length);
-                if (upaOpts > 1) {
-                    await selects.nth(i+1).selectOption({ index: 1 });
-                    console.log('? Upazila selected');
-                }
+                const upazilaName = await selects.nth(i+1).getAttribute('name');
+                await page.waitForFunction((name) => {
+                    const select = document.querySelector(`select[name="${name}"]`);
+                    return select && select.options.length > 1;
+                }, upazilaName);
+                await selects.nth(i+1).selectOption({ index: 1 });
+                console.log('? Upazila selected');
             }
         }
     }
