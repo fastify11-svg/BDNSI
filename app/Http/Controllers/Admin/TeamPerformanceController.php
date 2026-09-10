@@ -27,7 +27,6 @@ class TeamPerformanceController extends Controller
 
     public function store(Request $request)
     {
-        \Log::info('TeamPerformance store method hit', $request->all());
         $request->validate([
             'date' => 'required|date',
             'targets' => 'required|array',

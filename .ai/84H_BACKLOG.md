@@ -35,4 +35,4 @@
 - **Evidence**: `Model::preventLazyLoading` might not be consistently enforced in production/staging. Need to check if there are N+1 queries.
 - **Affected files**: `app/Providers/AppServiceProvider.php`
 - **Targeted tests**: Run test suite to see if any tests fail when preventLazyLoading is enabled globally.
-- **Status**: DISCOVERED
+- **Status**: PASS

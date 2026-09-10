@@ -459,7 +459,6 @@ class StudentController extends Controller
 
     public function store(Request $request)
     {
-        \Illuminate\Support\Facades\Log::info('Inside StudentController@store: ' . json_encode($request->all()));
         $validated = $request->validate([
             'center_id' => 'required|exists:centers,id',
             'name' => 'required|string',
@@ -493,7 +492,6 @@ class StudentController extends Controller
                 unset($validated['picture']);
             }
 
-            \Illuminate\Support\Facades\Log::info("Saving student: begin");
             $validated['roll'] = $validated['roll'] ?? Student::getLastFreeRoll();
             $validated['registration'] = $validated['registration'] ?? Student::getLastFreeRegistration();
 
@@ -506,9 +504,7 @@ class StudentController extends Controller
                 $validated['course_duration'] = $session->course_duration_string;
             }
 
-            \Illuminate\Support\Facades\Log::info("Saving student: creating model");
             $student = Student::create($validated);
-            \Illuminate\Support\Facades\Log::info("Saving student: model created");
 
             $student->load(['center', 'subject']);
             $centerName = $student->center->name ?? (Auth::user()->center->name ?? '');
@@ -517,7 +513,6 @@ class StudentController extends Controller
                 .$centerName.' Technician '
                 .$subjectName.' under  '.config('site.setting.name').' Your Roll No: '
                 .$student->roll.' and Registration No: '.$student->registration.'. Thanks for staying with '.config('site.setting.name');
-            \Illuminate\Support\Facades\Log::info("Saving student: dispatching sms");
             SendStudentSmsJob::dispatch($student->phone, $message);
             
             // --- Phase E: Registration Order Hook (Admin) ---
@@ -566,9 +561,7 @@ class StudentController extends Controller
                 $order->update(['status' => \App\Models\Order::STATUS_PAID]);
             }
 
-            \Illuminate\Support\Facades\Log::info("Saving student: committing");
             DB::commit();
-            \Illuminate\Support\Facades\Log::info("Saving student: done");
 
             if ($request->header('X-Inertia')) {
                 return redirect()->route('admin.student.index')
