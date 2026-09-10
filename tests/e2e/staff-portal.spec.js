@@ -8,8 +8,8 @@ test.describe('Staff Portal E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
     // Login as a Staff user before each test
     await page.goto('./staff/login');
-    await page.fill('input[name="email"]', getStaffEmail());
-    await page.fill('input[name="password"]', getStaffPassword());
+    await page.fill('input[type="text"]', getStaffEmail());
+    await page.fill('input[type="password"]', getStaffPassword());
     await page.click('button[type="submit"]');
     
     // Wait for the dashboard to load

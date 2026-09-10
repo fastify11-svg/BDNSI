@@ -16,8 +16,9 @@ test.describe('Lead Management E2E', () => {
 
   test('Create Lead, Negotiate and Convert', async ({ page }) => {
     // Create lead via tinker to bypass UI flakiness but include CSRF
-    const { execSync } = require('child_process');
-    execSync(`C:\\xampp\\php\\php.exe artisan tinker --execute="App\\Models\\Lead::create(['name'=>'E2E Test Lead', 'phone'=>'01234567890', 'status'=>'Negotiating', 'proposed_price'=>7500, 'created_by'=>1])"`);
+    const util = require('util');
+    const exec = util.promisify(require('child_process').exec);
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="App\\Models\\Lead::create(['name'=>'E2E Test Lead', 'phone'=>'01234567890', 'status'=>'Negotiating', 'proposed_price'=>7500, 'created_by'=>1])"`);
 
     await page.goto('./admin/leads');
     await expect(page).toHaveURL(/.*admin\/leads/);

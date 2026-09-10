@@ -4,9 +4,9 @@ test.describe('Phase C Financial Workflow E2E', () => {
     
     test('Admin configures center financial limits and center sees widget', async ({ page, request }) => {
         // Log in as Super Admin
-        await page.goto('/login');
-        await page.fill('input[type="email"]', 'superadmin@gmail.com');
-        await page.fill('input[type="password"]', '12345678');
+        await page.goto('/admin/login');
+        await page.fill('input[name="email"]', 'superadmin@gmail.com');
+        await page.fill('input[name="password"]', '12345678');
         await page.click('button[type="submit"]');
         await page.waitForURL('/admin/dashboard');
 
