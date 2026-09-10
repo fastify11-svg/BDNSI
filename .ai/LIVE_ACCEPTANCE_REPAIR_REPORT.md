@@ -15,8 +15,12 @@
 12. **LIVE-012**: Public homepage student count is now dynamically wired to `Student::count()` via `FrontendDataService`.
 13. **LIVE-013**: Removed literal `@routes` from `app.blade.php` to prevent runtime resolution errors.
 
-## Verification
-- All PHP tests passing locally.
-- Vite frontend built successfully.
-- Local E2E Playwright tests executed.
-- Changes committed and pushed to `main` branch for GitHub Actions CI verification.
+## Post-Deployment Verification
+- Deployment to `nenobet.live` executed successfully via direct SSH.
+- All local PHP and frontend tests passed prior to deployment.
+- Changes were pushed to `main` branch and verified Green by GitHub Actions CI Run #128.
+
+### Live UI Testing Status
+- **BLOCKED**: The automated live re-acceptance test using the Antigravity Browser Subagent failed to initialize due to a `404 Not Found` error when attempting to download the Microsoft Playwright browser driver (v1.57.0) from the Azure CDN.
+- As a result, the live verification of defects LIVE-001 through LIVE-013 on the production environment could not be completed via automation.
+- Manual owner verification is currently pending to declare this phase complete.
