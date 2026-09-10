@@ -15,13 +15,15 @@
     "TSK-41: telescope:prune db lock audit - PASS (uses chunked eloquent deletes)",
     "TSK-42: AI Document Intelligence implementation - IMPLEMENTED"
   ],
-  "latest_verified_commit": "1d23b9238cd52adda5db6024dcabd1e4c146de12",
-  "latest_ci_run": "125",
+  "latest_verified_commit": "8cfc6328a4a03d47185b85d3ca1f5c2debe04bee",
+  "latest_ci_run": "129",
   "latest_ci_conclusion": "success",
   "deployment_target": "nenobet.live",
   "deployment_method": "ANTIGRAVITY_DIRECT_SSH",
   "persistent_runner_status": "IDLE",
-  "blocked_tasks": [],
+  "blocked_tasks": [
+    "POST_DEPLOYMENT_LIVE_REACCEPTANCE: REWORK — 7 live defects remain; targeted root-cause audit/repair required before production readiness"
+  ],
   "owner_decision_required": false,
   "last_run_started_at": "2026-09-11T01:35:00.000Z",
   "cycle7_summary": {
@@ -37,5 +39,5 @@
     "audits_passed": 2,
     "fixes_deployed": 0
   },
-  "reconciliation_note": "Phases A-U remain closed per TASK_QUEUE. Latest verified GitHub baseline is CI Run #125 success on commit 1d23b9238cd52adda5db6024dcabd1e4c146de12. Current work is post-closure live acceptance repair; deployment remains Antigravity direct SSH to nenobet.live."
+  "reconciliation_note": "Phases A-U remain closed per TASK_QUEUE. Latest verified GitHub baseline is CI Run #129 success on commit 8cfc6328a4a03d47185b85d3ca1f5c2debe04bee. Current work remains post-closure live acceptance repair. Latest hands-on post-deployment re-acceptance is REWORK with 6 PASS / 7 FAIL, so production readiness is not declared. Deployment remains Antigravity direct SSH to nenobet.live; GitHub Actions remains CI only."
 }
