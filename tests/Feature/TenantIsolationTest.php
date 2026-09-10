@@ -19,9 +19,6 @@ class TenantIsolationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        if (\DB::connection()->getDriverName() === 'mysql') {
-            \DB::statement("SET SESSION sql_mode=''");
-        }
         \Schema::disableForeignKeyConstraints();
     }
 
@@ -31,9 +28,7 @@ class TenantIsolationTest extends TestCase
 
         $session = new Session;
         $session->name = '2023';
-        $session->duration = '1 Year';
-        $session->start_date = '2023-01-01';
-        $session->end_date = '2023-12-31';
+        $session->duration = 1;
         $session->save();
 
         $subject = new Subject;
@@ -118,9 +113,7 @@ class TenantIsolationTest extends TestCase
 
         $session = new Session;
         $session->name = '2023';
-        $session->duration = '1 Year';
-        $session->start_date = '2023-01-01';
-        $session->end_date = '2023-12-31';
+        $session->duration = 1;
         $session->save();
 
         $subject = new Subject;
@@ -194,9 +187,7 @@ class TenantIsolationTest extends TestCase
 
         $session = new Session;
         $session->name = '2023';
-        $session->duration = '1 Year';
-        $session->start_date = '2023-01-01';
-        $session->end_date = '2023-12-31';
+        $session->duration = 1;
         $session->save();
 
         $subject = new Subject;
