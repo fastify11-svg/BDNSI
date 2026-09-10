@@ -23,6 +23,10 @@
 ## BLOCKED
 *None active.*
 
+## COMPLETED (Cycle 10)
+- [x] [LANE 1] Business Logic: Audited the complete order and registration lifecycle. Verified `PricingService` securely resolves center-specific negotiated prices and system fallbacks natively, bypassing user manipulation. Verified historical order prices are securely frozen in `Order` and `OrderItem` models.
+- [x] [LANE 1] Business Logic: Audited `PaymentController` and `UpdateOrderFinancialStatus` event listener. Verified that payment gateways strictly require backend IPN signature validation before marking orders as paid. Verified partial, unpaid, and paid states dynamically update `Order` and associated `Student` ledger bounds. Verified that credit payments respect the center's `allow_registration_without_payment` policy and credit limit.
+
 ## COMPLETED (Cycle 9)
 - [x] [LANE 1] Security: Verified file upload handling. All images are processed through Intervention Image and strictly validated. Application does not host sensitive private files (IDs, PDFs) that require server-authorization; all generated documents (Admit Cards, Certificates) are dynamically rendered via signed data without permanent static storage, making them immune to path traversal or public enumeration.
 - [x] [LANE 1] Security: Verified orphan cleanup is automatically handled natively via the `ImageField` Cast which safely executes `Image::delete` upon field replacement.
