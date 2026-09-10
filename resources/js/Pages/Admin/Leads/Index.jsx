@@ -19,6 +19,7 @@ export default function Index({ leads }) {
     const submit = (e) => {
         e.preventDefault();
         post(route('admin.leads.store'), {
+            preserveState: true,
             onSuccess: () => {
                 setShowCreateModal(false);
                 reset();

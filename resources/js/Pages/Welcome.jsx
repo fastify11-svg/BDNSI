@@ -215,7 +215,7 @@ export default function Welcome({
                             <p className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase mt-1 tracking-wider">EXAMS</p>
                         </div>
                         <div className="bg-[#7024A8] text-white rounded-md p-4 sm:p-5 border border-[#581C87] text-center shadow-sm">
-                            <h3 className="text-2xl sm:text-3xl font-black text-amber-300">{counts.total_students ? counts.total_students.toLocaleString() : '54,512'}+</h3>
+                            <h3 className="text-2xl sm:text-3xl font-black text-amber-300">{counts.total_students !== undefined ? counts.total_students.toLocaleString() : '0'}+</h3>
                             <p className="text-[10px] sm:text-[11px] font-bold text-purple-200 uppercase mt-1 tracking-wider">STUDENTS</p>
                         </div>
                     </div>

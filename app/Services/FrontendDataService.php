@@ -45,7 +45,7 @@ class FrontendDataService
                 'total_centers' => Center::count() ?: config('site.defaults.total_centers'),
                 'total_courses' => Subject::count() ?: config('site.defaults.total_courses'),
                 'total_exams' => Exam::count() ?: config('site.defaults.total_exams', 176),
-                'total_students' => Student::count() ?: config('site.defaults.total_students', 54512),
+                'total_students' => Student::count(),
             ];
 
             return [

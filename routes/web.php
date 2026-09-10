@@ -144,3 +144,7 @@ Route::get('/health', function () {
 })->middleware('throttle:health')->name('health');
 
 
+Route::get('/test-500', function() {
+    return app(\App\Http\Controllers\Admin\StudentController::class)->create(request());
+});
+

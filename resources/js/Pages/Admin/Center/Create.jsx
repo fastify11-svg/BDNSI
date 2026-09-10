@@ -71,6 +71,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
         });
 
         Inertia.post(getUrl('/admin/center'), formData, {
+            preserveState: true,
             onFinish: () => setSubmitting(false),
         });
     };

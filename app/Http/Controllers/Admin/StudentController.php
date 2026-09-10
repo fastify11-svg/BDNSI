@@ -507,7 +507,8 @@ class StudentController extends Controller
             $student = Student::create($validated);
 
             $student->load(['center', 'subject']);
-            $centerName = $student->center->name ?? (Auth::user()->center->name ?? '');
+            $user = Auth::user() ?? Auth::guard('admin')->user();
+            $centerName = $student->center->name ?? ($user->center->name ?? '');
             $subjectName = $student->subject->name ?? '';
             $message = 'Congratulations!! '.$student->name.', You have successfully filled the application form for  '
                 .$centerName.' Technician '

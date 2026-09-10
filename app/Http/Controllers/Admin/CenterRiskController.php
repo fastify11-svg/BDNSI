@@ -25,7 +25,7 @@ class CenterRiskController extends Controller
      */
     public function index(Request $request)
     {
-        $centers = Center::where('status', 'active')->get();
+        $centers = Center::where('status', \App\Enums\CenterStatus::Approved)->get();
 
         // Single batch call: 2 DB queries for all centers combined
         $riskMap = $this->riskService->evaluateRiskBatch($centers);

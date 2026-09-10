@@ -121,10 +121,10 @@ export default function VerifiedCenter({ centers = {}, filters = {} }) {
 
                                         <div className="pt-2">
                                             <Link
-                                                href={getUrl('/center-request/create')}
+                                                href={getUrl('/login')}
                                                 className="block text-center w-full py-2 bg-purple-50 text-[#7024A8] font-extrabold text-xs rounded-lg hover:bg-[#7024A8] hover:text-white transition-colors shadow-2xs"
                                             >
-                                                Apply Student from Center
+                                                Login to Center Hub
                                             </Link>
                                         </div>
                                     </div>

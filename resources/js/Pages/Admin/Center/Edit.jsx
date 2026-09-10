@@ -30,6 +30,9 @@ export default function Edit({ center, divisions = [], districts = [], upazilas 
         credit_enabled: center.credit_enabled ?? false,
         credit_limit: center.credit_limit || 0,
         allow_result_without_payment: center.allow_result_without_payment ?? false,
+        allow_registration_without_payment: center.allow_registration_without_payment ?? false,
+        allow_certificate_without_payment: center.allow_certificate_without_payment ?? false,
+        auto_restriction: center.auto_restriction ?? true,
     });
 
     const [submitting, setSubmitting] = useState(false);
@@ -290,6 +293,39 @@ export default function Edit({ center, divisions = [], districts = [], upazilas 
                                     className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
                                 />
                                 <label htmlFor="allow_result" className="text-slate-700 font-bold cursor-pointer">Allow Result Publish Without Payment</label>
+                            </div>
+
+                            <div className="flex items-center gap-3 mt-4 border p-3 rounded-lg bg-slate-50">
+                                <input
+                                    type="checkbox"
+                                    id="allow_registration"
+                                    checked={form.allow_registration_without_payment}
+                                    onChange={e => setForm({ ...form, allow_registration_without_payment: e.target.checked })}
+                                    className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="allow_registration" className="text-slate-700 font-bold cursor-pointer">Allow Student Registration Without Payment</label>
+                            </div>
+
+                            <div className="flex items-center gap-3 mt-4 border p-3 rounded-lg bg-slate-50">
+                                <input
+                                    type="checkbox"
+                                    id="allow_certificate"
+                                    checked={form.allow_certificate_without_payment}
+                                    onChange={e => setForm({ ...form, allow_certificate_without_payment: e.target.checked })}
+                                    className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="allow_certificate" className="text-slate-700 font-bold cursor-pointer">Allow Certificate Download Without Payment</label>
+                            </div>
+
+                            <div className="flex items-center gap-3 mt-4 border p-3 rounded-lg bg-slate-50">
+                                <input
+                                    type="checkbox"
+                                    id="auto_restriction"
+                                    checked={form.auto_restriction}
+                                    onChange={e => setForm({ ...form, auto_restriction: e.target.checked })}
+                                    className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                />
+                                <label htmlFor="auto_restriction" className="text-slate-700 font-bold cursor-pointer">Auto Restrict Services if Overdue</label>
                             </div>
                         </div>
                     </div>

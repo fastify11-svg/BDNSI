@@ -24,7 +24,6 @@
     <link rel="icon" type="image/x-icon" href="{{ $favIcon }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap"/>
     <!-- Application Styles & Scripts -->
-    @routes
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.jsx'])
     @inertiaHead

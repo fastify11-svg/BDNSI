@@ -89,10 +89,7 @@ export default function Show({ center, user = null }) {
                             <span className="text-slate-400 text-[11px] block">Login Email:</span>
                             <span className="font-bold text-white text-sm">{center.email || user?.email || 'N/A'}</span>
                         </div>
-                        <div>
-                            <span className="text-slate-400 text-[11px] block">Login Password:</span>
-                            <span className="font-bold text-emerald-400 text-sm">{user?.text_password || 'password123'}</span>
-                        </div>
+                        {/* Plaintext password display removed for security (LIVE-006) */}
                     </div>
                 </div>
 
