@@ -68,6 +68,17 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (in_array(is_object($student->status) ? $student->status->value : $student->status, [
+            \App\Enums\StudentStatus::Hide,
+            \App\Enums\StudentStatus::Cancelled,
+            \App\Enums\StudentStatus::Rejected
+        ])) {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'login' => __('Your account has been deactivated or rejected.'),
+            ]);
+        }
+
         Auth::guard('student')->login($student, $this->boolean('remember'));
         RateLimiter::clear($this->throttleKey());
     }

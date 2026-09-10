@@ -23,6 +23,10 @@
 ## BLOCKED
 *None active.*
 
+## COMPLETED (Cycle 8)
+- [x] [LANE 1] Security: Audited all guards (Admin, Staff, Center, Student). Verified `inactive`/`blocked` user states are strictly enforced during authentication. Added constraints to `Student/Auth/LoginRequest.php` to prevent `Hide`, `Cancelled`, or `Rejected` students from logging in. Center and Staff login controllers already strictly enforce their respective active statuses.
+- [x] [LANE 1] Security: Verified route-model binding, middleware consistency, IDOR protection, and CenterScope/global scope behavior across all privileged routes and AJAX endpoints. Tenant boundaries remain secure.
+
 ## COMPLETED (Cycle 7)
 - [x] [LANE 1] Architecture: Verified `CenterScope` applies to all `center_id` mapped models (`Student`, `Order`, `Payment`, `Lead`, `CenterLedger`, `Result`, `Transaction`, `User`). Tenant isolation verified.
 - [x] [LANE 3] Testing: Fixed `TenantIsolationTest.php` which was failing under SQLite test environment due to missing `end_date` property in testing factory logic, successfully verifying Center and Admin tenant boundaries.
