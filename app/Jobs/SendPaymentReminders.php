@@ -33,10 +33,10 @@ class SendPaymentReminders implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
-        // Find centers with dues > 80% of limit
+        // Find centers with dues > 80% of limit, using cursor() to prevent memory exhaustion
         $centers = \App\Models\Center::where('credit_enabled', true)
             ->where('current_due', '>', 0)
-            ->get();
+            ->cursor();
 
         foreach ($centers as $center) {
             $classification = $center->due_classification;

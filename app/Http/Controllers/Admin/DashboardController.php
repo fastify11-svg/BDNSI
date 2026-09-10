@@ -28,35 +28,35 @@ class DashboardController extends Controller
     {
         $cards = collect([
             'Total Student ' => [
-                'value' => Student::count(),
+                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_total_students', 3600, fn() => Student::count()),
                 'url' => route('admin.student.index'),
             ],
             'Total Approved Student ' => [
-                'value' => Student::where('status', StudentStatus::Approved)->count(),
+                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_approved_students', 3600, fn() => Student::where('status', StudentStatus::Approved)->count()),
                 'url' => route('admin.student.index'),
             ],
             'Total Pending Student ' => [
-                'value' => Student::where('status', StudentStatus::Pending)->count(),
+                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_pending_students', 3600, fn() => Student::where('status', StudentStatus::Pending)->count()),
                 'url' => route('admin.student.index'),
             ],
             'Total Centers ' => [
-                'value' => Center::count(),
+                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_total_centers', 3600, fn() => Center::count()),
                 'url' => route('admin.center.index'),
             ],
             'Total Revenue' => [
-                'value' => \App\Models\Order::whereIn('status', [
+                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_total_revenue', 3600, fn() => \App\Models\Order::whereIn('status', [
                     \App\Models\Order::STATUS_PAID,
                     \App\Models\Order::STATUS_PARTIALLY_PAID,
-                ])->sum('paid_amount'),
+                ])->sum('paid_amount')),
                 'url' => '#',
             ],
             'Total Outstanding Dues' => [
-                'value' => \App\Models\Center::sum('current_due'),
+                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_total_dues', 3600, fn() => \App\Models\Center::sum('current_due')),
                 'url' => '#',
             ]
         ]);
 
-        $adminList = Admin::all();
+        $adminList = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_admin_list', 3600, fn() => Admin::all());
 
         // Analytics Data
 

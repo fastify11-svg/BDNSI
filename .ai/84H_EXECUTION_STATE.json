@@ -3,30 +3,31 @@
   "status": "RUNNING",
   "window_started_at": "2026-09-10T18:12:58+06:00",
   "window_deadline_at": "2026-09-14T06:12:58+06:00",
-  "cycle_number": 7,
+  "cycle_number": 8,
   "current_phase": "HARDENING",
-  "current_lane": "DB Performance + Code Quality",
-  "active_task": "CYCLE7_PLAN",
+  "current_lane": "Feature Quality + Performance Optimization",
+  "active_task": "CYCLE8_PLAN",
   "completed_tasks": [
-    "TSK-1 to TSK-28: Cycles 1-5 complete",
-    "TSK-30: CommissionService DB::transaction audit — PASS (already wrapped)",
-    "TSK-31: audit_logs indexes migration — DEPLOYED (event, user_id, created_at)",
-    "TSK-32: FinancialHealthCheck improvements — DEFERRED (no alerting channel configured)",
-    "TSK-33: PaymentController callback signature verification audit — PASS (server-side API validation for both bKash and SSLCommerz)"
+    "TSK-1 to TSK-33: Cycles 1-6 complete",
+    "TSK-34: Add student_id index on center_ledger - DEFERRED (uses polymorphic reference_id instead)",
+    "TSK-35: Add center_id + status index on orders - DEPLOYED",
+    "TSK-36: Ensure ScheduledCommand (cron) configs are registered in Kernel - DEPLOYED (system:financial-reconciliation added)",
+    "TSK-37: Add (session_id, subject_id, center_id) composite on students - DEPLOYED"
   ],
-  "latest_verified_commit": "1dda208",
-  "latest_ci_run": "99",
+  "latest_verified_commit": "1f561bc",
+  "latest_ci_run": "100",
   "latest_ci_conclusion": "success",
   "deployment_target": "nenobet.live",
   "deployment_method": "ANTIGRAVITY_DIRECT_SSH",
   "persistent_runner_status": "HEALTHY",
   "blocked_tasks": [],
   "owner_decision_required": false,
-  "last_run_started_at": "2026-09-11T01:09:00.000Z",
-  "cycle6_summary": {
-    "migrations_deployed": 1,
-    "migration_detail": "audit_logs indexed on event, user_id, created_at",
-    "audits_passed": 4,
-    "fixes_deployed": 0
+  "last_run_started_at": "2026-09-11T01:26:00.000Z",
+  "cycle7_summary": {
+    "migrations_deployed": 2,
+    "migration_detail": "orders composite index, center_ledgers composite index, students composite index",
+    "audits_passed": 3,
+    "fixes_deployed": 1,
+    "fix_detail": "Added system:financial-reconciliation to Kernel schedule, fixed flaky E2E test"
   }
 }

@@ -1,0 +1,4 @@
+- [x] TSK-38 (P2): Audit `DashboardController` and `CenterTotalResultController` for caching opportunities on aggregate metrics to reduce DB load.
+- [x] TSK-39 (P2): Audit profile and logo upload controllers for directory traversal protection and mime-type validation.
+- [x] TSK-40 (P3): Ensure memory optimization (e.g., using `cursor()` or chunking) in `SendPaymentReminders` and `RuthlessCrawler` jobs.
+- [x] TSK-41 (P3): Verify that `telescope:prune` is effectively cleaning up records without locking the DB.

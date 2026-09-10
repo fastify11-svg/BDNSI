@@ -37,15 +37,15 @@ class CenterTotalResultController extends Controller
 
             return Inertia::render('Center/Student/Result', [
                 'students' => $students,
-                'sessions' => Session::select(['id', 'name'])->where('status', SessionStatus::Active)->get(),
-                'subjects' => Subject::select(['id', 'name'])->get(),
+                'sessions' => \Illuminate\Support\Facades\Cache::remember('active_sessions_list', 3600, fn() => Session::select(['id', 'name'])->where('status', SessionStatus::Active)->get()),
+                'subjects' => \Illuminate\Support\Facades\Cache::remember('subjects_list', 3600, fn() => Subject::select(['id', 'name'])->get()),
             ]);
         }
 
         return Inertia::render('Center/Student/Result', [
             'students' => [],
-            'sessions' => Session::select(['id', 'name'])->where('status', SessionStatus::Active)->get(),
-            'subjects' => Subject::select(['id', 'name'])->get(),
+            'sessions' => \Illuminate\Support\Facades\Cache::remember('active_sessions_list', 3600, fn() => Session::select(['id', 'name'])->where('status', SessionStatus::Active)->get()),
+            'subjects' => \Illuminate\Support\Facades\Cache::remember('subjects_list', 3600, fn() => Subject::select(['id', 'name'])->get()),
         ]);
 
     }
