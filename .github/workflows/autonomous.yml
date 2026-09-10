@@ -42,7 +42,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, sqlite3, gd, zip
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, gd, zip
           coverage: none
 
       # ─── 3. ENVIRONMENT SETUP ────────────────────────────────────────────
@@ -77,6 +77,10 @@ jobs:
 
       - name: Discover Composer Packages
         run: php artisan package:discover --ansi
+
+      - name: Assert MySQL Test Driver
+        run: |
+          php artisan tinker --execute="if (DB::connection()->getDriverName() !== 'mysql') { throw new RuntimeException('CI database driver must be mysql'); } echo 'CI database driver: mysql' . PHP_EOL;"
 
       # ─── 5. DATABASE ─────────────────────────────────────────────────────
       - name: Run Database Migrations & Seeding
@@ -156,7 +160,7 @@ jobs:
 
       # NOTE: Production deployment is NOT handled here.
       # DEPLOYMENT_METHOD = ANTIGRAVITY_DIRECT_SSH
-      # Target: nenobet.live (u881397359@145.79.212.19 port 65002)
+      # Target: nenobet.live
       # Run deploy script: node deploy_to_production.mjs
       # See .ai/PROJECT_STATE.md for deployment architecture.
 
