@@ -61,9 +61,14 @@ class CommissionService
                 if ($policy->type === 'percentage') {
                     $commissionAmount = $amountPaid * ($policy->value / 100);
                 } else {
-                    // Fixed amount per transaction or per order? Usually per order, so fixed on partial payment needs logic. 
-                    // We'll give it on first payment if fixed.
-                    $commissionAmount = $policy->value;
+                    // Fixed amount per order, so only give it on the first payment
+                    $alreadyAwarded = Commission::where('order_id', $order->id)
+                        ->where('commission_policy_id', $policy->id)
+                        ->exists();
+
+                    if (!$alreadyAwarded) {
+                        $commissionAmount = $policy->value;
+                    }
                 }
 
                 if ($commissionAmount > 0) {

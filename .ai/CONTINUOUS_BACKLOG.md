@@ -23,6 +23,11 @@
 ## BLOCKED
 *None active.*
 
+## COMPLETED (Cycle 11)
+- [x] [LANE 1] Business Logic: Audited `FinancialLedgerService` and transaction hooks. Verified double-entry accounting integrity (ledger debits and credits correctly update `current_due` and emit immutable `AuditLog` records).
+- [x] [LANE 1] Business Logic: Fixed a vulnerability in `CommissionService` where `fixed` type commissions could be incorrectly awarded multiple times on partial payments for the same order. Fixed to only award once per order.
+- [x] [LANE 1] Business Logic: Verified that `UpdateOrderFinancialStatus` securely cascades order payments down to the underlying `Student` records and properly re-credits the center ledger if the order was previously purchased on credit. Verified database transaction rollbacks on payment failure.
+
 ## COMPLETED (Cycle 10)
 - [x] [LANE 1] Business Logic: Audited the complete order and registration lifecycle. Verified `PricingService` securely resolves center-specific negotiated prices and system fallbacks natively, bypassing user manipulation. Verified historical order prices are securely frozen in `Order` and `OrderItem` models.
 - [x] [LANE 1] Business Logic: Audited `PaymentController` and `UpdateOrderFinancialStatus` event listener. Verified that payment gateways strictly require backend IPN signature validation before marking orders as paid. Verified partial, unpaid, and paid states dynamically update `Order` and associated `Student` ledger bounds. Verified that credit payments respect the center's `allow_registration_without_payment` policy and credit limit.
