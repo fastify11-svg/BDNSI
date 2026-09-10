@@ -158,7 +158,7 @@ class StudentController extends Controller
                     return '<a style="background-color:#BE123C; color:#ffffff; padding:3px 10px; border-radius:9999px; font-size:11px; font-weight:700; text-decoration:none; display:inline-block;" target="_blank" href="'.route('admin.student.admit', [$roll->id, 'admit' => 'admit']).'">'.e($roll->roll ?: 'N/A').'</a>';
                 })
                 ->addColumn('student_result', function ($student_result) {
-                    return '<a target="_blank" href="'.route('admin.result.show', $student_result->id ?? '').'">'.($student_result->result()->count() == 1 ? 'Result' : 'N/A').'</a>';
+                    return '<a target="_blank" href="'.route('admin.result.show', $student_result->id ?? '').'">'.($student_result->result !== null ? 'Result' : 'N/A').'</a>';
 
                 })
                 ->rawColumns(['registration', 'roll', 'student_result', 'certificate'])

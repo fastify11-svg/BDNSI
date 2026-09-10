@@ -32,6 +32,8 @@ class TenantIsolationTest extends TestCase
         $session = new Session;
         $session->name = '2023';
         $session->duration = '1 Year';
+        $session->start_date = '2023-01-01';
+        $session->end_date = '2023-12-31';
         $session->save();
 
         $subject = new Subject;
@@ -117,6 +119,8 @@ class TenantIsolationTest extends TestCase
         $session = new Session;
         $session->name = '2023';
         $session->duration = '1 Year';
+        $session->start_date = '2023-01-01';
+        $session->end_date = '2023-12-31';
         $session->save();
 
         $subject = new Subject;

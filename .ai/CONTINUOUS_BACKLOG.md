@@ -23,6 +23,11 @@
 ## BLOCKED
 *None active.*
 
+## COMPLETED (Cycle 7)
+- [x] [LANE 1] Architecture: Verified `CenterScope` applies to all `center_id` mapped models (`Student`, `Order`, `Payment`, `Lead`, `CenterLedger`, `Result`, `Transaction`, `User`). Tenant isolation verified.
+- [x] [LANE 3] Testing: Fixed `TenantIsolationTest.php` which was failing under SQLite test environment due to missing `end_date` property in testing factory logic, successfully verifying Center and Admin tenant boundaries.
+- [x] [LANE 4] Performance: Optimized the `Admin/StudentController` index query which was executing an N+1 `count()` query for `result` across all paginated students. Replaced with an eager-loaded relationship null check (`$student_result->result !== null`).
+
 ## COMPLETED (Cycle 6)
 ## 🟢 Cycle 6: E2E Test Suite Stabilization
 **Status:** `[x] Completed`
