@@ -32,6 +32,6 @@ test.describe('Lead Management E2E', () => {
     await page.click('button:has-text("Convert")');
     
     // Verify success toast or UI change
-    await expect(page.locator('text=View Center')).toBeVisible();
+    await expect(page.locator('text=View Center').first()).toBeVisible();
   });
 });

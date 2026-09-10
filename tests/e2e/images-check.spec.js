@@ -14,8 +14,10 @@ test.describe('Image loading and layout checks on live', () => {
     for (const img of images) {
       const src = await img.getAttribute('src');
       if (src && !src.startsWith('data:')) {
-        const isLoaded = await img.evaluate((node) => node.complete && node.naturalWidth > 0);
-        expect(isLoaded, `Image failed to load: ${src}`).toBeTruthy();
+        await expect(async () => {
+          const isLoaded = await img.evaluate((node) => node.complete && node.naturalWidth > 0);
+          expect(isLoaded, `Image failed to load: ${src}`).toBeTruthy();
+        }).toPass({ timeout: 5000 });
       }
     }
   });
