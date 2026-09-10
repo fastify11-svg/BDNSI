@@ -24,6 +24,10 @@ test.describe('Live Audit E2E Tests', () => {
   });
 
   test('Sub-Admin (Center) login and dashboard', async ({ page }) => {
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('request', request => console.log('>>', request.method(), request.url()));
+    page.on('response', response => console.log('<<', response.status(), response.url()));
+    
     await page.goto('./login');
     await page.fill('input[name="email"]', getCenterEmail());
     

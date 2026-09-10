@@ -32,12 +32,6 @@ class Session extends Model
             if (empty($model->duration)) {
                 $model->duration = 6;
             }
-            if (empty($model->start_date)) {
-                $model->start_date = \Carbon\Carbon::now()->startOfMonth()->toDateString();
-            }
-            if (empty($model->end_date)) {
-                $model->end_date = \Carbon\Carbon::now()->addMonths($model->duration)->endOfMonth()->toDateString();
-            }
         });
     }
 

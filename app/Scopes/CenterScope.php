@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 class CenterScope implements Scope
 {
     protected static $columnCache = [];
+    protected static $isResolvingUser = false;
 
     /**
      * Apply the scope to a given Eloquent query builder.
@@ -18,10 +19,17 @@ class CenterScope implements Scope
      */
     public function apply(Builder $builder, Model $model)
     {
-        $user = auth()->user();
+        if (static::$isResolvingUser) {
+            return;
+        }
+
+        static::$isResolvingUser = true;
         
-        // If auth()->user() is null, try to find an authenticated user across typical guards
-        if (! $user) {
+        try {
+            $user = auth()->user();
+            
+            // If auth()->user() is null, try to find an authenticated user across typical guards
+            if (! $user) {
             foreach (['web', 'api', 'sanctum'] as $guard) {
                 try {
                     if (auth()->guard($guard)->check()) {
@@ -44,6 +52,9 @@ class CenterScope implements Scope
                     $query->where('center_id', $centerId);
                 });
             }
+        }
+        } finally {
+            static::$isResolvingUser = false;
         }
     }
 

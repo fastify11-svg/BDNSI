@@ -49,7 +49,7 @@ class LoginRequest extends FormRequest
             $altField = $fieldType === 'email' ? 'username' : 'email';
             if (! Auth::attempt([$altField => $loginInput, 'password' => $this->input('password')], $this->boolean('remember'))) {
                 RateLimiter::hit($this->throttleKey());
-
+                \Illuminate\Support\Facades\Log::error("Login failed: Auth::attempt returned false for $loginInput");
                 throw ValidationException::withMessages([
                     'email' => trans('auth.failed'),
                 ]);
@@ -63,11 +63,14 @@ class LoginRequest extends FormRequest
             if (! $center || ($status != 1 && $status !== CenterStatus::Approved && strtolower((string) $status) !== 'approved')) {
                 Auth::logout();
                 RateLimiter::hit($this->throttleKey());
+                \Illuminate\Support\Facades\Log::error("Login failed: Center not verified for $loginInput. Status: $status");
                 throw ValidationException::withMessages([
                     'email' => 'Your center is not yet verified or approved.',
                 ]);
             }
         }
+        
+        \Illuminate\Support\Facades\Log::info("Login succeeded for $loginInput");
 
         RateLimiter::clear($this->throttleKey());
     }

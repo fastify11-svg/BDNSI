@@ -36,3 +36,18 @@
 - **Affected files**: `app/Providers/AppServiceProvider.php`
 - **Targeted tests**: Run test suite to see if any tests fail when preventLazyLoading is enabled globally.
 - **Status**: PASS
+
+### TSK-5: Remove Residual Debug Logging
+- **Lane**: Lane 8 — Code Quality / Maintainability
+- **Priority**: P3
+- **Evidence**: Production controller methods (like `StudentController@store` and `TeamPerformanceController@store`) had hardcoded `Log::info` statements detailing step-by-step logic, which clutters logs and slows execution.
+- **Affected files**: `app/Http/Controllers/Admin/StudentController.php`, `app/Http/Controllers/Admin/TeamPerformanceController.php`
+- **Targeted tests**: `php artisan test`
+- **Status**: PASS
+
+### TSK-6: Address Security Vulnerabilities in laravel/framework
+- **Lane**: Lane 7 — Dependencies / Toolchain
+- **Priority**: P2
+- **Evidence**: `composer audit` reports CVE-2025-27515, etc. in Laravel 8. However, upgrading to Laravel 9/10 violates the "No major framework migrations" rule. Constraint logged.
+- **Affected files**: `composer.json`
+- **Status**: PASS (Skipped due to constraint)

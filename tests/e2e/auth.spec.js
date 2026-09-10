@@ -45,7 +45,7 @@ test.describe('Authentication E2E Tests', () => {
     // Ensure Center user exists
     const util = require('util');
     const exec = util.promisify(require('child_process').exec);
-    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="App\\Models\\Center::firstOrCreate(['email'=>'center@bdnsi.com'],['name'=>'E2E Center','code'=>'E2E02','status'=>1]); App\\Models\\User::updateOrCreate(['email'=>'center@bdnsi.com'],['name'=>'E2E User','username'=>'center','phone'=>'0123456789','password'=>Illuminate\\Support\\Facades\\Hash::make('12345678'),'center_id'=>App\\Models\\Center::where('email','center@bdnsi.com')->first()->id]);"`);
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="App\\Models\\Center::firstOrCreate(['email'=>'center@bdnsi.com'],['name'=>'E2E Center','code'=>'E2E02','status'=>1]); $u=App\\Models\\User::updateOrCreate(['email'=>'center@bdnsi.com'],['name'=>'E2E User','username'=>'center','phone'=>'0123456789','password'=>Illuminate\\Support\\Facades\\Hash::make('12345678'),'center_id'=>App\\Models\\Center::where('email','center@bdnsi.com')->first()->id]); if(!$u->hasRole('center')){ $r=App\\Models\\Role::firstOrCreate(['name'=>'center'],['display_name'=>'Center']); $u->addRole($r); }"`);
 
     await page.goto('./login');
     await page.fill('input[name="email"]', getCenterEmail());
