@@ -42,28 +42,49 @@ class PhaseOAiDocumentIntelligenceTest extends TestCase
             'status' => 'Pending'
         ]);
 
-        // Mock the AI Service
-        $aiService = \Mockery::mock(\App\Services\AiDocumentIntelligenceService::class);
-        $aiService->shouldReceive('analyzeDocument')->once()->with($document)->andReturn([
-            'ai_confidence_score' => 95,
-            'ai_classification' => 'National ID',
-            'ai_mismatch_detected' => true,
-            'ai_mismatch_details' => 'Name mismatch: Md Ali vs Mohammad Ali',
-            'ai_extracted_data' => [
-                'name' => 'Md Ali',
-                'dob' => '2000-01-01'
-            ],
-            'ai_analyzed_at' => now()
+        // Create a fake dummy image in storage
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('dummy.jpg', 'fake-image-content');
+
+        // Fake the Gemini API response
+        \Illuminate\Support\Facades\Http::fake([
+            'generativelanguage.googleapis.com/*' => \Illuminate\Support\Facades\Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                [
+                                    'text' => json_encode([
+                                        'confidence_score' => 95,
+                                        'classification' => 'National ID',
+                                        'extracted_data' => [
+                                            'Name' => 'Md Ali',
+                                            'DOB' => '2000-01-01'
+                                        ]
+                                    ])
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ], 200)
         ]);
 
-        // Run the service action
+        // Actually run the service
+        $aiService = new \App\Services\AiDocumentIntelligenceService();
         $result = $aiService->analyzeDocument($document);
 
-        // Assert
-        $document->update($result);
+        $this->assertEquals(95, $result['ai_confidence_score']);
+        $this->assertEquals('National ID', $result['ai_classification']);
+        $this->assertTrue($result['ai_mismatch_detected']);
+        $this->assertStringContainsString('Name mismatch', $result['ai_mismatch_details']);
+        $this->assertEquals('Md Ali', $result['ai_extracted_data']['Name']);
 
+        // Test the Job
+        \App\Jobs\AnalyzeStudentDocument::dispatchSync($document);
+
+        $document->refresh();
         $this->assertEquals(95, $document->ai_confidence_score);
-        $this->assertEquals('National ID', $document->ai_classification);
         $this->assertTrue($document->ai_mismatch_detected);
     }
 }

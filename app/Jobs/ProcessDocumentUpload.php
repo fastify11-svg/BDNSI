@@ -29,5 +29,8 @@ class ProcessDocumentUpload implements ShouldQueue
         
         // For Phase G baseline, we assume the upload controller handles basic storage,
         // and this job serves as a placeholder for async optimization.
+
+        // Trigger Phase O AI Document Intelligence
+        \App\Jobs\AnalyzeStudentDocument::dispatch($this->document);
     }
 }
