@@ -32,6 +32,21 @@ class AuthenticatedSessionController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        $throttleKey = \Illuminate\Support\Str::transliterate(\Illuminate\Support\Str::lower($credentials['login']).'|'.$request->ip());
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            event(new \Illuminate\Auth\Events\Lockout($request));
+            
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            
+            throw ValidationException::withMessages([
+                'login' => trans('auth.throttle', [
+                    'seconds' => $seconds,
+                    'minutes' => ceil($seconds / 60),
+                ]),
+            ]);
+        }
+
         // Support login via either email or phone
         $loginType = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
@@ -42,6 +57,7 @@ class AuthenticatedSessionController extends Controller
         ];
 
         if (! Auth::guard('staff')->attempt($attemptData, $request->boolean('remember'))) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey);
             // Also check if account is inactive
             $userExists = \App\Models\Team::where($loginType, $credentials['login'])->first();
             if ($userExists && !$userExists->is_active) {
@@ -54,6 +70,8 @@ class AuthenticatedSessionController extends Controller
                 'login' => __('These credentials do not match our staff records.'),
             ]);
         }
+
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
 
         $request->session()->regenerate();
 

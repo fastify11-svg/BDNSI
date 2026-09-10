@@ -24,6 +24,7 @@
 *None active.*
 
 ## COMPLETED (Cycle 6)
+- [x] [LANE 1] Security: Added strict 5-attempt rate limiting with `Lockout` events to the Staff authentication endpoint (`Staff/Auth/AuthenticatedSessionController@store`) to prevent password brute-forcing, as it was previously completely unprotected.
 - [x] [LANE 4] Performance: Added static caching to `AcademicAccessPolicy@accessRegistrationDocuments` to eliminate N+1 queries occurring when rendering `StudentController` datatables (where `admit` and `registration` columns called the policy multiple times for the same student).
 - [x] [LANE 3] Testing/Operations: Optimized Playwright config (`trace: 'retain-on-failure'`, `screenshot: 'only-on-failure'`) to prevent `net::ERR_NO_BUFFER_SPACE` (socket exhaustion) during parallel 40-test E2E execution on the single-threaded PHP built-in server.
 - [x] [LANE 2] Business/Financial: Wrapped `Admin/CenterController@updateStatus` in a `DB::transaction` to prevent orphaned Centers without a corresponding User credential if `User::create` fails mid-flight.
