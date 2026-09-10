@@ -9,6 +9,10 @@ test.describe('Student Enrollment and License E2E Flow', () => {
   const testStudentName = `E2E Student ${Date.now()}`;
 
   test('Admin creates student with Approved status → license auto-generated', async ({ page }) => {
+    // 1. Ensure test prerequisites
+    const util = require('util');
+    const exec = util.promisify(require('child_process').exec);
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="if(App\\Models\\Session::count()===0) App\\Models\\Session::create(['name'=>'2024-2025','status'=>1]); if(App\\Models\\Subject::count()===0) App\\Models\\Subject::create(['name'=>'E2E Subject','code'=>'E2E101','status'=>1]); if(App\\Models\\Center::count()===0) App\\Models\\Center::create(['name'=>'E2E Center','code'=>'E2E01','email'=>'e2ecenter@bdnsi.com','status'=>1]); if(App\\Models\\Division::count()===0) App\\Models\\Division::create(['name'=>'E2E Division','bn_name'=>'E2E Division']); if(App\\Models\\District::count()===0) App\\Models\\District::create(['name'=>'E2E District','bn_name'=>'E2E District','division_id'=>App\\Models\\Division::first()->id]); if(App\\Models\\Upazila::count()===0) App\\Models\\Upazila::create(['name'=>'E2E Upazila','bn_name'=>'E2E Upazila','district_id'=>App\\Models\\District::first()->id]);"`);
     
     // Create a dummy image for upload
     const dummyPath = path.resolve('dummy.jpg');
