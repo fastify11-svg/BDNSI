@@ -14,7 +14,9 @@ Route::prefix('students')->name('student.')->middleware(['portal.student'])->gro
     // Guest Student Routes
     Route::middleware('guest:student')->group(function () {
         Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-        Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.post');
+        Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+            ->middleware('throttle:student-login')
+            ->name('login.post');
 
         Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
         Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])

@@ -12,7 +12,9 @@ Route::prefix('staff')->name('staff.')->group(function () {
     // Guest Staff Routes
     Route::middleware('guest:staff')->group(function () {
         Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-        Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.post');
+        Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+            ->middleware('throttle:staff-login')
+            ->name('login.post');
 
         Route::get('/forgot-password', [\App\Http\Controllers\Staff\Auth\PasswordResetLinkController::class, 'create'])
                     ->name('password.request');

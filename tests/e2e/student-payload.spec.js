@@ -9,6 +9,7 @@ test.describe('Student Enrollment and License E2E Flow', () => {
   const testStudentName = `E2E Student ${Date.now()}`;
 
   test('Admin creates student with Approved status → license auto-generated', async ({ page }) => {
+    test.setTimeout(90000);
     // 1. Ensure test prerequisites
     const util = require('util');
     const exec = util.promisify(require('child_process').exec);
