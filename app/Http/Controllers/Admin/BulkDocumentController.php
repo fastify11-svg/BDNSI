@@ -171,9 +171,15 @@ class BulkDocumentController extends Controller
                 'Content-Disposition' => 'inline; filename="' . $downloadName . '"',
             ]);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('BulkDocumentController renderSingle failed', [
+                'template_id' => $templateId,
+                'student_id'  => $studentId,
+                'error'       => $e->getMessage(),
+            ]);
+
             return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to render PDF: ' . $e->getMessage(),
+                'status'  => 'error',
+                'message' => 'Failed to render PDF. Please try again or contact support.',
             ], 500);
         }
     }
