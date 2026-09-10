@@ -73,11 +73,13 @@ test.describe('Authentication E2E Tests', () => {
     
     // Find the link or button that says Log Out
     const logoutBtn = page.getByTestId('logout-btn');
-    if (await logoutBtn.isVisible()) {
+    try {
+        await logoutBtn.waitFor({ state: 'visible', timeout: 3000 });
         await logoutBtn.click();
-    } else {
+    } catch (e) {
         // Fallback for current ui
-        await page.goto('./admin/logout'); // this might be a get request or need form submit
+        await page.request.post('/admin/logout'); // use API post instead of get
+        await page.goto('/admin/login');
     }
 
     // Wait for redirect

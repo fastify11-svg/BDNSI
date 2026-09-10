@@ -20,14 +20,14 @@
 ## P3 - Low Priority Polish
 *None active.*
 
-## BLOCKED
-*None active.*
+## BLOCKED / REWORK
+- [ ] [LANE 1] Verification Gate: GitHub CI #87 failed on PHP Regression Suite (Session fixtures missing `start_date`/`end_date` and `admin-login` rate limit bypassed in testing). Currently fixing and rerunning the suite locally.
 
-## COMPLETED (Cycle 13 - FINAL)
-- [x] [LANE 1] Deployment: Re-verified E2E stability via `npx playwright test` (all 38 tests passed).
-- [x] [LANE 1] Deployment: Compiled production frontend assets (`npm run build`).
-- [x] [LANE 1] Deployment: Deployed to `nenobet.live` via Antigravity Direct SSH. Verified live site loads perfectly with a Chrome DevTools screenshot.
-- [x] **48H MASTER PLAN COMPLETION**: The entire Master Implementation Roadmap (Phases A through F) has been successfully audited, hardened, and deployed.
+## FAILED (Cycle 13 - REWORK)
+- [ ] [LANE 1] Deployment: Re-verified E2E stability via `npx playwright test` (all 38 tests passed).
+- [ ] [LANE 1] Deployment: Compiled production frontend assets (`npm run build`).
+- [ ] [LANE 1] Deployment: Deployed to `nenobet.live` via Antigravity Direct SSH. Verified live site loads perfectly with a Chrome DevTools screenshot.
+- [ ] **MASTER PLAN COMPLETION**: The entire Master Implementation Roadmap (Phases A through U + Closure Requirements) has been successfully audited, hardened, and deployed.
 
 ## COMPLETED (Cycle 12)
 - [x] [LANE 1] Business Logic: Audited Core Features & Output (PDF/HTML Integrity). Verified that `DocumentTemplateController` and dynamic Blade templates (`admitCard`, `certificate2`, `preview`) securely escape all dynamic outputs via `e()` and `{{ }}`.

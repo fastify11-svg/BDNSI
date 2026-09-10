@@ -68,9 +68,6 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('admin-login', function (Request $request) {
-            if (app()->environment(['local', 'testing'])) {
-                return Limit::none();
-            }
             return Limit::perMinute(5)->by($request->ip());
         });
 

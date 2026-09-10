@@ -48,12 +48,6 @@ class AcademicAccessPolicy
             return true;
         }
 
-        static $cache = [];
-        $key = "{$center->id}_{$student->id}";
-        if (isset($cache[$key])) {
-            return $cache[$key];
-        }
-
         if ($center->allow_registration_without_payment) {
             $orderItem = \App\Models\OrderItem::where('itemable_id', $student->id)
                 ->where('itemable_type', \App\Models\Student::class)
@@ -65,12 +59,12 @@ class AcademicAccessPolicy
                     ->where('reference_type', \App\Models\Order::class)
                     ->where('type', 'debit')
                     ->exists();
-                return $cache[$key] = $hasLedger;
+                return $hasLedger;
             }
 
-            return $cache[$key] = true;
+            return true;
         }
 
-        return $cache[$key] = false;
+        return false;
     }
 }
