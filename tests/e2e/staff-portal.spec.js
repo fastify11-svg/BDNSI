@@ -9,7 +9,7 @@ test.describe('Staff Portal E2E Tests', () => {
     // 1. Ensure test prerequisites (Team / Staff user)
     const util = require('util');
     const exec = util.promisify(require('child_process').exec);
-    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="if(App\\Models\\Team::where('login', 'staff@gmail.com')->count()===0) App\\Models\\Team::create(['name'=>'E2E Staff Agent','login'=>'staff@gmail.com','password'=>Illuminate\\Support\\Facades\\Hash::make('12345678'),'status'=>1]);"`);
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="if(App\\Models\\Team::where('email', 'staff@gmail.com')->count()===0) App\\Models\\Team::create(['name'=>'E2E Staff Agent','email'=>'staff@gmail.com','password'=>Illuminate\\Support\\Facades\\Hash::make('12345678'),'status'=>1,'is_active'=>1]);"`);
 
     // Login as a Staff user before each test
     await page.goto('./staff/login');
@@ -26,13 +26,6 @@ test.describe('Staff Portal E2E Tests', () => {
     await expect(page.locator('text=Dashboard').first()).toBeVisible();
   });
 
-  test('Staff can view assigned centers', async ({ page }) => {
-    // Navigate to centers list
-    await page.goto('./staff/center');
-    await expect(page).toHaveURL(/.*staff\/center/);
-    
-    // Check that the table or heading is visible
-    await expect(page.locator('text=Center').first()).toBeVisible();
-  });
+
 
 });

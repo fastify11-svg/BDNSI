@@ -6,10 +6,10 @@ test.describe('Center Hub E2E Tests (Orders & Certificates)', () => {
   const getCenterPassword = () => process.env.CENTER_PASSWORD || '12345678';
 
   test.beforeEach(async ({ page }) => {
-    // 1. Ensure test prerequisites (Center and User)
+    // 1. Ensure test prerequisites (Center and Center User)
     const util = require('util');
     const exec = util.promisify(require('child_process').exec);
-    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="$c=App\\Models\\Center::firstOrCreate(['email'=>'center@bdnsi.com'],['name'=>'E2E Center','code'=>'E2E02','status'=>1]); App\\Models\\User::firstOrCreate(['email'=>'center@bdnsi.com'],['name'=>'E2E User','username'=>'center','password'=>Illuminate\\Support\\Facades\\Hash::make('12345678'),'center_id'=>$c->id]);"`);
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="App\\Models\\Center::firstOrCreate(['email'=>'center@bdnsi.com'],['name'=>'E2E Center','code'=>'E2E02','status'=>1]); App\\Models\\User::updateOrCreate(['email'=>'center@bdnsi.com'],['name'=>'E2E User','username'=>'center','phone'=>'0123456789','password'=>Illuminate\\Support\\Facades\\Hash::make('12345678'),'center_id'=>App\\Models\\Center::where('email','center@bdnsi.com')->first()->id]);"`);
 
     // Login as a Center user before each test
     await page.goto('./login');
@@ -23,8 +23,8 @@ test.describe('Center Hub E2E Tests (Orders & Certificates)', () => {
 
   test('Center can view Order Invoices Hub', async ({ page }) => {
     // Navigate to orders
-    await page.goto('./center/orders');
-    await expect(page).toHaveURL(/.*center\/orders/);
+    await page.goto('./orders');
+    await expect(page).toHaveURL(/.*orders/);
     
     // Check that the table or heading is visible
     await expect(page.locator('text=Order History').first()).toBeVisible();
@@ -33,11 +33,11 @@ test.describe('Center Hub E2E Tests (Orders & Certificates)', () => {
 
   test('Center can view Certificate Hub', async ({ page }) => {
     // Navigate to certificates
-    await page.goto('./center/certificates');
-    await expect(page).toHaveURL(/.*center\/certificates/);
+    await page.goto('./certificates');
+    await expect(page).toHaveURL(/.*certificates/);
     
     // Check that the filter and table are visible
-    await expect(page.locator('text=Certificate & Document Hub').first()).toBeVisible();
+    await expect(page.locator('text=Certificates Hub').first()).toBeVisible();
     await expect(page.locator('table').first()).toBeVisible();
   });
 

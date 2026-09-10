@@ -32,12 +32,6 @@ class Session extends Model
             if (empty($model->duration)) {
                 $model->duration = 6;
             }
-            if (empty($model->start_date)) {
-                $model->start_date = now();
-            }
-            if (empty($model->end_date)) {
-                $model->end_date = now()->addMonths($model->duration);
-            }
         });
     }
 

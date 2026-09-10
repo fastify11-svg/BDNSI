@@ -18,14 +18,15 @@ test.describe('Lead Management E2E', () => {
     // Create lead via tinker to bypass UI flakiness but include CSRF
     const util = require('util');
     const exec = util.promisify(require('child_process').exec);
-    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="App\\Models\\Lead::create(['name'=>'E2E Test Lead', 'phone'=>'01234567890', 'status'=>'Negotiating', 'proposed_price'=>7500, 'created_by'=>1])"`);
+    const leadName = `E2E Test Lead ${Date.now()}`;
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="App\\Models\\Lead::create(['name'=>'${leadName}', 'phone'=>'01234567890', 'status'=>'Negotiating', 'proposed_price'=>7500, 'created_by'=>1])"`);
 
     await page.goto('./admin/leads');
     await expect(page).toHaveURL(/.*admin\/leads/);
     
     // Verify it appears in table with proposed price
-    await expect(page.locator('text=E2E Test Lead')).toBeVisible();
-    await expect(page.locator('text=৳7500')).toBeVisible();
+    await expect(page.locator("text=" + leadName).first()).toBeVisible();
+    await expect(page.locator('text=৳7500').first()).toBeVisible();
     
     // Convert to Center
     await page.click('button:has-text("Convert")');

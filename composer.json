@@ -22,6 +22,7 @@
         "painlesscode/breeze-multiauth": "^1.1",
         "santigarcor/laratrust": "^7.1",
         "simplesoftwareio/simple-qrcode": "^4.2",
+        "tightenco/ziggy": "^1.8",
         "yajra/laravel-datatables-oracle": "^9.19"
     },
     "require-dev": {

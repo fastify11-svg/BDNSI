@@ -87,24 +87,24 @@ export default function CenterRiskIndex({ centers = [] }) {
                                             </td>
                                             
                                             <td className="px-5 py-4 text-right">
-                                                <p className="font-bold text-rose-600">Due: ৳{parseFloat(center.current_due).toFixed(2)}</p>
+                                                <p className="font-bold text-rose-600">Due: ৳{Number(center.current_due || 0).toFixed(2)}</p>
                                                 {center.credit_limit_enabled ? (
-                                                    <p className="text-[10px] text-slate-400">Limit: ৳{parseFloat(center.credit_limit).toFixed(2)}</p>
+                                                    <p className="text-[10px] text-slate-400">Limit: ৳{Number(center.credit_limit || 0).toFixed(2)}</p>
                                                 ) : (
                                                     <p className="text-[10px] text-slate-400">No Limit</p>
                                                 )}
                                             </td>
 
                                             <td className="px-5 py-4 text-right">
-                                                <p className="font-bold text-slate-800">{(center.factors?.utilization || 0).toFixed(1)}%</p>
+                                                <p className="font-bold text-slate-800">{Number(center.factors?.utilization || 0).toFixed(1)}%</p>
                                             </td>
                                             
                                             <td className="px-5 py-4 text-right">
-                                                <p className="font-bold text-slate-800">{center.factors.unpaid_volume}</p>
+                                                <p className="font-bold text-slate-800">{center.factors?.unpaid_volume || 0}</p>
                                             </td>
                                             
                                             <td className="px-5 py-4 text-right">
-                                                <p className="font-bold text-slate-800">{(center.factors?.rejection_rate || 0).toFixed(1)}%</p>
+                                                <p className="font-bold text-slate-800">{Number(center.factors?.rejection_rate || 0).toFixed(1)}%</p>
                                             </td>
                                             
                                             <td className="px-5 py-4 text-center">

@@ -10,18 +10,21 @@ test.describe('Student Enrollment and License E2E Flow', () => {
   const testStudentName = `E2E Test Student ${Date.now()}`;
   let licenseNumber = null;
 
-  test('Admin should be able to create student and approve them to generate license', async ({ page }) => {
-    // 1. Ensure test prerequisites (Center, Session, Subject)
+  test.beforeEach(async ({ page }) => {
+    // 1. Ensure test prerequisites (Session, Subject, Center, District, etc.)
     const util = require('util');
     const exec = util.promisify(require('child_process').exec);
-    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="if(App\\Models\\Session::count()===0) App\\Models\\Session::create(['name'=>'2024-2025','status'=>1]); if(App\\Models\\Subject::count()===0) App\\Models\\Subject::create(['name'=>'E2E Subject','code'=>'E2E101','status'=>1]); if(App\\Models\\Center::count()===0) App\\Models\\Center::create(['name'=>'E2E Center','code'=>'E2E01','email'=>'e2ecenter@bdnsi.com','status'=>1]);"`);
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="if(App\\Models\\Session::count()===0) App\\Models\\Session::create(['name'=>'2024-2025','status'=>1]); if(App\\Models\\Subject::count()===0) App\\Models\\Subject::create(['name'=>'E2E Subject','code'=>'E2E101','status'=>1]); if(App\\Models\\Center::count()===0) App\\Models\\Center::create(['name'=>'E2E Center','code'=>'E2E01','email'=>'e2ecenter@bdnsi.com','status'=>1]); if(App\\Models\\Division::count()===0) App\\Models\\Division::create(['name'=>'E2E Division']); if(App\\Models\\District::count()===0) App\\Models\\District::create(['name'=>'E2E District','division_id'=>App\\Models\\Division::first()->id]); if(App\\Models\\Upazila::count()===0) App\\Models\\Upazila::create(['name'=>'E2E Upazila','district_id'=>App\\Models\\District::first()->id]);"`);
 
-    // 2. Admin logs in
+    // Login as Admin before each test
     await page.goto('./admin/login');
     await page.fill('input[name="email"]', getAdminEmail());
     await page.fill('input[name="password"]', getAdminPassword());
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/.*admin\/dashboard/);
+  });
+
+  test('Admin should be able to create student and approve them to generate license', async ({ page }) => {
     
     // 3. Navigate to Student creation page
     await page.goto('./admin/student/create');
