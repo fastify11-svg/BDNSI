@@ -1,7 +1,7 @@
 # 84H NONSTOP EXECUTION BACKLOG
 
-**Current Cycle:** 3
-**Current Lane:** Lane 1-8 — Full Security + Performance Audit
+**Ledger status:** Archived task detail through Cycle 3. The authoritative current execution/cycle state is `.ai/84H_EXECUTION_STATE.json`.
+**Current Lane in this ledger:** Lane 1-8 — Full Security + Performance Audit
 
 ## Tasks
 
