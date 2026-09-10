@@ -50,12 +50,10 @@ test.describe('Phase L Commission E2E', () => {
                 $admin = \\App\\Models\\Admin::create([
                     'name'           => 'Admin',
                     'email'          => 'admin@gmail.com',
-                    'password'       => bcrypt('password'),
+                    'password'       => bcrypt('12345678'),
                 ]);
                 $adminRole = \\App\\Models\\Role::firstOrCreate(['name' => 'admin']);
                 $admin->syncRoles([$adminRole]);
-            } else {
-                $admin->update(['password' => bcrypt('password')]);
             }
         `);
     });
@@ -174,7 +172,7 @@ test.describe('Phase L Commission E2E', () => {
         await page.context().clearCookies();
         await page.goto('/admin/login');
         await page.fill('input[name="email"]', 'admin@gmail.com');
-        await page.fill('input[name="password"]', 'password');
+        await page.fill('input[name="password"]', '12345678');
         await page.click('button[type="submit"]');
         await page.waitForURL('**/admin/dashboard', { timeout: 25000 });
 

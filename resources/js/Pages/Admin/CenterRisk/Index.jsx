@@ -96,7 +96,7 @@ export default function CenterRiskIndex({ centers = [] }) {
                                             </td>
 
                                             <td className="px-5 py-4 text-right">
-                                                <p className="font-bold text-slate-800">{center.factors.utilization.toFixed(1)}%</p>
+                                                <p className="font-bold text-slate-800">{(center.factors?.utilization || 0).toFixed(1)}%</p>
                                             </td>
                                             
                                             <td className="px-5 py-4 text-right">
@@ -104,7 +104,7 @@ export default function CenterRiskIndex({ centers = [] }) {
                                             </td>
                                             
                                             <td className="px-5 py-4 text-right">
-                                                <p className="font-bold text-slate-800">{center.factors.rejection_rate.toFixed(1)}%</p>
+                                                <p className="font-bold text-slate-800">{(center.factors?.rejection_rate || 0).toFixed(1)}%</p>
                                             </td>
                                             
                                             <td className="px-5 py-4 text-center">

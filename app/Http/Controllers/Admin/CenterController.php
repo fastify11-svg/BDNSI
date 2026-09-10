@@ -92,42 +92,44 @@ class CenterController extends Controller
 
         $statusVal = (int) $validated['status'];
 
-        if ($statusVal === 1 || $statusVal === CenterStatus::Approved->value) {
-            $rawCode = $center->getRawOriginal('code');
-            if (empty($rawCode)) {
-                $maxCode = DB::table('centers')
-                    ->whereNotNull('code')
-                    ->whereRaw("code REGEXP '^[0-9]+$'")
-                    ->max(DB::raw('CAST(code AS UNSIGNED)'));
+        DB::transaction(function () use ($center, $statusVal) {
+            if ($statusVal === 1 || $statusVal === CenterStatus::Approved->value) {
+                $rawCode = $center->getRawOriginal('code');
+                if (empty($rawCode)) {
+                    $maxCode = DB::table('centers')
+                        ->whereNotNull('code')
+                        ->whereRaw("code REGEXP '^[0-9]+$'")
+                        ->max(DB::raw('CAST(code AS UNSIGNED)'));
 
-                $newCode = ($maxCode && $maxCode >= 100000) ? ($maxCode + 1) : 178173;
+                    $newCode = ($maxCode && $maxCode >= 100000) ? ($maxCode + 1) : 178173;
 
-                while (DB::table('centers')->where('code', (string) $newCode)->exists()) {
-                    $newCode++;
+                    while (DB::table('centers')->where('code', (string) $newCode)->exists()) {
+                        $newCode++;
+                    }
+
+                    $center->code = (string) $newCode;
                 }
 
-                $center->code = (string) $newCode;
-            }
+                $center->status = CenterStatus::Approved;
+                $center->save();
 
-            $center->status = CenterStatus::Approved;
-            $center->save();
-
-            $user = User::where('center_id', $center->id)->first();
-            if (! $user) {
-                $defaultPassword = 'password123';
-                User::create([
-                    'username' => $center->code,
-                    'name' => $center->name,
-                    'email' => $center->email,
-                    'phone' => $center->mobile ?? '01711000000',
-                    'center_id' => $center->id,
-                    'password' => Hash::make($defaultPassword),
-                ]);
+                $user = User::where('center_id', $center->id)->first();
+                if (! $user) {
+                    $defaultPassword = 'password123';
+                    User::create([
+                        'username' => $center->code,
+                        'name' => $center->name,
+                        'email' => $center->email,
+                        'phone' => $center->mobile ?? '01711000000',
+                        'center_id' => $center->id,
+                        'password' => Hash::make($defaultPassword),
+                    ]);
+                }
+            } else {
+                $center->status = $statusVal;
+                $center->save();
             }
-        } else {
-            $center->status = $statusVal;
-            $center->save();
-        }
+        });
 
         return redirect()->back()->with('success', 'Center status updated successfully!');
     }

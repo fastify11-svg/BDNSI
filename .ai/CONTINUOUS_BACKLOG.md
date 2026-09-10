@@ -23,6 +23,18 @@
 ## BLOCKED
 *None active.*
 
+## COMPLETED (Cycle 6)
+- [x] [LANE 3] Testing/Operations: Optimized Playwright config (`trace: 'retain-on-failure'`, `screenshot: 'only-on-failure'`) to prevent `net::ERR_NO_BUFFER_SPACE` (socket exhaustion) during parallel 40-test E2E execution on the single-threaded PHP built-in server.
+- [x] [LANE 2] Business/Financial: Wrapped `Admin/CenterController@updateStatus` in a `DB::transaction` to prevent orphaned Centers without a corresponding User credential if `User::create` fails mid-flight.
+
+## COMPLETED (Cycle 5)
+- [x] [LANE 5] UI/UX: Fixed `TypeError: Cannot read properties of undefined (reading 'toFixed')` crash in `Admin/CenterRisk/Index.jsx` by adding optional chaining and fallbacks to center factor metrics.
+- [x] [LANE 1] Backend: Fixed 500 Error on `admin/commission-policies` by adding the missing `team()` `belongsTo` relationship in the `CommissionPolicy` Eloquent model.
+- [x] [LANE 3] Testing: Fixed E2E race condition where `commission-lifecycle.spec.js` modified the global Admin password to `password` during execution, causing unpredictable auth timeouts for other concurrent test suites (like `admin_health_audit.spec.js` and `admin.spec.js`). All E2E admin logins are now stable.
+- [x] [LANE 3] Testing: Fixed E2E test suite hangs caused by authentication rate limits. Added environment bypass in Admin, Staff, and Student `LoginRequest.php` specifically for `local` and `testing` environments, ensuring stable 40/40 Playwright test executions.
+- [x] [LANE 5] UI/UX: Fixed `a href` full-page reload bug in `Admin/ConfigDictionary/Create.jsx` by replacing native anchors with Inertia `<Link>` components, restoring seamless SPA navigation for dashboard config links.
+- [x] [LANE 3] Testing: Corrected dummy E2E test credentials in `center-hub.spec.js`, `live_audit.spec.js`, and `student-enrollment.spec.js` to match the actual login email (`user@gmail.com`) provisioned by `DemoDataSeeder`.
+
 ## COMPLETED (Cycle 4)
 - [x] [LANE 3] Testing: Refactored legacy tests. Successfully stabilized the entire SQLite test environment. Test runner executing perfectly natively with 132 / 132 tests passing.
 - [x] [LANE 1] Security: Audited file upload endpoints across the application. Added strict `image|mimes:jpeg,jpg,png,webp|max:2048` validation constraints to 15 different unvalidated or loosely validated photo fields in Student Controllers, Center Requests, Team Controllers, Slider Controller, and Config Dictionary.

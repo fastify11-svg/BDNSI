@@ -9,8 +9,8 @@ module.exports = defineConfig({
   reporter: process.env.CI ? 'github' : 'html',
   use: {
     baseURL: process.env.APP_URL || 'http://127.0.0.1:8000',
-    trace: 'on',
-    screenshot: 'on',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
     headless: true,
     testIdAttribute: 'data-testid'
   },

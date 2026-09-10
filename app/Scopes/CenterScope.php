@@ -18,8 +18,14 @@ class CenterScope implements Scope
      */
     public function apply(Builder $builder, Model $model)
     {
-        if (auth()->guard('web')->check() && auth()->guard('web')->user()->center_id) {
-            $centerId = auth()->guard('web')->user()->center_id;
+        $guard = auth()->guard('web');
+        if (! $guard->hasUser()) {
+            return;
+        }
+
+        $user = $guard->user();
+        if ($user && $user->center_id) {
+            $centerId = $user->center_id;
 
             if ($this->tableHasColumn($model->getTable(), 'center_id')) {
                 $builder->where($model->getTable().'.center_id', $centerId);

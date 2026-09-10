@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useForm, usePage } from '@inertiajs/inertia-react';
+import { useForm, usePage, Link } from '@inertiajs/inertia-react';
 import AdminLayout from '../../../Layouts/AdminLayout';
 import { getUrl } from '../../../utils/urlHelper';
 
@@ -661,9 +661,9 @@ export default function Create({ settings = {} }) {
                                         </div>
                                     </div>
                                     <div className="mt-5 pt-4 border-t border-slate-100 relative z-10">
-                                        <a href={getUrl('/admin/slider')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
+                                        <Link href={getUrl('/admin/slider')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
                                             Manage Sliders &rsaquo;
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
 
@@ -680,9 +680,9 @@ export default function Create({ settings = {} }) {
                                         </div>
                                     </div>
                                     <div className="mt-5 pt-4 border-t border-slate-100 relative z-10">
-                                        <a href={getUrl('/admin/center')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-emerald-600 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
+                                        <Link href={getUrl('/admin/center')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-emerald-600 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
                                             Manage Centers &rsaquo;
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
 
@@ -699,9 +699,9 @@ export default function Create({ settings = {} }) {
                                         </div>
                                     </div>
                                     <div className="mt-5 pt-4 border-t border-slate-100 relative z-10">
-                                        <a href={getUrl('/admin/youtube-video')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-red-600 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
+                                        <Link href={getUrl('/admin/youtube-video')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-red-600 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
                                             Manage Videos &rsaquo;
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
 
@@ -718,9 +718,9 @@ export default function Create({ settings = {} }) {
                                         </div>
                                     </div>
                                     <div className="mt-5 pt-4 border-t border-slate-100 relative z-10">
-                                        <a href={getUrl('/admin/team')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-purple-600 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
+                                        <Link href={getUrl('/admin/team')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-purple-600 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
                                             Manage Team &rsaquo;
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
 
@@ -737,9 +737,9 @@ export default function Create({ settings = {} }) {
                                         </div>
                                     </div>
                                     <div className="mt-5 pt-4 border-t border-slate-100 relative z-10">
-                                        <a href={getUrl('/admin/sponsor')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-amber-500 group-hover:text-slate-900 text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
+                                        <Link href={getUrl('/admin/sponsor')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-amber-500 group-hover:text-slate-900 text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
                                             Manage Sponsors &rsaquo;
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
 
@@ -756,9 +756,9 @@ export default function Create({ settings = {} }) {
                                         </div>
                                     </div>
                                     <div className="mt-5 pt-4 border-t border-slate-100 relative z-10">
-                                        <a href={getUrl('/admin/whatapp-link')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-green-500 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
+                                        <Link href={getUrl('/admin/whatapp-link')} className="block w-full py-2.5 bg-slate-50 group-hover:bg-green-500 group-hover:text-white text-slate-700 text-xs font-bold rounded-xl text-center transition-colors shadow-sm">
                                             Manage WhatsApp &rsaquo;
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

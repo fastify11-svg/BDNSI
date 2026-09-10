@@ -26,4 +26,9 @@ class CommissionPolicy extends Model
             $model->name = $model->name ?? 'Default Commission';
         });
     }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
+    }
 }
