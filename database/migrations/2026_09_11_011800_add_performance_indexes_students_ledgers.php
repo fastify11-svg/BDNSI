@@ -33,10 +33,19 @@ return new class extends Migration
 
     private function indexExists(string $table, string $indexName): bool
     {
-        return collect(DB::select(
-            "SELECT INDEX_NAME FROM information_schema.STATISTICS 
-             WHERE TABLE_SCHEMA = DATABASE() 
-               AND TABLE_NAME = ? 
+        $connection = DB::connection();
+
+        if ($connection->getDriverName() === 'sqlite') {
+            return collect($connection->select("PRAGMA index_list('{$table}')"))
+                ->contains(function ($index) use ($indexName) {
+                    return ($index->name ?? null) === $indexName;
+                });
+        }
+
+        return collect($connection->select(
+            "SELECT INDEX_NAME FROM information_schema.STATISTICS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = ?
                AND INDEX_NAME = ?",
             [$table, $indexName]
         ))->isNotEmpty();
