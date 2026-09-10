@@ -17,6 +17,14 @@
 - **Lane**: Lane 1 — Security / Auth / RBAC / Tenant Isolation
 - **Priority**: P1
 - **Evidence**: Playwright tests occasionally failed due to logout UI animations; ensure actual server-side token invalidation is strictly enforced independent of the UI.
-- **Affected files**: `app/Http/Controllers/Auth/AuthenticatedSessionController.php`
+- **Affected files**: `routes/auth.php`, `routes/admin.php`, `routes/staff.php`, `routes/student.php`
 - **Targeted tests**: PHPUnit Auth tests
+- **Status**: PASS
+
+### TSK-3: Audit Missing Indexes for Core Queries
+- **Lane**: Lane 4 — Performance / Database
+- **Priority**: P2
+- **Evidence**: Repeated count/aggregate queries on students and results might lack indexes, causing slowdowns on large center databases.
+- **Affected files**: `database/migrations/*`
+- **Targeted tests**: N/A
 - **Status**: DISCOVERED

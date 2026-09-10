@@ -110,6 +110,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->middleware('auth:admin')
         ->name('logout');
 
+    Route::get('/logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->middleware('auth:admin')
+        ->name('logout.fallback');
+
     Route::post('/userCreate', [DashboardController::class, 'userCreate'])
         ->middleware('auth:admin')
         ->name('userCreate');

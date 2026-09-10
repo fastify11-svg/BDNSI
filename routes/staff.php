@@ -31,6 +31,7 @@ Route::prefix('staff')->name('staff.')->group(function () {
     // Authenticated Staff Routes
     Route::middleware('auth:staff')->group(function () {
         Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+        Route::get('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout.fallback');
 
         Route::get('/', [DashboardController::class, 'index']);
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
