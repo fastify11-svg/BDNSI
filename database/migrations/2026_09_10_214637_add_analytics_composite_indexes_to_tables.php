@@ -40,12 +40,21 @@ class AddAnalyticsCompositeIndexesToTables extends Migration
     private function indexExists(string $table, string $indexName): bool
     {
         $connection = Schema::getConnection();
+
+        if ($connection->getDriverName() === 'sqlite') {
+            return collect($connection->select("PRAGMA index_list('{$table}')"))
+                ->contains(function ($index) use ($indexName) {
+                    return ($index->name ?? null) === $indexName;
+                });
+        }
+
         $dbName = $connection->getDatabaseName();
         $result = $connection->select(
             "SELECT COUNT(*) as cnt FROM information_schema.statistics
              WHERE table_schema = ? AND table_name = ? AND index_name = ?",
             [$dbName, $table, $indexName]
         );
-        return $result[0]->cnt > 0;
+
+        return ($result[0]->cnt ?? 0) > 0;
     }
 }
