@@ -15,13 +15,16 @@ class AiDocumentIntelligenceService
         }
 
         // Get file
-        $filePath = storage_path('app/public/' . str_replace('public/', '', $document->file_path));
-        if (!file_exists($filePath)) {
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        $path = str_replace('public/', '', $document->file_path);
+        
+        if (!$disk->exists($path)) {
+            dd('FILE NOT FOUND', $path, $disk->path($path));
             return $this->defaultResponse();
         }
 
-        $base64 = base64_encode(file_get_contents($filePath));
-        $mimeType = mime_content_type($filePath);
+        $base64 = base64_encode($disk->get($path));
+        $mimeType = $disk->mimeType($path);
 
         $apiKey = \App\Models\ConfigDictionary::get('api_settings', [])['gemini_api_key'] ?? config('services.gemini.key');
         if (empty($apiKey)) {
@@ -103,8 +106,10 @@ Extract data and return ONLY a raw JSON object with these keys (no markdown, no 
             }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Gemini Document Intelligence Error: ' . $e->getMessage());
+            dd("Exception caught: " . $e->getMessage());
         }
 
+        dd("Fell through to default. API Key: " . (empty($apiKey) ? "EMPTY" : "EXISTS") . " Response successful: " . (isset($response) ? ($response->successful() ? "YES" : "NO " . $response->status()) : "NO RESPONSE"));
         return $this->defaultResponse();
     }
 

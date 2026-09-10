@@ -70,6 +70,9 @@ class PhaseOAiDocumentIntelligenceTest extends TestCase
             ], 200)
         ]);
 
+        // Mock config so the service doesn't bail out
+        config(['services.gemini.key' => 'fake-api-key']);
+
         // Actually run the service
         $aiService = new \App\Services\AiDocumentIntelligenceService();
         $result = $aiService->analyzeDocument($document);
