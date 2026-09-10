@@ -6,6 +6,11 @@ test.describe('Staff Portal E2E Tests', () => {
   const getStaffPassword = () => process.env.STAFF_PASSWORD || '12345678';
 
   test.beforeEach(async ({ page }) => {
+    // 1. Ensure test prerequisites (Team / Staff user)
+    const util = require('util');
+    const exec = util.promisify(require('child_process').exec);
+    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="if(App\\Models\\Team::where('login', 'staff@gmail.com')->count()===0) App\\Models\\Team::create(['name'=>'E2E Staff Agent','login'=>'staff@gmail.com','password'=>Illuminate\\Support\\Facades\\Hash::make('12345678'),'status'=>1]);"`);
+
     // Login as a Staff user before each test
     await page.goto('./staff/login');
     await page.fill('input[type="text"]', getStaffEmail());
