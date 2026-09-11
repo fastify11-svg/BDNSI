@@ -6,7 +6,7 @@
 ## CI Status
 - GitHub Actions: **CI-only** (no production SSH deployment)
 - Canonical CI database: **MySQL 8.0**
-- Latest verified application/CI head before metadata reconciliation: commit `265d060c8b4e844020b91203567e4afcce31d40c`, GitHub Actions Run **#140 — SUCCESS**
+- Latest verified application/CI head before metadata reconciliation: commit `1d5aeaae28528c49493f85271ef35a691c2c89ab`, GitHub Actions Run **#144 — SUCCESS**
 - MySQL driver assertion: PASS
 - Database migrate:fresh + seed: PASS
 - PHP Regression: PASS
@@ -31,10 +31,10 @@ PHASE_A through PHASE_U — all complete.
 
 ## Current Post-Closure State
 - Round 2 live-acceptance repair baseline is deployed at commit `2e24c1ddbdaa0d23af9291b272a53539d2466d84`.
-- Additional live-acceptance hotfixes through commit `265d060c8b4e844020b91203567e4afcce31d40c` are CI-green but are **not recorded as deployed**.
+- Additional live-acceptance/E2E hotfixes through commit `1d5aeaae28528c49493f85271ef35a691c2c89ab` are CI-green but are **not recorded as deployed**.
 - Completed roadmap work has not been reopened.
 - Final independent hands-on live browser re-acceptance remains required before any `PRODUCTION READY` declaration.
 
 ## Pending
-1. Deploy the CI-green hotfix head only through Antigravity direct SSH to `nenobet.live`.
+1. Deploy the latest CI-green application head only through Antigravity direct SSH to `nenobet.live`.
 2. Run independent post-deployment browser acceptance on `nenobet.live`.
