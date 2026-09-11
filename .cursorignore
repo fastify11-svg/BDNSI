@@ -20,9 +20,23 @@ storage/logs/
 storage/framework/cache/
 storage/framework/sessions/
 storage/framework/views/
+storage/app/backups/
 bootstrap/cache/*.php
+*.log
+.phpunit.result.cache
 
-# Databases/backups
+# Legacy Antigravity workspace/history
+# Active Cursor controls live under .cursor/. Historical files remain in Git history/repo
+# but should not consume normal Cursor indexing/context.
+.agents/
+
+# Generated AI/runtime noise if present
+.ai/**/logs/
+.ai/**/screenshots/
+.ai/**/artifacts/
+.ai/**/tmp/
+
+# Databases/backups/archives
 *.sql
 *.sqlite
 *.sqlite3
