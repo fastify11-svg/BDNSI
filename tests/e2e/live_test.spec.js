@@ -22,6 +22,7 @@ test.describe('Live Acceptance Verification', () => {
         await page.goto('/admin/center/create');
         await page.fill('input[placeholder="Full Institute Name"]', 'Live Center B');
         await page.fill('input[placeholder="Director or Owner Name"]', 'Director B');
+        await page.fill('input[placeholder="Father\'s name"]', 'Father B');
         await page.fill('input[placeholder="01700000000"]', '01711223344');
         await page.fill('input[placeholder="center@gmail.com"]', dynamicEmail);
         await page.fill('input[placeholder="House, Road, Area, Market/Building Name"]', 'Demo Address 123');
