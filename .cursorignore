@@ -26,15 +26,13 @@ bootstrap/cache/*.php
 .phpunit.result.cache
 
 # Legacy Antigravity workspace/history
-# Active Cursor controls live under .cursor/. Historical files remain in Git history/repo
-# but should not consume normal Cursor indexing/context.
+# Active Cursor controls live under .cursor/. Historical files remain recoverable in Git.
 .agents/
 
-# Generated AI/runtime noise if present
-.ai/**/logs/
-.ai/**/screenshots/
-.ai/**/artifacts/
-.ai/**/tmp/
+# Historical AI-agent state is noisy and often stale. Keep only the canonical handoff state
+# in normal Cursor indexing; use Git/history explicitly if older evidence is genuinely needed.
+.ai/*
+!.ai/PROJECT_STATE.md
 
 # Databases/backups/archives
 *.sql
