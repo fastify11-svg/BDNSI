@@ -10,8 +10,8 @@ test.describe('Live Acceptance Verification', () => {
         const dynamicEmail = `centerb_${randomStr}@bdnsi.com`;
 
         // 1. Admin logs in
-        await page.goto('/login');
-        await page.fill('input[name="email"]', 'admin@gmail.com');
+        await page.goto('/admin/login');
+        await page.fill('input[type="email"]', 'admin@gmail.com');
         await page.fill('input[type="password"]', '12345678');
         await page.click('button[type="submit"]');
         await page.waitForURL('/admin/dashboard');
@@ -41,6 +41,10 @@ test.describe('Live Acceptance Verification', () => {
         await page.waitForTimeout(500);
         console.log('Upazila selected...');
         
+        // Files
+        await page.locator('input[type="file"]').nth(0).setInputFiles('public/blueverify.png');
+        await page.locator('input[type="file"]').nth(1).setInputFiles('public/blueverify.png');
+        
         console.log('Submitting Center form...');
         await page.click('button[type="submit"]');
 
@@ -60,7 +64,7 @@ test.describe('Live Acceptance Verification', () => {
         console.log('Logging in as Center B...');
         await page.context().clearCookies();
         await page.goto('/login');
-        await page.fill('input[name="email"]', 'centerb4@bdnsi.com');
+        await page.fill('input[name="email"]', dynamicEmail);
         await page.fill('input[type="password"]', 'password123');
         await page.click('button[type="submit"]');
         try {
