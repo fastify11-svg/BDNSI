@@ -13,14 +13,7 @@ class MakeSessionDatesNullableOnLive extends Migration
      */
     public function up(): void
     {
-        Schema::table('sessions', function (Blueprint $table) {
-            if (Schema::hasColumn('sessions', 'start_date')) {
-                $table->date('start_date')->nullable()->change();
-            }
-            if (Schema::hasColumn('sessions', 'end_date')) {
-                $table->date('end_date')->nullable()->change();
-            }
-        });
+        \Illuminate\Support\Facades\DB::statement('ALTER TABLE sessions MODIFY start_date DATE NULL, MODIFY end_date DATE NULL');
     }
 
     /**
