@@ -9,7 +9,7 @@
 
 ## Important handoff fact
 
-This is a mature existing system, not a new build. Historical `.ai/PROJECT_STATE.md` records a previously CI-green/deployed baseline and final-live-acceptance work, but it also contains Antigravity-era branch/deployment wording. Treat it as historical evidence, not an instruction to restore Antigravity. Current source, tests, CI and this Cursor control layer determine present execution.
+This is a mature existing system, not a new build. Historical `.ai/PROJECT_STATE.md` records a previously CI-green/deployed baseline and final-live-acceptance work. Treat old implementation/runtime reports as historical evidence, while preserving the owner's current deployment contract: GitHub Actions is CI-only and deployment remains `ANTIGRAVITY_DIRECT_SSH -> nenobet.live`. Current source, tests, CI and this Cursor control layer determine development execution; Cursor must not replace the approved deployment path with GitHub-based SSH or another deployment mechanism.
 
 `MASTER_IMPLEMENTATION_ROADMAP.md` remains the single business/implementation roadmap. Do not create a competing roadmap.
 
@@ -60,5 +60,7 @@ This structure is intentionally progressive so detailed instructions load only w
 ## Release boundary
 
 Routine safe development and branch commits may proceed without repeated approval. Explicit owner approval is required before production deployment, destructive production-data/schema actions, unavailable credential changes, unresolved business-policy changes, destructive history rewrite, major platform migration, or irreversible infrastructure changes.
+
+Deployment contract: GitHub Actions remains CI-only. Never add or restore GitHub-based SSH deployment. Release deployment must be handed off to Antigravity and performed only as `ANTIGRAVITY_DIRECT_SSH -> nenobet.live` unless the owner explicitly changes this policy.
 
 Keep the existing Cursor PR as draft until release gates pass. Do not call the project finished until the exact release candidate has passed required tests/CI, the exact approved SHA is deployed, and independent live acceptance passes with safe `DEMO-UAT` data.
