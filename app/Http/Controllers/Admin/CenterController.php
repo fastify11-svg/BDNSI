@@ -172,6 +172,20 @@ class CenterController extends Controller
     public function store(CenterStoreRequest $request)
     {
         $center = $request->store(CenterStatus::Approved);
+
+        $user = User::where('center_id', $center->id)->first();
+        if (! $user) {
+            $defaultPassword = 'password123';
+            User::create([
+                'username' => $center->code,
+                'name' => $center->name,
+                'email' => $center->email,
+                'phone' => $center->mobile ?? '01711000000',
+                'center_id' => $center->id,
+                'password' => Hash::make($defaultPassword),
+            ]);
+        }
+
         if ($request->header('X-Inertia')) {
             return redirect()->route('admin.center.index')->with('success', 'Center Created successfully');
         }
