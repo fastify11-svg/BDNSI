@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class MakeSessionDatesNullableOnLive extends Migration
@@ -9,11 +9,19 @@ class MakeSessionDatesNullableOnLive extends Migration
     /**
      * Run the migrations.
      *
-     * @return void
+     * This is a compatibility migration for live databases that may still
+     * contain the legacy start_date/end_date columns. Fresh installations
+     * where those columns were already removed must remain a no-op.
      */
     public function up(): void
     {
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE sessions MODIFY start_date DATE NULL, MODIFY end_date DATE NULL');
+        if (Schema::hasColumn('sessions', 'start_date')) {
+            DB::statement('ALTER TABLE sessions MODIFY start_date DATE NULL');
+        }
+
+        if (Schema::hasColumn('sessions', 'end_date')) {
+            DB::statement('ALTER TABLE sessions MODIFY end_date DATE NULL');
+        }
     }
 
     /**
@@ -21,7 +29,7 @@ class MakeSessionDatesNullableOnLive extends Migration
      */
     public function down(): void
     {
-        // We cannot reliably determine the previous state (NOT NULL vs NULL), 
-        // and we want this to be a forward-only fix.
+        // Forward-only compatibility fix: previous nullability cannot be
+        // determined safely across heterogeneous existing environments.
     }
 }
