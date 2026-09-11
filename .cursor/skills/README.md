@@ -22,15 +22,40 @@ These repo-level skills are intentionally split by workflow so Cursor can use pr
 | `documentation-drift-control` | Keep canonical docs factual without duplicate report generation. |
 | `legacy-artifact-cleanup` | Remove obsolete generated/Antigravity artifacts safely. |
 
+## Focused subagents
+
+Only two custom subagents are kept because unnecessary parallel agents multiply token/compute usage.
+
+| Subagent | Use when |
+|---|---|
+| `verifier` | After meaningful implementation or before marking a task complete; independently prove the smallest required behavior. |
+| `debugger` | A concrete runtime/test/build/CI failure exists; isolate one root cause and converge with a minimal fix. |
+
+Use Cursor's built-in Explore subagent for large unfamiliar codebase searches instead of creating another custom explorer. Do not spawn multiple subagents for simple tasks; each subagent has its own context and usage cost.
+
 ## Usage philosophy
 
 The normal task path is:
 
-`roadmap-gatekeeper -> relevant domain skill -> test-budget-optimizer -> documentation only if state changed`
+`roadmap-gatekeeper -> relevant domain skill -> test-budget-optimizer -> verifier when completion evidence matters -> documentation only if state changed`
 
-Use `release-readiness` only when approaching merge/deploy/live acceptance. For broad unfamiliar tasks, use `cost-aware-codebase-navigation` first.
+For a concrete failure:
+
+`debugger -> targeted failing check -> smallest fix -> targeted re-run -> verifier only if risk justifies independent confirmation`
+
+Use `release-readiness` only when approaching merge/deploy/live acceptance. For broad unfamiliar tasks, use `cost-aware-codebase-navigation` and Cursor's built-in Explore capability first.
 
 Do not load every skill into every prompt. Their descriptions and optional `paths` scopes exist specifically to keep unrelated instructions out of context.
+
+## Credit / usage discipline
+
+- Search exact symbols, routes, tests and errors before opening whole directories.
+- Reuse current CI evidence for an unchanged commit instead of locally repeating the same full suite without reason.
+- Run targeted tests first; full PHP/build/Playwright regression belongs at risk/release gates.
+- Do not repeat failed CI without a material change or new diagnostic evidence.
+- Do not create duplicate plans/reports when an existing canonical file can be updated.
+- Stop once the requested behavior is proven and no relevant blocker remains.
+- Prefer one main agent for small tasks. Use subagents only when context isolation or independent verification is worth their extra token cost.
 
 ## Why no high-frequency hooks
 
