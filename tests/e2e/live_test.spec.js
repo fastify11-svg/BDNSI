@@ -23,8 +23,11 @@ test.describe('Live Acceptance Verification', () => {
         await page.fill('input[placeholder="Full Institute Name"]', 'Live Center B');
         await page.fill('input[placeholder="Director or Owner Name"]', 'Director B');
         await page.fill('input[placeholder="Father\'s name"]', 'Father B');
-        await page.fill('input[placeholder="01700000000"]', '01711223344');
-        await page.fill('input[placeholder="center@gmail.com"]', dynamicEmail);
+        
+        const dynamicPhone = `017${Math.floor(10000000 + Math.random() * 90000000)}`;
+        await page.fill('input[placeholder="01700000000"]', dynamicPhone);
+        
+        await page.fill('input[name="email"]', dynamicEmail);
         await page.fill('input[placeholder="House, Road, Area, Market/Building Name"]', 'Demo Address 123');
         
         console.log('Filled text inputs...');
@@ -47,7 +50,21 @@ test.describe('Live Acceptance Verification', () => {
         await page.locator('input[type="file"]').nth(1).setInputFiles('public/blueverify.png');
         
         console.log('Submitting Center form...');
-        await page.click('button[type="submit"]');
+        
+        const [response] = await Promise.all([
+            page.waitForResponse(res => res.url().includes('/admin/center') && res.request().method() === 'POST', { timeout: 15000 }).catch(() => null),
+            page.click('button[type="submit"]')
+        ]);
+
+        if (response) {
+            console.log('POST /admin/center Response Status:', response.status());
+            try {
+                const body = await response.text();
+                console.log('POST /admin/center Response Body preview:', body.substring(0, 300));
+            } catch(e) {}
+        } else {
+            console.log('No response received for POST /admin/center within 15s');
+        }
 
         try {
             await page.waitForURL('/admin/center', { timeout: 15000 });
