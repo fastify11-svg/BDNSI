@@ -1,253 +1,197 @@
 # BDNSI — CURSOR 48H FINAL COMPLETION MASTER PROMPT
 
-You are taking over an EXISTING mature BDNSI Laravel project from Google Antigravity. Finish it quickly and safely in Cursor. Do not treat it as a new project and do not restart completed roadmap phases without evidence.
+Take over the EXISTING mature BDNSI Laravel project and finish only what is genuinely remaining. Do not rebuild completed phases, redesign working modules, or spend usage on speculative modernization.
 
 ## Repository / branch
 - Repository: `fastify11-svg/BDNSI`
-- Working branch: `cursor-development`
+- Work only on: `cursor-development`
 - Keep `main` unchanged until release gates pass.
-- Safety copy: `fastify11-svg/BDNSI-Cursor` — leave untouched as a handoff backup.
-- Live/test target recorded by the project: `https://nenobet.live`
+- Safety copy: `fastify11-svg/BDNSI-Cursor` — leave untouched.
+- Recorded live/test target: `https://nenobet.live`
+
+## Read first
+1. `AGENTS.md`
+2. `.cursor/rules/bdnsi-core.mdc`
+3. `.cursor/skills/README.md`
+4. `.ai/PROJECT_STATE.md`
+5. `CURSOR_HANDOFF_AUDIT.md`
+6. `CURSOR_EXECUTION_STATUS.md`
+7. `.github/workflows/autonomous.yml`
+8. `composer.json`, `package.json`, PHPUnit/Playwright config
+
+Historical Antigravity reports are evidence only. Current source + current tests + current CI + current live evidence outrank old reports.
 
 ## Standing owner authorization
-Proceed autonomously on routine, safe, reversible engineering. Do not repeatedly ask for ordinary technical choices, file edits, tests, commits, or safe fixes.
+Proceed autonomously with safe, reversible engineering: inspect/edit code and tests, run targeted/full tests when justified, commit/push to `cursor-development`, inspect/repair CI, and update canonical status evidence.
 
-You MAY autonomously:
-- inspect all code/docs/history/config;
-- edit code/tests/docs on `cursor-development`;
-- run disposable-db migrations/seeds;
-- run PHP tests, frontend builds, Playwright/E2E, lint/static/security checks;
-- create focused commits and push to `cursor-development`;
-- inspect CI and repair failures;
-- update audit/status/evidence reports;
-- continue with other safe work if one independent task is blocked.
-
-STOP for owner approval only before:
-- destructive/irreversible operations on real production/business data;
+Ask the owner only before:
+- destructive/irreversible production-data operations;
 - production `migrate:fresh`, `db:wipe`, DROP or destructive reset/seed;
-- exposing/rotating/replacing unavailable credentials or secrets;
-- changing unresolved business policy (pricing/accounting/credit/result/certificate authority);
-- destructive history rewriting;
+- exposing/rotating/replacing unavailable credentials/secrets;
+- changing unresolved pricing/accounting/credit/result/certificate policy;
+- destructive Git history rewriting;
 - major framework/platform migration;
-- irreversible infrastructure changes.
+- irreversible infrastructure change.
 
-## Handoff baseline — VERIFY, DO NOT BLINDLY TRUST
-At handoff, `.ai/PROJECT_STATE.md` reports:
-- `ROADMAP_COMPLETE | CI_VERIFIED | DEPLOYED_BASELINE | FINAL_LIVE_ACCEPTANCE_PENDING`;
-- canonical DB: MySQL 8.0;
-- latest verified application/CI head: `1c4fd22547c5327236e8e4c2dbd4395fa2a8640e`;
-- GitHub Actions Run #147 SUCCESS;
-- PHP regression PASS;
-- frontend build PASS;
-- Playwright smoke/E2E PASS;
+Do not ask for routine technical choices when the repository provides a safe answer.
+
+## Usage / credit budget — mandatory
+Optimize for the fewest useful model calls, file reads, test runs and CI reruns while preserving correctness.
+
+1. Run `roadmap-gatekeeper` before broad implementation. Classify work as `VERIFIED_COMPLETE`, `REGRESSION`, `VERIFIED_GAP`, `UNVERIFIED`, or `NEW_REQUIREMENT`.
+2. Search exact routes/classes/methods/tests/error text before browsing folders.
+3. Use `cost-aware-codebase-navigation` for unfamiliar cross-cutting work; use Cursor's built-in Explore subagent only when context isolation is genuinely useful.
+4. Load only the domain skill needed for the current task.
+5. Use the main agent for simple work. Custom `debugger` and `verifier` subagents are for concrete failures or independent completion verification; do not spawn parallel agents casually because each has separate usage cost.
+6. Run the smallest relevant test first. Full PHP + frontend build + Playwright belongs at high-risk/release gates, not after every edit.
+7. Reuse valid CI evidence for the exact unchanged commit. Never rerun an identical expensive pipeline just to reconfirm it.
+8. If CI fails, inspect the first root failure; make a material fix before rerunning.
+9. Do not repeatedly reread unchanged files/logs. Keep a compact working set.
+10. Update existing canonical audit/status files instead of creating duplicate reports.
+11. Avoid dependency/framework upgrade churn unless a verified blocker/security issue requires it.
+12. Stop when the requested behavior is proven and the next remaining action is clear. Do not hunt hypothetical P3 work while release blockers exist.
+
+## Handoff baseline — verify, do not blindly trust
+`.ai/PROJECT_STATE.md` records:
 - phases A-U complete;
-- recorded deployed baseline: `2e24c1ddbdaa0d23af9291b272a53539d2466d84`;
-- newer hotfixes are CI-green but not recorded as deployed;
-- final independent live browser re-acceptance remains pending.
+- MySQL 8.0 canonical;
+- historical CI-green application head `1c4fd22547c5327236e8e4c2dbd4395fa2a8640e` / Run #147;
+- recorded deployed baseline `2e24c1ddbdaa0d23af9291b272a53539d2466d84`;
+- final independent live acceptance pending.
 
-The pre-Cursor handoff metadata head is `696ddab326ea7720f02a6dee88c81b309a99ac54`.
-Historical files may contain older/conflicting snapshots. Resolve conflicts from real code, current CI, and current live evidence.
+The Cursor control layer and skills have since advanced on `cursor-development`. Use current branch/CI evidence, not the historical SHA, for new conclusions.
 
-## Phase 0 — forensic handoff audit
-Before broad feature development, inspect:
-- git branch/status/log;
-- `.ai/PROJECT_STATE.md` and current state/evidence files;
-- `composer.json`, lockfile, `package.json`, lockfile;
-- `.github/workflows/autonomous.yml`;
-- PHPUnit/Playwright config and suites;
-- routes, middleware, policies/guards;
-- migrations/models/services/controllers;
-- admin/staff/center/student flows;
-- payment/order/ledger/credit modules;
-- result/certificate/document authorization;
-- CRM lead/center/sales/commission modules;
-- `deploy_to_production.mjs`, backup and rollback mechanics;
-- committed secrets or dangerous debug/destructive routes.
+## Execution loop
 
-Update `CURSOR_HANDOFF_AUDIT.md` with:
-1. Verified current facts
-2. Documentation conflicts/stale claims
-3. Current environment/toolchain
-4. CI/test baseline
-5. Security/RBAC/tenant findings
-6. Finance/payment/credit findings
-7. Business-flow findings
-8. Deployment/rollback findings
-9. Verified defects only
-10. Unverified items
-11. Prioritized queue P0/P1/P2/P3
-12. Evidence/commands/SHAs
+### 0. Delta-first audit
+Do not rescan the whole repository by default.
 
-Do not redesign completed modules during audit.
+First determine:
+- current branch/head and diff vs `main`;
+- current CI status for the exact head;
+- what `CURSOR_HANDOFF_AUDIT.md` already proves;
+- what `CURSOR_EXECUTION_STATUS.md` still marks unverified;
+- whether the requested/remaining item already exists in source/tests.
 
-## Phase 1 — reproduce CI environment
-Target:
-- PHP 8.2 with required Laravel extensions
-- Composer from lockfile
-- MySQL 8.0
+Only inspect the domain slices necessary to resolve uncertainty. Update `CURSOR_HANDOFF_AUDIT.md` with verified facts, stale/conflicting claims, verified gaps and evidence. Keep assumptions separate.
+
+### 1. Verification ladder
+Use this ladder; stop at the lowest level that gives sufficient evidence for ordinary work:
+
+1. syntax/static/local focused check;
+2. targeted PHPUnit test(s) or Playwright spec(s);
+3. affected-domain regression;
+4. full `php artisan test`;
+5. `npm run build`;
+6. release-critical Playwright Chromium suite;
+7. CI for the exact commit;
+8. live acceptance only after deployment.
+
+Escalate faster for schema, finance, auth/RBAC, tenant isolation, document access, result/certificate policy or release changes.
+
+Canonical environment when full parity is required:
+- PHP 8.2
+- MySQL 8.0 disposable test DB
 - Node 22
 - npm `--legacy-peer-deps`
 - Playwright Chromium
 
-For disposable test DB only, mirror `.github/workflows/autonomous.yml`. Never point destructive test commands at live DB.
+Never make SQLite authoritative and never point destructive test commands at production/shared valuable data.
 
-Run gates:
-1. Composer install/package discovery
-2. MySQL driver assertion
-3. disposable `php artisan migrate:fresh --seed --force`
-4. full `php artisan test`
-5. `npm install --legacy-peer-deps`
-6. `npm run build`
-7. Playwright Chromium release-critical suites
-8. route/security sanity checks
+### 2. Release-critical domains
+Verify/fix only evidence-backed gaps in these priority areas:
 
-Record exact outcomes in `CURSOR_EXECUTION_STATUS.md`.
+**Identity / RBAC / tenant** — admin/staff/center/student auth, sub-admin permissions, CenterScope, IDOR and cross-center isolation.
 
-## Phase 2 — release-critical functional audit
-Verify code + tests for:
+**Registration / documents** — center-driven student registration, optional payment behavior, ID/Registration/Admit Card access, approval/SMS, protected downloads.
 
-### Identity/RBAC/Tenant
-- Admin login/logout/reset
-- Staff login/reset/permissions
-- Center login and center-scoped authorization
-- Student access
-- sub-admin restrictions
-- IDOR resistance
-- cross-center isolation for students/orders/financial records/leads/documents
+**Finance** — default/center pricing, orders/items, SSLCommerz/IPN verification + idempotency, transactions, ledger, due, credit, partial payment, no client-trusted money/Center IDs.
 
-### Center/student lifecycle
-- Center provisioning
-- student registration
-- optional pay-during-registration behavior
-- ID/Registration/Admit Card access
-- approval/SMS dispatch
-- download authorization
+**Academic** — result lifecycle, certificate gating, payment/credit access rules, secure certificate/document access, public verification privacy.
 
-### Finance
-- default + center pricing
-- order/item totals
-- SSLCommerz/IPN validation/idempotency
-- payment confirmation
-- ledger debit/credit
-- current due
-- credit limit
-- partial/paid/pending states
-- no client-supplied money/center trust
+**CRM / commission** — leads, lead→Center conversion, pricing linkage, sale/order linkage, commissions, authorization and collection semantics.
 
-### Academic access
-- result release
-- certificate release
-- payment/credit gating
-- public verification privacy
+Use the relevant `.cursor/skills/*/SKILL.md`; do not reopen an entire phase when one slice is enough.
 
-### CRM/commission
-- lead access
-- lead -> Center conversion
-- pricing linkage
-- sale/order linkage
-- commission calculation/authorization
-- collection/commission semantics
+### 3. Fix verified gaps only
+For each real defect:
+1. identify severity P0/P1/P2/P3;
+2. capture minimal reproduction/evidence;
+3. make the smallest safe change;
+4. add/retain a meaningful focused test;
+5. run the targeted test first;
+6. expand regression only according to risk;
+7. review tenant/security/finance side effects where applicable;
+8. commit atomically to `cursor-development`;
+9. update `CURSOR_EXECUTION_STATUS.md` only with evidence-backed status.
 
-## Phase 3 — fix verified gaps only
-For each defect:
-1. stable ID + P0/P1/P2/P3;
-2. reproduction/evidence;
-3. smallest safe fix;
-4. focused test;
-5. focused test run;
-6. affected regression;
-7. tenant/security/finance side-effect review;
-8. atomic commit to `cursor-development`;
-9. update status.
+Never delete meaningful tests, bypass authorization, weaken financial validation, or change business policy merely to obtain green tests.
 
-Never disable security or delete meaningful tests just to turn CI green.
-
-## Phase 4 — release regression
-After P0/P1 cleared, run:
+### 4. Release gate
+When no known P0/P1 blocker remains, run the release-level gates once for the candidate SHA:
 - full PHP suite;
 - production frontend build;
-- relevant lint/static checks;
-- release-critical Playwright suite;
-- MySQL parity check;
-- security/route/debug exposure review;
+- release-critical Playwright;
+- MySQL parity/migration safety;
+- route/debug/security exposure review;
+- tenant/RBAC review;
 - financial invariant review;
-- upload/private-document review;
-- queue/scheduler health review;
-- dependency advisory review focused on exploitable high/critical issues.
+- private document/upload access review;
+- relevant dependency advisory review.
 
-Target: zero known P0/P1 blockers.
+Use the independent `verifier` subagent at this gate to challenge the evidence without rewriting working code.
 
-## Phase 5 — merge/release preparation
-Do NOT develop directly on main.
-When `cursor-development` is green:
-1. compare `cursor-development` with `main`;
-2. make sure only intended changes exist;
-3. ensure CI passes on the branch/PR;
-4. merge only after all release gates pass;
-5. record exact merged `main` SHA;
-6. preserve rollback SHA and DB/upload backup readiness.
+### 5. Merge / deploy gate
+Do not develop on `main`.
 
-Historical deployment scripts already pull the original `BDNSI` repository. Keep that architecture unless audit proves a safer necessary change. Never commit `.env`, SSH keys, or secrets. Do not reintroduce GitHub Actions production SSH unless explicitly authorized.
+Before merge:
+- compare `cursor-development` vs `main`;
+- verify only intended changes;
+- require green CI for the exact candidate head;
+- keep the existing PR draft until release evidence is sufficient.
 
-## Phase 6 — controlled deployment
-Only after merged `main` is verified:
-- record current deployed SHA;
-- verify rollback/backup readiness;
-- review forward migrations;
-- no live `migrate:fresh`/wipe/drop;
-- deploy exact verified merged SHA;
-- verify remote `git rev-parse HEAD` equals intended SHA.
+Do not merge or deploy merely because old reports said the roadmap was complete.
 
-If secure credentials are unavailable, mark `BLOCKED_CREDENTIAL` with exact required secret names and continue all other safe tasks. Ask the owner only at that genuine credential gate.
+Before production deployment, owner approval is required at the genuine release gate. Preserve rollback SHA and database/upload backup readiness. Deploy the exact verified merged SHA; never use live `migrate:fresh`/wipe/drop. If required credentials are unavailable, record `BLOCKED_CREDENTIAL` with only the required secret names and continue other safe work.
 
-## Phase 7 — independent live acceptance
-Against `https://nenobet.live`, use only clearly labeled disposable DEMO/UAT records for mutations; do not alter legitimate business records.
+### 6. Independent live acceptance
+After exact-SHA deployment to `https://nenobet.live`, use only clearly labeled disposable DEMO/UAT records for mutations. Do not alter legitimate business records.
 
-Verify at minimum:
-- public/home routes
-- Admin auth
-- Center A and Center B independently
-- center isolation
-- Staff auth/permissions
-- student registration
-- registration/admit/ID docs
-- paid center flow
-- credit/due flow
-- order/payment/ledger state
-- result/certificate gating
-- public result/certificate verification
-- lead -> center -> sale -> commission
-- logout/session boundaries
-- responsive/basic browser sanity
+Record `FA-01`, `FA-02`, ... for the minimum critical journeys:
+- public routes;
+- Admin auth;
+- two independent Centers + isolation;
+- Staff auth/permissions;
+- student registration + registration/admit/ID documents;
+- paid flow;
+- credit/due flow;
+- order/payment/ledger;
+- result/certificate gating;
+- public verification;
+- lead→Center→sale→commission;
+- logout/session boundaries;
+- basic responsive/browser sanity.
 
-Use final acceptance IDs `FA-01`, `FA-02`, ... Do not recycle unrelated historical defect IDs.
-For each check record action, expected, actual, PASS/FAIL/BLOCKED, and evidence.
-
-If a live defect appears: reproduce -> fix on `cursor-development` -> test -> CI -> merge -> deploy exact SHA -> retest -> regression smoke.
+For a live defect: reproduce → minimal fix on `cursor-development` → targeted test → required regression/CI → merge gate → deploy exact SHA → retest.
 
 ## Final completion gate
-Do NOT declare PRODUCTION READY until all are true:
-- audit reconciled;
-- full PHP tests pass;
-- frontend build passes;
-- release-critical Playwright passes;
-- MySQL 8 is canonical;
-- no known P0/P1 security/tenant/finance/certificate/data-integrity blocker remains;
-- exact verified `main` SHA is deployed;
-- rollback state is documented;
-- independent live acceptance passes.
+Do not declare `PRODUCTION READY` until all are proven for the final exact SHA:
+- no known P0/P1 blocker;
+- full PHP suite PASS;
+- frontend build PASS;
+- release-critical Playwright PASS;
+- MySQL 8 canonical/parity PASS;
+- tenant/RBAC/finance/document/certificate critical controls PASS;
+- exact verified `main` SHA deployed;
+- rollback state recorded;
+- independent live acceptance PASS.
 
-Create `CURSOR_FINAL_ACCEPTANCE_REPORT.md` containing final repo/branch/SHA, deployed SHA, CI/test/build/E2E evidence, FA results, fixed defects, unresolved non-blockers, security/tenant/finance summary, deployment/rollback summary, and final verdict `PRODUCTION READY` or `NOT PRODUCTION READY` with exact blockers.
+Update/create only the canonical final report `CURSOR_FINAL_ACCEPTANCE_REPORT.md` with exact repo/branch/SHA, CI/test/build/E2E evidence, FA results, fixed defects, unresolved non-blockers, security/tenant/finance summary, deployment/rollback evidence, and final verdict.
 
-## Continuous execution behavior
-Do not return only a plan. Execute.
-Do not wait for repeated `continue` prompts.
-Do not stop because one safe independent task is blocked.
-Do not spend time polishing P3 while P0/P1 exists.
-Do not recreate old phases unless evidence proves a regression/gap.
-Do not claim success from historical reports.
+## Continuous behavior
+Do not return only a plan. Execute safe work continuously until a genuine owner-only gate is reached.
 
-Execution loop:
-AUDIT -> ENVIRONMENT -> BASELINE TEST -> PRIORITIZE -> FIX -> TARGETED TEST -> REGRESSION -> SECURITY/TENANT/FINANCE REVIEW -> COMMIT -> CI -> MERGE GATE -> CONTROLLED DEPLOY -> LIVE ACCEPTANCE -> FINAL REPORT.
+Default path:
+`CLASSIFY -> NARROW SEARCH -> VERIFY GAP -> MINIMAL FIX -> TARGETED TEST -> RISK-BASED REGRESSION -> COMMIT -> CI WHEN JUSTIFIED -> RELEASE GATE -> OWNER DEPLOY APPROVAL -> LIVE ACCEPTANCE -> FINAL REPORT`
 
-Start now with Phase 0, update `CURSOR_HANDOFF_AUDIT.md`, then continue automatically unless a genuine owner-only gate is reached.
+Start from current `cursor-development` state, not from old phase documents.
