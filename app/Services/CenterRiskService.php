@@ -115,13 +115,14 @@ class CenterRiskService
             ->pluck('cnt', 'center_id');
 
         // Batch Query 2: Document approval stats per center (single query)
-        $docRows = StudentDocument::whereIn('center_id', $centerIds)
+        $docRows = StudentDocument::join('students', 'student_documents.student_id', '=', 'students.id')
+            ->whereIn('students.center_id', $centerIds)
             ->select(
-                'center_id',
-                DB::raw('COUNT(*) as total'),
-                DB::raw("SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejected")
+                'students.center_id',
+                DB::raw('COUNT(student_documents.id) as total'),
+                DB::raw("SUM(CASE WHEN student_documents.status = 'Rejected' THEN 1 ELSE 0 END) as rejected")
             )
-            ->groupBy('center_id')
+            ->groupBy('students.center_id')
             ->get()
             ->keyBy('center_id');
 

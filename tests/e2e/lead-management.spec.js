@@ -15,11 +15,25 @@ test.describe('Lead Management E2E', () => {
   });
 
   test('Create Lead, Negotiate and Convert', async ({ page }) => {
-    // Create lead via tinker to bypass UI flakiness but include CSRF
-    const util = require('util');
-    const exec = util.promisify(require('child_process').exec);
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('pageerror', exception => console.log('PAGE ERROR:', exception));
+    
+    await page.goto('./admin/leads');
+    await expect(page).toHaveURL(/.*admin\/leads/);
+    
+    // Test LIVE-010 Input Persistence
+    await page.click('button:has-text("Add New Lead")');
     const leadName = `E2E Test Lead ${Date.now()}`;
-    await exec(`C:\\xampp\\php\\php.exe artisan tinker --execute="App\\Models\\Lead::create(['name'=>'${leadName}', 'phone'=>'01234567890', 'status'=>'Negotiating', 'proposed_price'=>7500, 'created_by'=>1])"`);
+    await page.fill('input[name="name"]', leadName);
+    
+    // Type phone and blur to ensure it persists
+    await page.fill('input[name="phone"]', '01711223344');
+    await page.click('input[name="proposed_price"]'); // blur
+    await expect(page.locator('input[name="phone"]')).toHaveValue('01711223344');
+    
+    await page.fill('input[name="proposed_price"]', '7500');
+    await page.selectOption('select[name="status"]', 'Negotiating');
+    await page.click('button:has-text("Save Lead")');
 
     await page.goto('./admin/leads');
     await expect(page).toHaveURL(/.*admin\/leads/);

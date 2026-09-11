@@ -62,6 +62,8 @@ export default function AdminLayout({ children, title = 'Admin Dashboard' }) {
             title: 'FINANCE & SETTINGS',
             items: [
                 { label: 'Financial Tracking', href: '/admin/financial', icon: 'fa-money-bill-wave' },
+                { label: 'B2B Orders', href: '/admin/orders', icon: 'fa-file-invoice' },
+                { label: 'Center Pricing', href: '/admin/prices', icon: 'fa-tags' },
                 { label: 'Payment Gateways', href: '/admin/payment-gateway', icon: 'fa-credit-card' },
                 { label: 'SMS Gateways', href: '/admin/sms-gateway', icon: 'fa-envelope-open-text' },
                 { label: 'User List', href: '/admin/user', icon: 'fa-users' },

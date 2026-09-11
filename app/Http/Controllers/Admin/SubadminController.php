@@ -28,7 +28,7 @@ class SubadminController extends Controller
 
     public function create()
     {
-        return view('admin.subAdmin.create');
+        return Inertia::render('Admin/Subadmin/Create');
     }
 
     public function store(Request $request)
@@ -43,7 +43,7 @@ class SubadminController extends Controller
         $subadmin = Admin::create($validated);
         $subadmin->attachRole('sub_admin');
 
-        return response()->report($subadmin, 'SubAdmin created successfully');
+        return redirect()->route('admin.sub-admin.index')->with('success', 'Sub Admin created successfully');
     }
 
     public function show(Admin $subAdmin)
@@ -53,9 +53,8 @@ class SubadminController extends Controller
 
     public function edit(Admin $sub_admin)
     {
-        return view('admin.subAdmin.edit', [
+        return Inertia::render('Admin/Subadmin/Edit', [
             'user' => $sub_admin,
-
         ]);
     }
 
@@ -73,10 +72,9 @@ class SubadminController extends Controller
             unset($validated['password']);
         }
 
-        return response()->report(
-            $sub_admin->update($validated),
-            'Admin updated successfully'
-        );
+        $sub_admin->update($validated);
+
+        return redirect()->route('admin.sub-admin.index')->with('success', 'Admin updated successfully');
     }
 
     public function destroy(Admin $sub_admin)

@@ -85,69 +85,22 @@ async function deploy() {
   }
 
   // Step 2: Backup current .env (safety)
-  ssh(`
-    if [ -f ${REMOTE_PATH}/.env ]; then
-      cp ${REMOTE_PATH}/.env ${REMOTE_PATH}/.env.backup_$(date +%Y%m%d_%H%M%S)
-      echo "Production .env backed up"
-    fi
-  `, 'Backup production .env');
+  ssh(`if [ -f ${REMOTE_PATH}/.env ]; then cp ${REMOTE_PATH}/.env ${REMOTE_PATH}/.env.backup_$(date +%Y%m%d_%H%M%S) && echo "Production .env backed up"; fi`, 'Backup production .env');
 
   // Step 3: Git pull or clone
-  ssh(`
-    if [ -d ${REMOTE_PATH}/.git ]; then
-      cd ${REMOTE_PATH}
-      git fetch origin
-      git reset --hard origin/main
-      echo "Git pull complete"
-    else
-      cd ${REMOTE_PATH}
-      git init
-      git remote add origin ${REPO_URL}
-      git fetch origin
-      git reset --hard origin/main
-      echo "Git init and fetch complete"
-    fi
-  `, 'Git fetch & reset');
+  ssh(`if [ -d ${REMOTE_PATH}/.git ]; then cd ${REMOTE_PATH} && git fetch origin && git reset --hard origin/main && echo "Git pull complete"; else cd ${REMOTE_PATH} && git init && git remote add origin ${REPO_URL} && git fetch origin && git reset --hard origin/main && echo "Git init and fetch complete"; fi`, 'Git fetch & reset');
 
   // Step 4: Restore .env (never overwrite production .env)
-  ssh(`
-    cd ${REMOTE_PATH}
-    LATEST_BACKUP=$(ls -t .env.backup_* 2>/dev/null | head -1)
-    if [ -n "$LATEST_BACKUP" ]; then
-      cp "$LATEST_BACKUP" .env
-      echo "Production .env restored from backup"
-    elif [ ! -f .env ] && [ -f .env.example ]; then
-      cp .env.example .env
-      echo "WARNING: No production .env found. Copied .env.example — configure before live use."
-    fi
-  `, 'Restore production .env');
+  ssh(`cd ${REMOTE_PATH} && LATEST_BACKUP=$(ls -t .env.backup_* 2>/dev/null | head -1) && if [ -n "$LATEST_BACKUP" ]; then cp "$LATEST_BACKUP" .env && echo "Production .env restored from backup"; elif [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env && echo "WARNING: No production .env found. Copied .env.example"; fi`, 'Restore production .env');
 
   // Step 5: Composer install (no-dev, production)
-  ssh(`
-    cd ${REMOTE_PATH}
-    composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs --no-scripts 2>&1 | tail -5
-    echo "Composer install complete"
-  `, 'Composer install --no-dev');
+  ssh(`cd ${REMOTE_PATH} && composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs --no-scripts 2>&1 | tail -5 && echo "Composer install complete"`, 'Composer install --no-dev');
 
   // Step 6: Safe migrations only
-  ssh(`
-    cd ${REMOTE_PATH}
-    php artisan migrate --force 2>&1
-    echo "Migrations complete"
-  `, 'php artisan migrate --force');
+  ssh(`cd ${REMOTE_PATH} && php artisan migrate --force 2>&1 && echo "Migrations complete"`, 'php artisan migrate --force');
 
   // Step 7: Laravel cache clear & rebuild
-  ssh(`
-    cd ${REMOTE_PATH}
-    php artisan config:clear
-    php artisan cache:clear
-    php artisan route:clear
-    php artisan view:clear
-    php artisan config:cache
-    php artisan route:cache
-    php artisan view:cache
-    echo "Laravel caches rebuilt"
-  `, 'Laravel cache:clear + cache:cache');
+  ssh(`cd ${REMOTE_PATH} && php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache && echo "Laravel caches rebuilt"`, 'Laravel cache:clear + cache:cache');
 
   // Step 8: Verify deployment
   const deployedCommit = ssh(`cd ${REMOTE_PATH} && git rev-parse HEAD`, 'Verify deployed commit');

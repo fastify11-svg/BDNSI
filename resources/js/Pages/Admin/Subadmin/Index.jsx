@@ -15,6 +15,15 @@ export default function Index({ subAdmins }) {
                         <h2 className="text-xl font-bold text-slate-800">Sub Admin Officers</h2>
                         <p className="text-xs text-slate-500">Manage administrator roles and staff accounts.</p>
                     </div>
+                    <div>
+                        <Link
+                            href={getUrl('/admin/sub-admin/create')}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center gap-2 text-sm"
+                        >
+                            <i className="fa-solid fa-plus"></i>
+                            Add Sub Admin
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -26,6 +35,7 @@ export default function Index({ subAdmins }) {
                                     <th className="px-6 py-3">Name</th>
                                     <th className="px-6 py-3">Email Address</th>
                                     <th className="px-6 py-3">Role</th>
+                                    <th className="px-6 py-3 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -39,6 +49,14 @@ export default function Index({ subAdmins }) {
                                                 <span className="bg-purple-100 text-[#7024A8] font-bold px-3 py-1 rounded-full text-xs">
                                                     System Admin
                                                 </span>
+                                            </td>
+                                            <td className="px-6 py-4 flex gap-2">
+                                                <Link
+                                                    href={getUrl(`/admin/sub-admin/${admin.id}/edit`)}
+                                                    className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition shadow-sm"
+                                                >
+                                                    <i className="fa-solid fa-pen-to-square text-xs"></i>
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))

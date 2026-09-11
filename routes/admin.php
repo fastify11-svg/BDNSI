@@ -162,6 +162,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/financial', [App\Http\Controllers\Admin\FinancialController::class, 'index'])->name('financial.index');
             Route::post('/financial', [App\Http\Controllers\Admin\FinancialController::class, 'store'])->name('financial.store');
             Route::put('/financial/{payment}', [App\Http\Controllers\Admin\FinancialController::class, 'update'])->name('financial.update');
+            
+            // Financial Center Routes (Phase C)
+            Route::resource('/prices', App\Http\Controllers\Admin\PriceController::class)->only(['index', 'store']);
+            Route::resource('/orders', App\Http\Controllers\Admin\OrderController::class)->only(['index', 'show']);
 
             // Dynamic Grading Rules
             Route::get('/grade-scales', [App\Http\Controllers\Admin\GradeScaleController::class, 'index'])->name('grade-scales.index');

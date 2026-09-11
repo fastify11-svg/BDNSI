@@ -247,6 +247,69 @@ export default function Show({ center, user = null }) {
                         </div>
                     </div>
                 </div>
+
+                {/* Financial Ledger & Pricing Section (LIVE-007 Parity) */}
+                <div className="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 space-y-4">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <div className="flex items-center gap-2 text-indigo-600">
+                            <i className="fa-solid fa-money-bill-transfer text-lg"></i>
+                            <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800">Financial Ledger & Pricing</h3>
+                        </div>
+                        <div className="flex gap-2">
+                            <Link href={getUrl('/admin/prices')} className="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold rounded-lg text-xs transition">
+                                <i className="fa-solid fa-tags mr-1"></i> Manage Pricing
+                            </Link>
+                            <Link href={getUrl('/admin/orders')} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-lg text-xs transition border border-indigo-200">
+                                <i className="fa-solid fa-file-invoice mr-1"></i> View Ledger/Orders
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                        {/* Current Due */}
+                        <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 flex justify-between items-center relative overflow-hidden group">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wide">Total Due</p>
+                                <p className="text-2xl font-black text-rose-700">৳{parseFloat(center.current_due || 0).toFixed(2)}</p>
+                                <p className="text-[10px] text-rose-600 font-medium">Unpaid balance</p>
+                            </div>
+                            <div className="w-10 h-10 rounded-xl bg-white/60 flex items-center justify-center text-rose-500 shadow-sm">
+                                <i className="fa-solid fa-money-bill-wave"></i>
+                            </div>
+                        </div>
+
+                        {/* Credit Limit */}
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center relative overflow-hidden group">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Credit Limit</p>
+                                <p className="text-2xl font-black text-slate-800">
+                                    {center.credit_enabled ? `৳${parseFloat(center.credit_limit || 0).toFixed(2)}` : 'Disabled'}
+                                </p>
+                                <p className="text-[10px] text-slate-500 font-medium">
+                                    {center.credit_enabled ? 'Maximum allowed due' : 'Credit system disabled'}
+                                </p>
+                            </div>
+                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-500 shadow-sm">
+                                <i className="fa-solid fa-scale-balanced"></i>
+                            </div>
+                        </div>
+
+                        {/* Available Credit */}
+                        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex justify-between items-center relative overflow-hidden group">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wide">Available Credit</p>
+                                <p className="text-2xl font-black text-emerald-700">
+                                    {center.credit_enabled ? `৳${Math.max(0, parseFloat(center.credit_limit || 0) - parseFloat(center.current_due || 0)).toFixed(2)}` : 'N/A'}
+                                </p>
+                                <p className="text-[10px] text-emerald-600 font-medium">Remaining capacity</p>
+                            </div>
+                            <div className="w-10 h-10 rounded-xl bg-white/60 flex items-center justify-center text-emerald-600 shadow-sm">
+                                <i className="fa-solid fa-chart-pie"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </AdminLayout>
     );

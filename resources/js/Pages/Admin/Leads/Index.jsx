@@ -121,6 +121,7 @@ export default function Index({ leads }) {
                                 value={data.phone} 
                                 onChange={e => setData('phone', e.target.value)} 
                                 required 
+                                autoComplete="new-password"
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
                             />
                             {errors.phone && <div className="text-red-500 text-xs mt-1">{errors.phone}</div>}
