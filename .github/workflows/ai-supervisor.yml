@@ -1,42 +1,34 @@
-name: Autonomous AI Supervisor
+name: Legacy AI Supervisor (Manual Only)
 
+# Cursor is now the active development workflow. The old external AgentRouter
+# supervisor is retained only as a reversible/manual diagnostic and must not
+# create failing checks on normal pushes or pull requests.
 on:
-  push:
-    branches:
-      - '**'
-      - '!main' # Run on implementation branches, not direct pushes to main (assuming PR workflow)
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   supervisor_review:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'skip-supervisor')"
-    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Needed for git diffs
-          
+          fetch-depth: 0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          
-      - name: Run Supervisor Bridge
+
+      - name: Run Legacy Supervisor Bridge
         env:
           AI_SUPERVISOR_API_KEY: ${{ secrets.AI_SUPERVISOR_API_KEY }}
           AI_SUPERVISOR_BASE_URL: ${{ vars.AI_SUPERVISOR_BASE_URL || 'https://agentrouter.org/v1' }}
           AI_SUPERVISOR_MODEL: ${{ vars.AI_SUPERVISOR_MODEL || 'gpt-4o' }}
+        run: node scripts/ai-supervisor/supervisor.mjs
+
+      - name: Preserve Reports Locally
+        if: always()
         run: |
-          node scripts/ai-supervisor/supervisor.mjs
-          
-      - name: Commit Supervisor Reports
-        run: |
-          git config --global user.name "AI Supervisor"
-          git config --global user.email "supervisor@ai.local"
-          git add .ai/REVIEW_REPORT.md .ai/FIX_REQUEST.md .ai/PROJECT_STATE.md .ai/supervisor/bridge-state.json || true
-          git commit -m "Auto-generated Supervisor Review [skip-supervisor]" || echo "No changes to commit"
-          git push
+          echo "Legacy supervisor is manual-only during Cursor handoff."
+          git status --short
