@@ -17,8 +17,9 @@ class SslCommerzIpnTest extends TestCase
     {
         $gateway = PaymentGateway::firstOrCreate(
             ['slug' => 'sslcommerz'],
-            ['name' => 'SSLCommerz', 'is_active' => true, 'config' => json_encode([])]
+            ['name' => 'SSLCommerz', 'config' => json_encode([])]
         );
+        $gateway->update(['is_active' => true]);
 
         $response = $this->post(route('payment.callback', ['gateway' => 'sslcommerz']), [
             'status' => 'INVALID',
@@ -34,8 +35,9 @@ class SslCommerzIpnTest extends TestCase
     {
         $gateway = PaymentGateway::firstOrCreate(
             ['slug' => 'sslcommerz'],
-            ['name' => 'SSLCommerz', 'is_active' => true, 'config' => json_encode([])]
+            ['name' => 'SSLCommerz', 'config' => json_encode([])]
         );
+        $gateway->update(['is_active' => true]);
 
         $center = \App\Models\Center::firstOrCreate(
             ['code' => 'T3'],

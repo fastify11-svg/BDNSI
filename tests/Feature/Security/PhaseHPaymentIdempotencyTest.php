@@ -19,12 +19,14 @@ class PhaseHPaymentIdempotencyTest extends TestCase
     {
         Event::fake([PaymentSucceeded::class]);
 
-        $gateway = PaymentGateway::create([
-            'name' => 'SSLCommerz',
-            'slug' => 'sslcommerz',
-            'is_active' => true,
-            'is_sandbox' => true,
-        ]);
+        $gateway = PaymentGateway::firstOrCreate(
+            ['slug' => 'sslcommerz'],
+            [
+                'name' => 'SSLCommerz',
+                'is_sandbox' => true,
+            ]
+        );
+        $gateway->update(['is_active' => true]);
 
         $center = Center::factory()->create();
 
