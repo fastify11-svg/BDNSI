@@ -1,0 +1,19 @@
+---
+description: "Global BDNSI Cursor development, testing, security and release guardrails"
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# BDNSI global rule
+
+- Existing mature Laravel system: audit and verify before modifying completed work.
+- Current code, tests, CI and `.ai/PROJECT_STATE.md` outrank stale historical reports.
+- MySQL 8.0 is canonical; do not switch authoritative testing to SQLite.
+- Preserve RBAC, tenant isolation, financial invariants and document-access authorization.
+- Never trust browser/client financial values or Center IDs.
+- Never use destructive production DB commands or mutate legitimate production records for testing.
+- Fix only verified gaps, retain/add meaningful tests, and prove every PASS with evidence.
+- Routine safe engineering is autonomous; ask the owner only for destructive, credential-sensitive, production-data, or unresolved business-policy decisions.
+- Never commit `.env`, private keys, or secrets. Use Cursor/environment secrets.
+- Work on `cursor-development`; do not merge to `main` until release gates pass.
+- Do not declare PRODUCTION READY until the latest verified code is deployed and independent live acceptance passes.
