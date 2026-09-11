@@ -40,11 +40,14 @@ class ImageField implements Castable, CastsAttributes
      */
     public function set($model, string $key, $value, array $attributes)
     {
-        if (isset($attributes[$key]) && $attributes[$key]) {
-            Image::delete($attributes[$key]);
+        if ($value instanceof \Illuminate\Http\UploadedFile) {
+            if (isset($attributes[$key]) && $attributes[$key]) {
+                Image::delete($attributes[$key]);
+            }
+            return Image::storeFile($value, $this->path);
         }
 
-        return Image::storeFile($value, $this->path);
+        return $value;
     }
 
     public static function castUsing(array $arguments)
