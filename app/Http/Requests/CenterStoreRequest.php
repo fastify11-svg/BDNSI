@@ -93,10 +93,10 @@ class CenterStoreRequest extends FormRequest
 
         if ($status === CenterStatus::Approved) {
             do {
-                $maxCode = DB::table('centers')
+                $maxCode = \DB::table('centers')
                     ->whereNotNull('code')
                     ->whereRaw("code REGEXP '^[0-9]+$'")
-                    ->max(DB::raw('CAST(code AS UNSIGNED)'));
+                    ->max(\DB::raw('CAST(code AS UNSIGNED)'));
 
                 $validated['code'] = ($maxCode && $maxCode >= 100000) ? ($maxCode + 1) : random_int(111111, 999999);
             } while (Center::where(['code' => (string) $validated['code']])->exists());
