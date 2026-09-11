@@ -78,10 +78,12 @@ test.describe('Live Acceptance Verification', () => {
         await page.waitForURL('/admin/dashboard');
 
         console.log('Creating Session...');
-        await page.goto('/admin/session/create');
-        await page.fill('input[placeholder="E.g. 2024-2025"]', '2026-2027 Live');
-        await page.click('button[type="submit"]');
-        await page.waitForURL('/admin/session');
+        await page.goto('/admin/session');
+        await page.click('button:has-text("Add New Session")');
+        await page.fill('input[placeholder="e.g. 2023-2024 or Jan-Jun 2024"]', '2026-2027 Live');
+        await page.fill('input[placeholder="e.g. 3 or 6"]', '12');
+        await page.click('button:has-text("Save Session")');
+        await page.waitForTimeout(2000);
         await page.screenshot({ path: 'screenshots/4_session_created.png' });
         console.log('Session created');
     });
