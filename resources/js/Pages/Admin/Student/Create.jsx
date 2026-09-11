@@ -176,6 +176,7 @@ export default function Create({
         }
 
         Inertia.post(getUrl('/admin/student'), payload, {
+            preserveState: true,
             onFinish: () => setSubmitting(false),
         });
     };

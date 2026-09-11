@@ -27,7 +27,7 @@ test.describe('Live Acceptance Verification', () => {
         const dynamicPhone = `017${Math.floor(10000000 + Math.random() * 90000000)}`;
         await page.fill('input[placeholder="01700000000"]', dynamicPhone);
         
-        await page.fill('input[name="email"]', dynamicEmail);
+        await page.fill('input[placeholder="center@gmail.com"]', dynamicEmail);
         await page.fill('input[placeholder="House, Road, Area, Market/Building Name"]', 'Demo Address 123');
         
         console.log('Filled text inputs...');

@@ -111,7 +111,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <input
                                     type="text"
                                     value={form.name}
-                                    onChange={e => setForm({ ...form, name: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
                                     placeholder="Full Institute Name"
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                     required
@@ -125,7 +125,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <input
                                     type="text"
                                     value={form.owner_name}
-                                    onChange={e => setForm({ ...form, owner_name: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, owner_name: e.target.value }))}
                                     placeholder="Director or Owner Name"
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                     required
@@ -139,7 +139,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <input
                                     type="text"
                                     value={form.fathers_name}
-                                    onChange={e => setForm({ ...form, fathers_name: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, fathers_name: e.target.value }))}
                                     placeholder="Father's name"
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                 />
@@ -151,9 +151,9 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <input
                                     type="text"
                                     value={form.mobile}
-                                    onChange={e => setForm({ ...form, mobile: e.target.value, phone: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, mobile: e.target.value, phone: e.target.value }))}
                                     placeholder="01700000000"
-                                    autoComplete="new-password"
+                                    autoComplete="off"
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                     required
                                 />
@@ -166,9 +166,9 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <input
                                     type="email"
                                     value={form.email}
-                                    onChange={e => setForm({ ...form, email: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))}
                                     placeholder="center@gmail.com"
-                                    autoComplete="new-password"
+                                    autoComplete="off"
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                     required
                                 />
@@ -180,7 +180,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <label className="block text-slate-700 font-bold mb-1">Gender</label>
                                 <select
                                     value={form.gender}
-                                    onChange={e => setForm({ ...form, gender: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, gender: e.target.value }))}
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                 >
                                     <option value="0">Male</option>
@@ -193,7 +193,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <label className="block text-slate-700 font-bold mb-1">Managed By (Team Member)</label>
                                 <select
                                     value={form.team_id}
-                                    onChange={e => setForm({ ...form, team_id: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, team_id: e.target.value }))}
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                 >
                                     <option value="">-- None --</option>
@@ -248,7 +248,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <label className="block text-slate-700 font-bold mb-1">Upazila</label>
                                 <select
                                     value={form.upazilla}
-                                    onChange={e => setForm({ ...form, upazilla: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, upazilla: e.target.value }))}
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                 >
                                     <option value="">Select Upazila</option>
@@ -264,7 +264,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                 <input
                                     type="text"
                                     value={form.address}
-                                    onChange={e => setForm({ ...form, address: e.target.value, center_location: e.target.value })}
+                                    onChange={e => setForm(prev => ({ ...prev, address: e.target.value, center_location: e.target.value }))}
                                     placeholder="House, Road, Area, Market/Building Name"
                                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition"
                                     required
@@ -290,7 +290,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                     onChange={e => {
                                         const file = e.target.files[0];
                                         if (file) {
-                                            setForm({ ...form, center_logo: file });
+                                            setForm(prev => ({ ...prev, center_logo: file }));
                                             setLogoPreview(URL.createObjectURL(file));
                                         }
                                     }}
@@ -309,7 +309,7 @@ export default function Create({ divisions = [], districts = [], upazilas = [], 
                                     onChange={e => {
                                         const file = e.target.files[0];
                                         if (file) {
-                                            setForm({ ...form, director_photo: file });
+                                            setForm(prev => ({ ...prev, director_photo: file }));
                                             setPhotoPreview(URL.createObjectURL(file));
                                         }
                                     }}
