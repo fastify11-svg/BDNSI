@@ -10,6 +10,7 @@
 # Dependencies/build/runtime noise
 vendor/
 node_modules/
+public/build/
 playwright-report/
 test-results/
 coverage/
