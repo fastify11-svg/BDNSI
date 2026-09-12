@@ -83,24 +83,25 @@ The Cursor lane hardens these controls without deploying anything.
 - Direct SSH trust/exact-SHA/env safety weaknesses — hardened.
 
 ## 10. Unverified / release-bound items
-- Exact production dependency advisory details after the hardened CI audit steps.
-- Full application audit for any gap not already represented by current focused tests.
-- Current real deployed SHA reconciliation.
+- Exact production Composer residual risk after Laravel 8 EOL advisories (owner migration gate).
+- Current real deployed SHA reconciliation on `nenobet.live`.
 - Final independent live browser acceptance.
 - Production backup/rollback readiness at deployment time.
 
 ## 11. Prioritized execution queue
 - P0: none proven by this review.
-- P1: exact-current-head CI; review exploitable production high/critical advisories; final critical-domain audit; deployment/live acceptance before production-ready verdict.
-- P2: large Vite chunks (~1 MB app and ~2 MB vendor uncompressed in Run #189); abandoned legacy packages/framework tech debt; improve only when justified by risk/performance.
+- P1 residual: Laravel 8 EOL framework advisories require owner-approved major upgrade path; live acceptance + exact-SHA deploy remain owner-gated.
+- P1 closed on this continuation: upload client-extension spoofing hardened in `App\Lib\Image`; axios production highs cleared via `1.20.0` override; exact-head CI green for `bf7fb3505b7d60aebba49dd2852f31d1ab221ac8...`.
+- P2: large Vite chunks; abandoned legacy packages/framework tech debt; improve only when justified by risk/performance.
 - P3: historical documentation/archive cleanup beyond what affects active Cursor context.
 
 ## 12. Evidence
 - Handoff `main` baseline: `696ddab326ea7720f02a6dee88c81b309a99ac54`.
 - Last fully verified Cursor predecessor: `4ad7597a670fc60314825355e4641c9fa2a9812f` / Run #189 SUCCESS.
-- Run #189 PHP evidence: 143 passed, one risked no-assertion debug test (now removed).
-- Run #189 frontend: Vite build PASS; large-chunk warning recorded as non-blocking performance debt.
-- Run #189 npm: 1 moderate + 2 high vulnerabilities reported by generic audit summary; exact production impact must be determined from the hardened audit step rather than guessed.
+- Current Cursor head before this continuation fix: `bf7fb3505b7d60aebba49dd2852f31d1ab221ac8` / Actions run `34718185619` SUCCESS.
+- Local full PHP after upload/axios hardening: **145 passed** (includes new `ImageUploadHardeningTest`).
+- Composer audit on Laravel 8.x-dev: 3 advisories (signed URL path confusion; email CRLF; file validation bypass). Framework upgrade is an owner gate; upload path mitigated in application code.
+- npm axios highs: mitigated by pinning/overriding axios to `1.20.0` (direct + nested). Remaining audit noise is non-high / non-axios.
 
 ## Audit rule
 Do not turn warnings into speculative framework/dependency rewrites. Reproduce or identify the exact affected package/path, choose the smallest compatible remedy, then verify it.
