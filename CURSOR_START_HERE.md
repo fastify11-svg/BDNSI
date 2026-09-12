@@ -28,9 +28,9 @@ This is a mature existing system, not a new build. Historical `.ai/PROJECT_STATE
 
 ## Environment contract
 
-Verify current manifests/workflow before assuming versions. Current project baseline is PHP 8.2 + Laravel 8, React/Inertia/Vite/Tailwind, MySQL 8, PHPUnit and Playwright. MySQL 8 is canonical; do not substitute SQLite as authoritative verification.
+Verify current manifests/workflow before assuming versions. Current full-parity baseline is PHP 8.2 + Laravel 8, React/Inertia/Vite/Tailwind, MySQL 8, **Node 24 from `.nvmrc`**, PHPUnit and Playwright. MySQL 8 is canonical; do not substitute SQLite as authoritative verification. Use `npm ci --legacy-peer-deps` for deterministic lockfile installs at CI/release gates.
 
-For a release-level local verification on the Windows/XAMPP workspace, `scripts/cursor_verify_windows.ps1` provides a guarded path. It refuses destructive `migrate:fresh` unless `APP_ENV=testing`, `DB_CONNECTION=mysql`, and the database name looks disposable/test-only. For Cursor Cloud/Linux, use `scripts/cursor_verify.sh`. Do not run either full baseline verifier after every small edit.
+For release-level local verification on the Windows/XAMPP workspace, `scripts/cursor_verify_windows.ps1` provides a guarded path. It refuses destructive `migrate:fresh` unless `APP_ENV=testing`, `DB_CONNECTION=mysql`, and the database name looks disposable/test-only. For Cursor Cloud/Linux, use `scripts/cursor_verify.sh`. Do not run either full baseline verifier after every small edit.
 
 Secrets belong in local/Cursor/environment secret storage, never Git. Do not spend development time normalizing the entire local toolchain if the task's required commands already work.
 
@@ -43,7 +43,7 @@ Secrets belong in local/Cursor/environment secret storage, never Git. Do not spe
 - No broad refactor/dependency upgrade during a targeted bug fix.
 - No speculative feature work just because an old roadmap mentions it.
 - No duplicate agent systems: active workflows live under `.cursor/`; legacy Antigravity skills are retired.
-- `.cursorignore` excludes dependency/build/runtime noise and most stale `.ai` history from normal indexing while keeping `.ai/PROJECT_STATE.md` available.
+- `.cursorignore` excludes dependencies, compiled assets, runtime noise and stale `.ai` history from normal indexing while keeping `.ai/PROJECT_STATE.md` available.
 
 ## Active skill system
 
@@ -61,6 +61,6 @@ This structure is intentionally progressive so detailed instructions load only w
 
 Routine safe development and branch commits may proceed without repeated approval. Explicit owner approval is required before production deployment, destructive production-data/schema actions, unavailable credential changes, unresolved business-policy changes, destructive history rewrite, major platform migration, or irreversible infrastructure changes.
 
-Deployment contract: GitHub Actions remains CI-only. Never add or restore GitHub-based SSH deployment. Release deployment must be handed off to Antigravity and performed only as `ANTIGRAVITY_DIRECT_SSH -> nenobet.live` unless the owner explicitly changes this policy.
+Deployment contract: GitHub Actions remains CI-only. Never add or restore GitHub-based SSH deployment. Release deployment must be handed off to Antigravity and performed only as `ANTIGRAVITY_DIRECT_SSH -> nenobet.live` unless the owner explicitly changes this policy. The deployment script itself enforces explicit approval, backup-readiness, strict SSH host verification, exact-SHA deployment and post-deploy health verification.
 
 Keep the existing Cursor PR as draft until release gates pass. Do not call the project finished until the exact release candidate has passed required tests/CI, the exact approved SHA is deployed, and independent live acceptance passes with safe `DEMO-UAT` data.
