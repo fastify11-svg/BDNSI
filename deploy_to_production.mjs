@@ -16,7 +16,7 @@
  * - never deletes user uploads
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { homedir } from 'os';
 import { execFileSync } from 'child_process';
@@ -28,6 +28,7 @@ const SSH_USER = process.env.BDNSI_SSH_USER || 'u881397359';
 const SSH_KEY = resolve(process.env.BDNSI_SSH_KEY || '.deploy_key');
 const KNOWN_HOSTS = resolve(process.env.BDNSI_SSH_KNOWN_HOSTS || `${homedir()}/.ssh/known_hosts`);
 const REMOTE_PATH = process.env.BDNSI_REMOTE_PATH || '/home/u881397359/domains/nenobet.live/public_html';
+const REMOTE_BACKUP_DIR = process.env.BDNSI_REMOTE_BACKUP_DIR || `/home/${SSH_USER}/bdnsi_release_backups`;
 const REPO_URL = 'https://github.com/fastify11-svg/BDNSI.git';
 const HEALTH_URL = process.env.BDNSI_HEALTH_URL || 'https://nenobet.live/health';
 
@@ -55,6 +56,7 @@ function validateConfig() {
   if (!/^\d{1,5}$/.test(SSH_PORT)) fail('Invalid SSH port.');
   if (!/^[A-Za-z0-9._-]+$/.test(SSH_USER)) fail('Invalid SSH user.');
   if (!/^\/[A-Za-z0-9._/-]+$/.test(REMOTE_PATH)) fail('Invalid remote path.');
+  if (!/^\/[A-Za-z0-9._/-]+$/.test(REMOTE_BACKUP_DIR)) fail('Invalid remote backup path.');
   if (!existsSync(SSH_KEY)) fail(`SSH key not found: ${SSH_KEY}`);
   if (!existsSync(KNOWN_HOSTS)) fail(`known_hosts file not found: ${KNOWN_HOSTS}`);
 
@@ -107,15 +109,12 @@ async function deploy() {
 
   const branch = local('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
   if (branch !== 'main') fail(`Deploy only from main. Current branch: ${branch}`);
-
   if (local('git', ['status', '--porcelain'])) fail('Local worktree is not clean.');
 
   execFileSync('git', ['fetch', 'origin', 'main'], { cwd: PROJECT_ROOT, stdio: 'inherit' });
   const currentCommit = local('git', ['rev-parse', 'HEAD']);
   const originMain = local('git', ['rev-parse', 'origin/main']);
-  if (currentCommit !== originMain) {
-    fail(`Local main ${currentCommit} does not exactly match origin/main ${originMain}.`);
-  }
+  if (currentCommit !== originMain) fail(`Local main ${currentCommit} does not exactly match origin/main ${originMain}.`);
 
   console.log(`\nBDNSI exact-SHA direct SSH deploy`);
   console.log(`Release SHA: ${currentCommit}`);
@@ -128,10 +127,15 @@ async function deploy() {
   try {
     previousCommit = ssh(`cd ${REMOTE_PATH} && git rev-parse HEAD`, 'Record rollback SHA');
   } catch {
-    console.warn('[WARN] Existing remote Git SHA could not be read; continue only because release approval and backup confirmation were explicit.');
+    console.warn('[WARN] Existing remote Git SHA could not be read; release remains protected by explicit backup confirmation.');
   }
 
-  ssh(`cp ${REMOTE_PATH}/.env ${REMOTE_PATH}/.env.backup_$(date +%Y%m%d_%H%M%S)`, 'Back up production .env');
+  ssh(
+    `mkdir -p ${REMOTE_BACKUP_DIR} && chmod 700 ${REMOTE_BACKUP_DIR} && ` +
+    `cp ${REMOTE_PATH}/.env ${REMOTE_BACKUP_DIR}/env_$(date +%Y%m%d_%H%M%S).backup && ` +
+    `chmod 600 ${REMOTE_BACKUP_DIR}/env_*.backup`,
+    'Back up production .env outside web root'
+  );
 
   ssh(
     `cd ${REMOTE_PATH} && ` +
@@ -144,22 +148,13 @@ async function deploy() {
   );
 
   ssh(`cd ${REMOTE_PATH} && test -f .env`, 'Verify production .env survived code update');
-
-  ssh(
-    `cd ${REMOTE_PATH} && composer install --no-dev --optimize-autoloader --no-interaction --no-scripts`,
-    'Install production Composer dependencies'
-  );
+  ssh(`cd ${REMOTE_PATH} && composer install --no-dev --optimize-autoloader --no-interaction --no-scripts`, 'Install production Composer dependencies');
   ssh(`cd ${REMOTE_PATH} && php artisan package:discover --ansi`, 'Discover Laravel packages');
   ssh(`cd ${REMOTE_PATH} && php artisan migrate --force`, 'Run reviewed forward migrations');
-  ssh(
-    `cd ${REMOTE_PATH} && php artisan optimize:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache`,
-    'Rebuild Laravel caches'
-  );
+  ssh(`cd ${REMOTE_PATH} && php artisan optimize:clear && php artisan config:cache && php artisan view:cache`, 'Rebuild safe Laravel caches');
 
   const deployedCommit = ssh(`cd ${REMOTE_PATH} && git rev-parse HEAD`, 'Verify deployed SHA');
-  if (deployedCommit !== currentCommit) {
-    throw new Error(`SHA mismatch: expected ${currentCommit}, deployed ${deployedCommit}`);
-  }
+  if (deployedCommit !== currentCommit) throw new Error(`SHA mismatch: expected ${currentCommit}, deployed ${deployedCommit}`);
 
   await checkHealth();
 
