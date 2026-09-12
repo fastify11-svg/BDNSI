@@ -81,3 +81,11 @@
 - Compatibility: `cache.serializable_classes=true` to preserve Eloquent collection caches; SiteConfig incomplete-object guard; PHPUnit `#[Test]` attributes
 - Gates: PHPUnit **145 passed**, Playwright **11/11**, composer audit **clean**
 
+## Final Laravel upgrade evidence (no merge/deploy)
+
+- Start SHA: `109d9844291070a78b0789c80014f5676e28944f` (Laravel 8)
+- Final SHA: `7eab678eb3ef0bb3b57c3569ca782c5dca45322e` (Laravel **13.31.0**, PHP **^8.3**)
+- Local gates: PHPUnit **145 passed**; Playwright **11/11**; composer audit **clean**; npm prod high audit **0**
+- GitHub Actions run ID: **34724341256** — **SUCCESS** on exact final SHA
+- Verdict: **READY_FOR_OWNER_MERGE_REVIEW** (owner merge/deploy only)
+
