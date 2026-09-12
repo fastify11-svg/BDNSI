@@ -99,7 +99,8 @@ The Cursor lane hardens these controls without deploying anything.
 - Handoff `main` baseline: `696ddab326ea7720f02a6dee88c81b309a99ac54`.
 - Last fully verified Cursor predecessor: `4ad7597a670fc60314825355e4641c9fa2a9812f` / Run #189 SUCCESS.
 - Current Cursor head before this continuation fix: `bf7fb3505b7d60aebba49dd2852f31d1ab221ac8` / Actions run `34718185619` SUCCESS.
-- Local full PHP after upload/axios hardening: **145 passed** (includes new `ImageUploadHardeningTest`).
+- Tip SHA `8b6925a6bb25529aa718c86a5320af93dbf4d415` / Actions run `34722857917` SUCCESS.
+- Local full PHP after upload/axios hardening: **145 passed** (includes new `ImageUploadHardeningTest`); Playwright release specs 11/11 PASS.
 - Composer audit on Laravel 8.x-dev: 3 advisories (signed URL path confusion; email CRLF; file validation bypass). Framework upgrade is an owner gate; upload path mitigated in application code.
 - npm axios highs: mitigated by pinning/overriding axios to `1.20.0` (direct + nested). Remaining audit noise is non-high / non-axios.
 

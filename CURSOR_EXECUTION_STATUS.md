@@ -1,6 +1,6 @@
 # CURSOR EXECUTION STATUS
 
-Overall: `HANDOFF_HARDENED | CURRENT_HEAD_CI_GREEN | ADVISORY_TRIAGE_IN_PROGRESS | RELEASE_AUDIT_ACTIVE`
+Overall: `HANDOFF_HARDENED | TIP_CI_GREEN | ADVISORY_TRIAGE_PARTIAL | OWNER_GATES_REMAIN`
 Branch: `cursor-development`
 
 ## Verified predecessor baseline
@@ -30,6 +30,12 @@ Branch: `cursor-development`
 - Tracked frontend-build parity gate: COMPLETE
 - Direct-SSH deploy hardening: COMPLETE IN SOURCE; syntax validated on CI head above
 - Current-head GitHub CI: PASS for `bf7fb3505b7d60aebba49dd2852f31d1ab221ac8...` (new commits after that require their own CI)
+
+
+## Tip SHA after security fixes
+- Exact SHA: `8b6925a6bb25529aa718c86a5320af93dbf4d415`
+- GitHub Actions run `34722857917` Autonomous Lifecycle: **SUCCESS**
+- Local corroboration: PHP 145 passed; Playwright frontend + connectivity 11/11 passed; `public/build` parity refreshed with axios 1.20.0
 
 ## Verified gaps fixed on this continuation
 - Upload extension spoofing in `App\Lib\Image`: MIME allowlist + forced storage extension (client extension no longer authoritative). Targeted unit + site upload tests PASS.
