@@ -3,15 +3,15 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
-        "test": "npx playwright test",
-        "test:e2e": "npx playwright test",
-        "test:ui": "npx playwright test --ui",
-        "test:debug": "npx playwright test --debug",
-        "test:report": "npx playwright show-report",
-        "serve": "node -e \"require('child_process').spawn('C:\\\\xampp\\\\php\\\\php.exe', ['artisan', 'serve'], {stdio:'inherit', shell:true})\"",
-        "cache:clear": "node -e \"require('child_process').execSync('C:\\\\xampp\\\\php\\\\php.exe artisan optimize:clear', {stdio:'inherit'})\"",
-        "lint": "npx eslint resources/js --ext .js,.jsx",
-        "lint:fix": "npx eslint resources/js --ext .js,.jsx --fix"
+        "test": "playwright test",
+        "test:e2e": "playwright test",
+        "test:ui": "playwright test --ui",
+        "test:debug": "playwright test --debug",
+        "test:report": "playwright show-report",
+        "serve": "php artisan serve",
+        "cache:clear": "php artisan optimize:clear",
+        "lint": "eslint resources/js --ext .js,.jsx",
+        "lint:fix": "eslint resources/js --ext .js,.jsx --fix"
     },
     "devDependencies": {
         "@babel/core": "^7.22.0",
