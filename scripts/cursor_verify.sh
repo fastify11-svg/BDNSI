@@ -53,6 +53,39 @@ fi
 
 node --check deploy_to_production.mjs
 npx playwright install chromium --with-deps
+
+# CI parity: Playwright expects Laravel on APP_URL (default http://127.0.0.1:8000).
+APP_URL_VALUE="$(get_env APP_URL)"
+APP_URL_VALUE="${APP_URL_VALUE:-http://127.0.0.1:8000}"
+SERVE_HOST="$(php -r "echo parse_url(getenv('APP_URL') ?: '${APP_URL_VALUE}', PHP_URL_HOST) ?: '127.0.0.1';")"
+SERVE_PORT="$(php -r "echo parse_url(getenv('APP_URL') ?: '${APP_URL_VALUE}', PHP_URL_PORT) ?: 8000;")"
+php artisan serve --host="${SERVE_HOST}" --port="${SERVE_PORT}" >/tmp/bdnsi-cursor-verify-serve.log 2>&1 &
+SERVE_PID=$!
+cleanup_serve() {
+  if kill -0 "${SERVE_PID}" 2>/dev/null; then
+    kill "${SERVE_PID}" 2>/dev/null || true
+    wait "${SERVE_PID}" 2>/dev/null || true
+  fi
+}
+trap cleanup_serve EXIT
+
+for _ in $(seq 1 30); do
+  if curl -fsS "${APP_URL_VALUE}/health" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+if ! curl -fsS "${APP_URL_VALUE}/health" >/dev/null 2>&1; then
+  echo "REFUSING: Laravel server did not become ready at ${APP_URL_VALUE}" >&2
+  cat /tmp/bdnsi-cursor-verify-serve.log >&2 || true
+  exit 2
+fi
+
+export APP_URL="${APP_URL_VALUE}"
+export ADMIN_EMAIL="${ADMIN_EMAIL:-admin@gmail.com}"
+export ADMIN_PASSWORD="${ADMIN_PASSWORD:-12345678}"
+export CENTER_EMAIL="${CENTER_EMAIL:-center@gmail.com}"
+export CENTER_PASSWORD="${CENTER_PASSWORD:-12345678}"
 npx playwright test tests/e2e/frontend.spec.js tests/e2e/frontend-connectivity.spec.js
 
 echo "BDNSI Cursor Linux baseline verification: PASS"
