@@ -7,15 +7,12 @@
 *.pem
 *.key
 
-# Dependencies/build output
+# Dependencies/build/runtime noise
 vendor/
 node_modules/
-public/build/
 playwright-report/
 test-results/
 coverage/
-
-# Runtime/cache/log noise
 storage/logs/
 storage/framework/cache/
 storage/framework/sessions/
@@ -25,14 +22,17 @@ bootstrap/cache/*.php
 *.log
 .phpunit.result.cache
 
-# Legacy Antigravity workspace/history
-# Active Cursor controls live under .cursor/. Historical files remain recoverable in Git.
+# Legacy Antigravity workspace is not active Cursor context
 .agents/
 
-# Historical AI-agent state is noisy and often stale. Keep only the canonical handoff state
-# in normal Cursor indexing; use Git/history explicitly if older evidence is genuinely needed.
-.ai/*
+# Historical AI execution state is excluded by default; keep only the compact
+# handoff state file available for evidence when Cursor explicitly needs it.
+.ai/**
 !.ai/PROJECT_STATE.md
+
+# Superseded large autonomous prompt documents
+BDNSI_48H_AUTONOMOUS_MASTER_EXECUTION.md
+BDNSI_84H_NONSTOP_AUTONOMOUS_EXECUTION_MASTER.md
 
 # Databases/backups/archives
 *.sql
