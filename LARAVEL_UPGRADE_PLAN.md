@@ -67,3 +67,10 @@
 - Gates: PHPUnit **145 passed**, Playwright **11/11**, `composer validate` OK
 - Remaining advisories (expected until ≥12.60 / ≥13.10): signed URL path confusion, email CRLF
 
+### Laravel 11 → 12 (complete on commit)
+
+- Framework: **12.69.2**
+- Bumps: Yajra Datatables **12.7.2**; Laravel framework ^12.61.1 floor
+- Gates: PHPUnit **145 passed**, Playwright **11/11**, `composer validate` OK
+- **Composer audit: No security vulnerability advisories found** (EOL/CRLF/signed-URL cleared at ≥12.61.1)
+
