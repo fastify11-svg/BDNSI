@@ -65,7 +65,7 @@ class StudentPermissionSeeder extends Seeder
             // Use syncRoles to avoid duplicate key constraint errors
             $existingRoleIds = $rootAdmin->roles()->pluck('roles.id')->toArray();
             if (!in_array($superAdminRole->id, $existingRoleIds)) {
-                $rootAdmin->attachRole($superAdminRole);
+                $rootAdmin->addRole($superAdminRole);
                 $this->command->info("✅ Attached super-admin role to Admin ID 1");
             } else {
                 $this->command->info("ℹ️  Admin ID 1 already has the super-admin role.");

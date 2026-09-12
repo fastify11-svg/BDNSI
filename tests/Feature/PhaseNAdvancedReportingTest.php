@@ -24,7 +24,7 @@ class PhaseNAdvancedReportingTest extends TestCase
         $admin = Admin::factory()->create();
         
         $role = \App\Models\Role::firstOrCreate(['name' => 'admin'], ['display_name' => 'Admin']);
-        $admin->attachRole($role);
+        $admin->addRole($role);
         
         $this->actingAs($admin, 'admin');
     }

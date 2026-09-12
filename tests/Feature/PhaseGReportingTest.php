@@ -21,7 +21,7 @@ class PhaseGReportingTest extends TestCase
         
         $role = \App\Models\Role::firstOrCreate(['name' => 'admin']);
         $this->admin = Admin::factory()->create();
-        $this->admin->attachRole($role);
+        $this->admin->addRole($role);
         
         $centerRole = \App\Models\Role::firstOrCreate(['name' => 'center']);
         $this->center = Center::factory()->create(['id' => 1, 'name' => 'Center A', 'code' => 'C-001']);

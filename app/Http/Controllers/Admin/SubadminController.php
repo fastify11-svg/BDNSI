@@ -41,7 +41,7 @@ class SubadminController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
         $subadmin = Admin::create($validated);
-        $subadmin->attachRole('sub_admin');
+        $subadmin->addRole('sub_admin');
 
         return redirect()->route('admin.sub-admin.index')->with('success', 'Sub Admin created successfully');
     }

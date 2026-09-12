@@ -47,3 +47,14 @@
 
 - If a package forces unsafe business redesign → document blocker, choose safest replacement or freeze at last green Laravel major that clears EOL advisories.
 - Clearing Laravel EOL advisories is the security goal; reaching L13 is preferred but not forced if a hard blocker remains.
+
+## Stage log
+
+### Laravel 9 → 10 (in progress → complete on commit)
+
+- Framework: **10.50.3**
+- Removed: `painlesscode/breeze-multiauth` (scaffolding only)
+- Laratrust **8.x**: `HasRolesAndPermissions`; `Role`/`Permission` extend package models; `attachRole`→`addRole`, `attachPermission`→`givePermission`
+- PHPUnit 10: `phpunit.xml` `<source>` replaces coverage `processUncoveredFiles`
+- Gates: PHPUnit **145 passed**, Playwright **11/11**, `composer validate` OK
+- Remaining advisories (expected until ≥12.60 / ≥13.10): signed URL path confusion, email CRLF

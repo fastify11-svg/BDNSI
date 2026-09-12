@@ -15,7 +15,7 @@ class AdminRbacTest extends TestCase
     {
         $role = clone Role::firstOrCreate(['name' => 'sub_admin']);
         $admin = clone Admin::factory()->create();
-        $admin->attachRole($role);
+        $admin->addRole($role);
 
         $response = $this->actingAs($admin, 'admin')->get(route('admin.financial.index'));
 
@@ -27,7 +27,7 @@ class AdminRbacTest extends TestCase
     {
         $role = clone Role::firstOrCreate(['name' => 'admin']);
         $admin = clone Admin::factory()->create();
-        $admin->attachRole($role);
+        $admin->addRole($role);
 
         $response = $this->actingAs($admin, 'admin')->get(route('admin.financial.index'));
 
@@ -39,10 +39,10 @@ class AdminRbacTest extends TestCase
     {
         $role = Role::firstOrCreate(['name' => 'sub_admin']);
         $permission = \App\Models\Permission::firstOrCreate(['name' => 'student-read']);
-        $role->attachPermission($permission);
+        $role->givePermission($permission);
         
         $admin = clone Admin::factory()->create();
-        $admin->attachRole($role);
+        $admin->addRole($role);
 
         $response = $this->actingAs($admin, 'admin')->get(route('admin.student.index'));
 
