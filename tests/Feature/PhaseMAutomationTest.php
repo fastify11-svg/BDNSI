@@ -9,6 +9,7 @@ use App\Notifications\CenterSuspended;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class PhaseMAutomationTest extends TestCase
 {
@@ -21,7 +22,7 @@ class PhaseMAutomationTest extends TestCase
         $admin = Admin::factory()->create();
     }
 
-    /** @test */
+    #[Test]
     public function workflow_automation_suspends_critical_risk_center_and_sends_notifications()
     {
         Notification::fake();
@@ -72,7 +73,7 @@ class PhaseMAutomationTest extends TestCase
         );
     }
     
-    /** @test */
+    #[Test]
     public function command_runs_workflow_automation()
     {
         $mockWorkflowService = \Mockery::mock(\App\Services\WorkflowAutomationService::class);

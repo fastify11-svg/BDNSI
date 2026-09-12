@@ -12,6 +12,7 @@ use App\Models\Student;
 use App\Models\Commission;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 
 class PhaseNAdvancedReportingTest extends TestCase
 {
@@ -29,7 +30,7 @@ class PhaseNAdvancedReportingTest extends TestCase
         $this->actingAs($admin, 'admin');
     }
 
-    /** @test */
+    #[Test]
     public function admin_can_access_advanced_reports()
     {
         // Create dummy data

@@ -74,3 +74,10 @@
 - Gates: PHPUnit **145 passed**, Playwright **11/11**, `composer validate` OK
 - **Composer audit: No security vulnerability advisories found** (EOL/CRLF/signed-URL cleared at ≥12.61.1)
 
+### Laravel 12 → 13 (complete on commit)
+
+- Framework: **13.31.0** / PHP **^8.3** (Composer platform 8.3.0; CI PHP 8.3)
+- Bumps: inertia-laravel **2.x**, Yajra **13**, Tinker **3**, PHPUnit **12**
+- Compatibility: `cache.serializable_classes=true` to preserve Eloquent collection caches; SiteConfig incomplete-object guard; PHPUnit `#[Test]` attributes
+- Gates: PHPUnit **145 passed**, Playwright **11/11**, composer audit **clean**
+

@@ -101,4 +101,17 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Serializable Classes
+    |--------------------------------------------------------------------------
+    |
+    | Laravel 13 defaults this to false (deny object unserialize). BDNSI still
+    | caches Eloquent models/collections for frontend payloads; keep true to
+    | preserve behavior. Follow-up: migrate those caches to arrays/DTOs.
+    |
+    */
+
+    'serializable_classes' => true,
+
 ];

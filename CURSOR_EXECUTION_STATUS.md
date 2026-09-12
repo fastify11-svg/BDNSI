@@ -63,3 +63,8 @@ Branch: `cursor-development`
 
 ## Working rule
 Use targeted tests for normal changes and one full release regression for a candidate SHA. Reuse valid exact-SHA evidence. Do not rerun identical CI without a material change. Keep `main` and production untouched until the genuine release gate.
+## Laravel major upgrade (owner-approved)
+- Start SHA: `109d9844291070a78b0789c80014f5676e28944f` (Laravel 8)
+- Final target: Laravel **13.31.0** / PHP **^8.3** on `cursor-development` (no merge/deploy)
+- Composer audit: no known advisories after patched 12.x/13.x floors
+
