@@ -14,8 +14,8 @@ class AddPaidToStudentTable extends Migration
     public function up()
     {
         Schema::table('students', function (Blueprint $table) {
-            $table->unsignedDecimal('due_amount')->default(0);
-            $table->unsignedDecimal('paid_amount')->default(0);
+            $table->decimal('due_amount')->unsigned()->default(0);
+            $table->decimal('paid_amount')->unsigned()->default(0);
         });
     }
 

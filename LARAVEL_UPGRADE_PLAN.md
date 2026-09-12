@@ -58,3 +58,12 @@
 - PHPUnit 10: `phpunit.xml` `<source>` replaces coverage `processUncoveredFiles`
 - Gates: PHPUnit **145 passed**, Playwright **11/11**, `composer validate` OK
 - Remaining advisories (expected until ≥12.60 / ≥13.10): signed URL path confusion, email CRLF
+
+### Laravel 10 → 11 (complete on commit)
+
+- Framework: **11.56.1**
+- Bumps: Sanctum 4, Breeze 2, Collision 8, PHPUnit 11, Yajra Datatables 11; removed doctrine/dbal
+- Compatibility: `unsignedDecimal` → `decimal()->unsigned()`; published Sanctum migrations; kept existing guarded Telescope migration (dropped duplicate vendor publish)
+- Gates: PHPUnit **145 passed**, Playwright **11/11**, `composer validate` OK
+- Remaining advisories (expected until ≥12.60 / ≥13.10): signed URL path confusion, email CRLF
+
