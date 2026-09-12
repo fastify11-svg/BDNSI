@@ -40,13 +40,24 @@ class SiteConfig extends Model
 
     public static function firstCached()
     {
-        if (self::$cachedConfig !== null) {
+        if (self::$cachedConfig !== null && self::$cachedConfig instanceof self) {
             return self::$cachedConfig;
         }
 
-        self::$cachedConfig = Cache::remember(self::CACHE_KEY, now()->addHours(24), function () {
+        $cached = Cache::remember(self::CACHE_KEY, now()->addHours(24), function () {
             return self::first();
         });
+
+        // Laravel 13 may reject/incomplete previously serialized models until cache is rebuilt.
+        if (! $cached instanceof self) {
+            Cache::forget(self::CACHE_KEY);
+            $cached = self::first();
+            if ($cached) {
+                Cache::put(self::CACHE_KEY, $cached, now()->addHours(24));
+            }
+        }
+
+        self::$cachedConfig = $cached;
 
         return self::$cachedConfig;
     }

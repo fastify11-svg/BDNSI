@@ -4,9 +4,26 @@ namespace App\Lib;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
 
 class Image
 {
+    /**
+     * MIME -> storage extension allowlist.
+     * Client-provided extensions are never authoritative.
+     */
+    private const MIME_EXTENSIONS = [
+        'image/jpeg' => 'jpg',
+        'image/pjpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/gif' => 'gif',
+        'image/svg+xml' => 'svg',
+        'image/x-icon' => 'ico',
+        'image/vnd.microsoft.icon' => 'ico',
+        'application/pdf' => 'pdf',
+    ];
+
     public static function delete($model, $attribute = null)
     {
         if ($model instanceof Model && $attribute) {
@@ -27,47 +44,40 @@ class Image
 
     public static function storeFile($file, $uploadPath, $name = null)
     {
-        $extension = strtolower($file->getClientOriginalExtension());
-        $mime = $file->getMimeType();
+        if (! $file) {
+            throw new InvalidArgumentException('No upload file provided.');
+        }
 
-        // Exclude SVGs, GIFs, ICOs, and non-image files from Intervention compression
-        if (in_array($extension, ['svg', 'pdf', 'ico', 'gif']) || ! str_starts_with($mime, 'image/')) {
-            if (is_null($name)) {
-                $path = $file->store('public/'.$uploadPath, ['visibility' => 'public']);
-            } else {
-                $path = $file->storeAs('public/'.$uploadPath, $name, ['visibility' => 'public']);
-            }
+        $mime = (string) ($file->getMimeType() ?: '');
+        $extension = self::extensionForMime($mime);
+
+        // Exclude SVGs, GIFs, ICOs, PDFs, and non-raster files from Intervention compression
+        if (in_array($extension, ['svg', 'pdf', 'ico', 'gif'], true) || ! str_starts_with($mime, 'image/')) {
+            $safeName = self::safeStorageName($name, $extension);
+            $path = $file->storeAs('public/'.$uploadPath, $safeName, ['visibility' => 'public']);
 
             return str_replace('\\', '/', $path);
         }
 
-        $filename = $name ?? uniqid().'_'.time().'.'.$extension;
+        $filename = self::safeStorageName($name, $extension);
         $path = 'public/'.$uploadPath.'/'.$filename;
 
         try {
-            // Open file using Intervention Image
             $image = \Intervention\Image\Facades\Image::make($file->getRealPath());
 
-            // Resize if width is greater than 1200px, keeping aspect ratio
             $image->resize(1200, null, function ($constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
             });
 
-            // Encode the image at 80% quality
-            $encoded = $image->encode($extension, 80);
+            $encoded = $image->encode($extension === 'jpg' ? 'jpg' : $extension, 80);
 
-            // Put to storage
             Storage::put($path, (string) $encoded, 'public');
 
             return str_replace('\\', '/', $path);
         } catch (\Exception $e) {
-            // Fallback to normal upload if Intervention fails
-            if (is_null($name)) {
-                $path = $file->store('public/'.$uploadPath, ['visibility' => 'public']);
-            } else {
-                $path = $file->storeAs('public/'.$uploadPath, $name, ['visibility' => 'public']);
-            }
+            $safeName = self::safeStorageName($name, $extension);
+            $path = $file->storeAs('public/'.$uploadPath, $safeName, ['visibility' => 'public']);
 
             return str_replace('\\', '/', $path);
         }
@@ -88,5 +98,26 @@ class Image
         $path = preg_replace("/^public\\\?\/?/", '', $image);
 
         return asset(Storage::url($path));
+    }
+
+    private static function extensionForMime(string $mime): string
+    {
+        if (! isset(self::MIME_EXTENSIONS[$mime])) {
+            throw new InvalidArgumentException('Unsupported or spoofed upload MIME type: '.$mime);
+        }
+
+        return self::MIME_EXTENSIONS[$mime];
+    }
+
+    private static function safeStorageName(?string $name, string $extension): string
+    {
+        if ($name === null || $name === '') {
+            return uniqid('', true).'_'.time().'.'.$extension;
+        }
+
+        $base = pathinfo($name, PATHINFO_FILENAME);
+        $base = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $base) ?: 'upload';
+
+        return $base.'.'.$extension;
     }
 }

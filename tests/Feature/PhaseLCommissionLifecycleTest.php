@@ -35,7 +35,7 @@ class PhaseLCommissionLifecycleTest extends TestCase
         
         $this->admin = Admin::factory()->create();
         $role = Role::firstOrCreate(['name' => 'admin']);
-        $this->admin->attachRole($role);
+        $this->admin->addRole($role);
 
         $this->agent = Team::create([
             'name' => 'Agent 1',

@@ -1,40 +1,49 @@
 # BDNSI Project State
 
 ## Overall Status
-**ROADMAP_COMPLETE | CI_VERIFIED | DEPLOYED_BASELINE | FINAL_LIVE_ACCEPTANCE_PENDING**
+**CURSOR_HANDOFF_ACTIVE | RELEASE_CANDIDATE_VERIFIED | READY_FOR_OWNER_MERGE_REVIEW | FINAL_LIVE_ACCEPTANCE_PENDING**
 
-## CI Status
-- GitHub Actions: **CI-only** (no production SSH deployment)
-- Canonical CI database: **MySQL 8.0**
-- Latest verified application/CI head: commit `1c4fd22547c5327236e8e4c2dbd4395fa2a8640e`, GitHub Actions Run **#147 — SUCCESS**
-- MySQL driver assertion: PASS
-- Database migrate:fresh + seed: PASS
-- PHP Regression: PASS
-- Frontend build: PASS
-- Playwright smoke/E2E: PASS
-- Workflow: `.github/workflows/autonomous.yml`
+## Current Development Lane
+- Repository: `fastify11-svg/BDNSI`
+- Working branch: `cursor-development`
+- Release branch: `main` — keep unchanged until owner merge/release approval.
+- Safety copy: `fastify11-svg/BDNSI-Cursor` at handoff baseline; keep untouched unless recovery is required.
+- Draft PR: `cursor-development -> main`.
 
-## Deployment Architecture
-```
+## Verified Release Candidate
+- Canonical database: **MySQL 8.0**.
+- PHP runtime: **^8.3**.
+- Framework: **Laravel 13.31.0**.
+- Verified application/release candidate SHA: `7eab678eb3ef0bb3b57c3569ca782c5dca45322e`.
+- GitHub Actions run `34724341256`: **SUCCESS** on that exact release-candidate SHA.
+- PHPUnit: **145 passed**.
+- Playwright: **11/11 passed**.
+- Composer audit: **clean**.
+- npm production high-severity audit: **0**.
+- Subsequent documentation/control-only branch tips must obtain their own CI before merge, but do not invalidate the verified application SHA above unless they change application/release behavior.
+
+GitHub/PR CI is authoritative for the exact current branch tip. Do not create self-referential documentation commits merely to echo a moving tip SHA.
+
+## Deployment Contract
+```text
+GITHUB_ACTIONS = CI_ONLY
 DEPLOYMENT_METHOD = ANTIGRAVITY_DIRECT_SSH
-Target:            nenobet.live (canonical live/test server)
-Recorded deployed commit: 2e24c1ddbdaa0d23af9291b272a53539d2466d84
+TARGET = nenobet.live
+HISTORICAL_RECORDED_DEPLOYED_SHA = 2e24c1ddbdaa0d23af9291b272a53539d2466d84
 ```
 
-GitHub Actions remains CI-only. Direct SSH connection details and credentials are intentionally kept out of this state document.
+The direct-SSH deployment path is hardened for strict host verification, explicit owner approval, backup-readiness confirmation, clean/exact merged `main` SHA verification, existing production `.env` enforcement, and post-deploy SHA/health verification. GitHub Actions must not be converted into a production SSH deployer unless the owner explicitly changes policy.
 
-## Current Branch
-- main
+## Historical Roadmap State
+Phases A-U and post-Phase-U closure tasks C-1 through C-5 remain completed. Do not reopen them merely because old phase documents exist. Current code/tests/CI outrank stale reports; a regression or missing acceptance proof must be demonstrated before implementation work is reopened.
 
-## Completed Phases
-PHASE_A through PHASE_U — all complete.
+## Remaining Release Gates
+1. Owner review/approval of the verified release candidate and draft PR.
+2. Merge the exact approved release to `main` only after required CI/review gates remain green.
+3. Confirm production backup + rollback readiness at the deployment gate.
+4. Deploy the exact approved merged `main` SHA via **Antigravity direct SSH** only.
+5. Run independent hands-on live acceptance on `nenobet.live` using disposable `DEMO-UAT` data only.
+6. Mark Production Ready only after deployed-SHA and live-acceptance evidence agree.
 
-## Current Post-Closure State
-- Round 2 live-acceptance repair baseline is deployed at commit `2e24c1ddbdaa0d23af9291b272a53539d2466d84`.
-- Additional live-acceptance/E2E/form-state hotfixes through commit `1c4fd22547c5327236e8e4c2dbd4395fa2a8640e` are CI-green but are **not recorded as deployed**.
-- Completed roadmap work has not been reopened.
-- Final independent hands-on live browser re-acceptance remains required before any `PRODUCTION READY` declaration.
-
-## Pending
-1. Deploy the latest CI-green application head only through Antigravity direct SSH to `nenobet.live`.
-2. Run independent post-deployment browser acceptance on `nenobet.live`.
+## Evidence Rule
+Never mark `DEPLOYED` or `PRODUCTION READY` from repository/CI evidence alone. Tie release conclusions to the exact relevant code SHA, CI/test evidence, deployed SHA, and independent live acceptance evidence.

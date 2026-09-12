@@ -15,6 +15,7 @@ use App\Services\AnalyticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class PhaseIBusinessAnalyticsTest extends TestCase
 {
@@ -68,7 +69,7 @@ class PhaseIBusinessAnalyticsTest extends TestCase
         ], $overrides));
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_gross_revenue_correctly_ignoring_cancelled_orders()
     {
         $center = Center::factory()->create();
@@ -82,7 +83,7 @@ class PhaseIBusinessAnalyticsTest extends TestCase
         $this->assertEquals(1500, $revenue);
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_collected_revenue_correctly_and_handles_tenant_isolation()
     {
         $centerA = Center::factory()->create();
@@ -108,7 +109,7 @@ class PhaseIBusinessAnalyticsTest extends TestCase
         $this->assertEquals(1000, $this->analytics->getCollectedRevenue($centerB->id));
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_registration_counts_accurately()
     {
         $center = Center::factory()->create();
@@ -127,7 +128,7 @@ class PhaseIBusinessAnalyticsTest extends TestCase
         $this->assertEquals(2, $stats['unpaid']);
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_document_approval_rates()
     {
         $center = Center::factory()->create();
@@ -149,7 +150,7 @@ class PhaseIBusinessAnalyticsTest extends TestCase
         $this->assertEquals(50.0, $stats['approval_rate']);
     }
 
-    /** @test */
+    #[Test]
     public function analytics_queries_do_not_mutate_the_ledger()
     {
         $center = Center::factory()->create();
@@ -172,7 +173,7 @@ class PhaseIBusinessAnalyticsTest extends TestCase
         $this->assertEquals('pending', $order->status);
     }
 
-    /** @test */
+    #[Test]
     public function it_counts_only_orders_with_the_canonical_partially_paid_status()
     {
         $center = Center::factory()->create();
@@ -193,7 +194,7 @@ class PhaseIBusinessAnalyticsTest extends TestCase
         $this->assertSame(1, $this->analytics->getPartialPaymentCount($center->id));
     }
 
-    /** @test */
+    #[Test]
     public function it_calculates_commissions_from_the_commissions_table_and_scopes_by_order_center()
     {
         $centerA = Center::factory()->create();

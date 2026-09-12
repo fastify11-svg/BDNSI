@@ -24,7 +24,7 @@ class PhaseGDocumentManagementTest extends TestCase
         // Create basic structure
         $role = \App\Models\Role::firstOrCreate(['name' => 'admin']);
         $this->admin = Admin::factory()->create();
-        $this->admin->attachRole($role);
+        $this->admin->addRole($role);
         
         $this->centerA = Center::factory()->create(['id' => 1, 'name' => 'Center A', 'code' => 'C-001']);
         $this->centerUserA = User::factory()->create(['center_id' => $this->centerA->id, 'username' => 'center_a_test', 'phone' => '01711111111']);

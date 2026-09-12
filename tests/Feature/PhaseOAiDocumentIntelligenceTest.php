@@ -8,12 +8,13 @@ use App\Models\StudentDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class PhaseOAiDocumentIntelligenceTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function ai_service_analyzes_document_and_detects_mismatch()
     {
         $team = \App\Models\Team::create(['name' => 'Default Team', 'domain' => 'default']);

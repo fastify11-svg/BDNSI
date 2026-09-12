@@ -1,0 +1,23 @@
+---
+description: "Always-on BDNSI Cursor guardrails for roadmap discipline, efficient context use, testing, security and release safety"
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# BDNSI core rule
+
+- Mature existing system: verify before changing; never rebuild completed modules from old roadmap text alone.
+- Classify work first: verified complete, regression, verified gap, unverified, or new requirement.
+- Search exact symbols/routes/tests/errors before broad exploration; read the smallest dependency slice that answers the question.
+- Treat usage/time as a budget: no repeated whole-repo scans, unchanged file rereads, duplicate reports, speculative refactors, or full regression after every small edit.
+- Use `.cursor/skills/` progressively; load only the relevant workflow/domain skill. Old `.agents/` material is legacy history, not active Cursor instruction.
+- Current code + tests + exact-commit CI evidence outrank stale reports. `MASTER_IMPLEMENTATION_ROADMAP.md` defines scope; `.ai/PROJECT_STATE.md` is historical handoff evidence that must be reverified.
+- MySQL 8.0 is canonical; never make SQLite authoritative merely to simplify tests.
+- Preserve RBAC, Center tenant isolation, financial invariants, auditability, and protected document access.
+- Never trust client-supplied money, payment state, Center ID, role, or academic access eligibility.
+- Make the smallest correct patch, then run the narrowest meaningful test. Escalate to module/build/E2E/full regression only when risk or release stage requires it.
+- Never weaken tests/security or mass-upgrade dependencies to obtain green output.
+- Routine safe/reversible work may proceed autonomously on `cursor-development`; do not develop directly on `main`.
+- Ask the owner only for destructive/irreversible operations, production-data risk, unavailable credentials/secrets, unresolved business-policy changes, major platform migration, history rewrite, or production deployment.
+- Never commit `.env`, private keys, production dumps/backups, or secrets.
+- Do not declare `PRODUCTION READY` until the exact deployed release SHA passes required live acceptance.

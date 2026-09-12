@@ -28,7 +28,7 @@ class LeadManagementTest extends TestCase
             'email' => 'admin@test.com',
             'password' => bcrypt('password')
         ]);
-        $this->admin->attachRole($role);
+        $this->admin->addRole($role);
     }
 
     public function test_admin_can_view_leads_index()
@@ -139,7 +139,7 @@ class LeadManagementTest extends TestCase
             'email' => 'subadmin@test.com',
             'password' => bcrypt('password')
         ]);
-        $subAdmin->attachRole($subAdminRole);
+        $subAdmin->addRole($subAdminRole);
 
         $response = $this->actingAs($subAdmin, 'admin')->get(route('admin.leads.index'));
         $response->assertStatus(403);
@@ -234,14 +234,14 @@ class LeadManagementTest extends TestCase
         $subAdminRole = Role::firstOrCreate(['name' => 'sub_admin', 'display_name' => 'Sub Admin']);
         // Create permission and attach to role
         $permission = \App\Models\Permission::firstOrCreate(['name' => 'update-leads', 'display_name' => 'Update Leads']);
-        $subAdminRole->attachPermission($permission);
+        $subAdminRole->givePermission($permission);
 
         $subAdmin = Admin::create([
             'name' => 'Sales Agent',
             'email' => 'sales@test.com',
             'password' => bcrypt('password')
         ]);
-        $subAdmin->attachRole($subAdminRole);
+        $subAdmin->addRole($subAdminRole);
 
         // Lead created by someone else
         $lead = Lead::create([

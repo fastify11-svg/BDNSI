@@ -1,126 +1,171 @@
 #!/usr/bin/env node
 /**
- * deploy_to_production.mjs
- * Antigravity Direct SSH Deployment Script
+ * BDNSI direct-SSH production deployment.
+ * GitHub Actions remains CI-only.
  *
- * Target: nenobet.live
- * SSH: u881397359@145.79.212.19 -p 65002
- * Key: .deploy_key (ED25519, generate with: node -e "..." or ssh-keygen)
- * Remote path: /home/u881397359/domains/nenobet.live/public_html
+ * Required release gates:
+ *   BDNSI_DEPLOY_APPROVED=1
+ *   BDNSI_RELEASE_BACKUP_CONFIRMED=1
  *
- * SAFETY RULES:
- *   - NEVER runs migrate:fresh, db:wipe, or DROP DATABASE
- *   - NEVER overwrites production .env
- *   - NEVER deletes user uploads (storage/app/public)
- *   - Only runs: php artisan migrate --force (safe additive migrations)
- *
- * Usage:
- *   node deploy_to_production.mjs
+ * Safety:
+ * - deploys only a clean local main that exactly matches origin/main
+ * - requires strict SSH host-key verification
+ * - requires an existing production .env
+ * - never runs migrate:fresh/db:wipe/DROP
+ * - deploys and verifies one exact commit SHA
+ * - never deletes user uploads
  */
 
-import { createRequire } from 'module';
-import { existsSync, readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
+import { homedir } from 'os';
+import { execFileSync } from 'child_process';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-const SSH_HOST = '145.79.212.19';
-const SSH_PORT = '65002';
-const SSH_USER = 'u881397359';
-const SSH_KEY  = resolve(__dirname, '.deploy_key');
-const REMOTE_PATH = '/home/u881397359/domains/nenobet.live/public_html';
+const PROJECT_ROOT = resolve('.');
+const SSH_HOST = process.env.BDNSI_SSH_HOST || '145.79.212.19';
+const SSH_PORT = process.env.BDNSI_SSH_PORT || '65002';
+const SSH_USER = process.env.BDNSI_SSH_USER || 'u881397359';
+const SSH_KEY = resolve(process.env.BDNSI_SSH_KEY || '.deploy_key');
+const KNOWN_HOSTS = resolve(process.env.BDNSI_SSH_KNOWN_HOSTS || `${homedir()}/.ssh/known_hosts`);
+const REMOTE_PATH = process.env.BDNSI_REMOTE_PATH || '/home/u881397359/domains/nenobet.live/public_html';
+const REMOTE_BACKUP_DIR = process.env.BDNSI_REMOTE_BACKUP_DIR || `/home/${SSH_USER}/bdnsi_release_backups`;
 const REPO_URL = 'https://github.com/fastify11-svg/BDNSI.git';
+const HEALTH_URL = process.env.BDNSI_HEALTH_URL || 'https://nenobet.live/health';
 
-// ── Pre-flight checks ─────────────────────────────────────────────────────────
-if (!existsSync(SSH_KEY)) {
-  console.error(`[DEPLOY ERROR] SSH key not found at: ${SSH_KEY}`);
-  console.error('Generate it: node -e "require(\'child_process\').execFileSync(\'ssh-keygen\', [\'-t\', \'ed25519\', \'-C\', \'bdnsi-deploy\', \'-f\', \'.deploy_key\', \'-N\', \'\'])"');
+function fail(message) {
+  console.error(`[DEPLOY BLOCKED] ${message}`);
   process.exit(1);
 }
 
-// Get current commit for verification
-const currentCommit = execSync('git rev-parse HEAD', { cwd: __dirname }).toString().trim();
-const currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: __dirname }).toString().trim();
-console.log(`[DEPLOY] Deploying commit: ${currentCommit} (${currentBranch})`);
-console.log(`[DEPLOY] Target: ${SSH_USER}@${SSH_HOST}:${SSH_PORT} → ${REMOTE_PATH}`);
-
-if (currentBranch !== 'main') {
-  console.error(`[DEPLOY ERROR] Must deploy from main branch. Current branch: ${currentBranch}`);
-  process.exit(1);
+function local(command, args = []) {
+  return execFileSync(command, args, {
+    cwd: PROJECT_ROOT,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
 }
 
-// ── SSH helper ────────────────────────────────────────────────────────────────
-function ssh(command, label) {
-  console.log(`\n[SSH] ${label || command.split('\n')[0].substring(0, 80)}`);
-  try {
-    const result = execSync(
-      `ssh -i "${SSH_KEY}" -o BatchMode=yes -o StrictHostKeyChecking=no -p ${SSH_PORT} ${SSH_USER}@${SSH_HOST} "${command.replace(/"/g, '\\"')}"`,
-      { cwd: __dirname, encoding: 'utf8', stdio: 'pipe', timeout: 120000 }
-    );
-    console.log(result);
-    return result;
-  } catch (e) {
-    console.error(`[SSH ERROR] ${e.stderr || e.message}`);
-    throw e;
+function validateConfig() {
+  if (process.env.BDNSI_DEPLOY_APPROVED !== '1') {
+    fail('Explicit release approval missing. Set BDNSI_DEPLOY_APPROVED=1 only after owner approval.');
   }
-}
+  if (process.env.BDNSI_RELEASE_BACKUP_CONFIRMED !== '1') {
+    fail('Database/upload rollback readiness has not been confirmed. Set BDNSI_RELEASE_BACKUP_CONFIRMED=1 only after verification.');
+  }
+  if (!/^[A-Za-z0-9.-]+$/.test(SSH_HOST)) fail('Invalid SSH host.');
+  if (!/^\d{1,5}$/.test(SSH_PORT)) fail('Invalid SSH port.');
+  if (!/^[A-Za-z0-9._-]+$/.test(SSH_USER)) fail('Invalid SSH user.');
+  if (!/^\/[A-Za-z0-9._/-]+$/.test(REMOTE_PATH)) fail('Invalid remote path.');
+  if (!/^\/[A-Za-z0-9._/-]+$/.test(REMOTE_BACKUP_DIR)) fail('Invalid remote backup path.');
+  if (!existsSync(SSH_KEY)) fail(`SSH key not found: ${SSH_KEY}`);
+  if (!existsSync(KNOWN_HOSTS)) fail(`known_hosts file not found: ${KNOWN_HOSTS}`);
 
-// ── Deployment steps ─────────────────────────────────────────────────────────
-async function deploy() {
-  console.log('\n══════════════════════════════════════════════════');
-  console.log(' BDNSI → Antigravity Direct SSH Production Deploy');
-  console.log('══════════════════════════════════════════════════\n');
-
-  // Step 1: Test connection
   try {
-    const whoami = ssh('whoami && hostname', 'Test SSH connection');
-    console.log(`[OK] SSH connection established: ${whoami.trim()}`);
+    execFileSync('ssh-keygen', ['-F', `[${SSH_HOST}]:${SSH_PORT}`, '-f', KNOWN_HOSTS], { stdio: 'ignore' });
   } catch {
-    console.error('[BLOCKED] Cannot connect to server. Ensure the SSH public key is added to Hostinger SSH Access.');
-    console.error('Public key to add:');
-    console.log(readFileSync(`${SSH_KEY}.pub`, 'utf8').trim());
-    process.exit(1);
-  }
-
-  // Step 2: Backup current .env (safety)
-  ssh(`if [ -f ${REMOTE_PATH}/.env ]; then cp ${REMOTE_PATH}/.env ${REMOTE_PATH}/.env.backup_$(date +%Y%m%d_%H%M%S) && echo "Production .env backed up"; fi`, 'Backup production .env');
-
-  // Step 3: Git pull or clone
-  ssh(`if [ -d ${REMOTE_PATH}/.git ]; then cd ${REMOTE_PATH} && git fetch origin && git reset --hard origin/main && echo "Git pull complete"; else cd ${REMOTE_PATH} && git init && git remote add origin ${REPO_URL} && git fetch origin && git reset --hard origin/main && echo "Git init and fetch complete"; fi`, 'Git fetch & reset');
-
-  // Step 4: Restore .env (never overwrite production .env)
-  ssh(`cd ${REMOTE_PATH} && LATEST_BACKUP=$(ls -t .env.backup_* 2>/dev/null | head -1) && if [ -n "$LATEST_BACKUP" ]; then cp "$LATEST_BACKUP" .env && echo "Production .env restored from backup"; elif [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env && echo "WARNING: No production .env found. Copied .env.example"; fi`, 'Restore production .env');
-
-  // Step 5: Composer install (no-dev, production)
-  ssh(`cd ${REMOTE_PATH} && composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs --no-scripts 2>&1 | tail -5 && echo "Composer install complete"`, 'Composer install --no-dev');
-
-  // Step 6: Safe migrations only
-  ssh(`cd ${REMOTE_PATH} && php artisan migrate --force 2>&1 && echo "Migrations complete"`, 'php artisan migrate --force');
-
-  // Step 7: Laravel cache clear & rebuild
-  ssh(`cd ${REMOTE_PATH} && php artisan config:clear && php artisan cache:clear && php artisan route:clear && php artisan view:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache && echo "Laravel caches rebuilt"`, 'Laravel cache:clear + cache:cache');
-
-  // Step 8: Verify deployment
-  const deployedCommit = ssh(`cd ${REMOTE_PATH} && git rev-parse HEAD`, 'Verify deployed commit');
-  const appUrl = ssh(`cd ${REMOTE_PATH} && grep '^APP_URL' .env | head -1`, 'Check APP_URL in .env');
-
-  console.log('\n══════════════════════════════════════════════════');
-  console.log(' DEPLOYMENT COMPLETE');
-  console.log('══════════════════════════════════════════════════');
-  console.log(`Local commit:    ${currentCommit}`);
-  console.log(`Deployed commit: ${deployedCommit.trim()}`);
-  console.log(`App URL:         ${appUrl.trim()}`);
-  console.log(`Timestamp:       ${new Date().toISOString()}`);
-  console.log('══════════════════════════════════════════════════\n');
-
-  if (deployedCommit.trim() !== currentCommit) {
-    console.warn('[WARNING] Deployed commit differs from local. Verify manually.');
+    fail(`SSH host key is not trusted in ${KNOWN_HOSTS}. Verify the Hostinger fingerprint before adding it.`);
   }
 }
 
-deploy().catch(err => {
-  console.error('[DEPLOY FAILED]', err.message);
+function ssh(command, label = command) {
+  console.log(`\n[SSH] ${label}`);
+  try {
+    const out = execFileSync(
+      'ssh',
+      [
+        '-i', SSH_KEY,
+        '-o', 'BatchMode=yes',
+        '-o', 'StrictHostKeyChecking=yes',
+        '-o', `UserKnownHostsFile=${KNOWN_HOSTS}`,
+        '-p', SSH_PORT,
+        `${SSH_USER}@${SSH_HOST}`,
+        command,
+      ],
+      { cwd: PROJECT_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 180000 }
+    );
+    const text = out.trim();
+    if (text) console.log(text);
+    return text;
+  } catch (error) {
+    console.error(error.stderr?.toString() || error.message);
+    throw error;
+  }
+}
+
+async function checkHealth() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch(HEALTH_URL, { redirect: 'follow', signal: controller.signal });
+    if (response.status !== 200) throw new Error(`HTTP ${response.status}`);
+    console.log(`[OK] Health check: ${HEALTH_URL} -> 200`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function deploy() {
+  validateConfig();
+
+  const branch = local('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
+  if (branch !== 'main') fail(`Deploy only from main. Current branch: ${branch}`);
+  if (local('git', ['status', '--porcelain'])) fail('Local worktree is not clean.');
+
+  execFileSync('git', ['fetch', 'origin', 'main'], { cwd: PROJECT_ROOT, stdio: 'inherit' });
+  const currentCommit = local('git', ['rev-parse', 'HEAD']);
+  const originMain = local('git', ['rev-parse', 'origin/main']);
+  if (currentCommit !== originMain) fail(`Local main ${currentCommit} does not exactly match origin/main ${originMain}.`);
+
+  console.log(`\nBDNSI exact-SHA direct SSH deploy`);
+  console.log(`Release SHA: ${currentCommit}`);
+  console.log(`Target: ${SSH_USER}@${SSH_HOST}:${SSH_PORT}${REMOTE_PATH}`);
+
+  ssh('whoami && hostname', 'Verify SSH connection');
+  ssh(`test -d ${REMOTE_PATH} && test -f ${REMOTE_PATH}/.env`, 'Require existing production path and .env');
+
+  let previousCommit = 'UNKNOWN';
+  try {
+    previousCommit = ssh(`cd ${REMOTE_PATH} && git rev-parse HEAD`, 'Record rollback SHA');
+  } catch {
+    console.warn('[WARN] Existing remote Git SHA could not be read; release remains protected by explicit backup confirmation.');
+  }
+
+  ssh(
+    `mkdir -p ${REMOTE_BACKUP_DIR} && chmod 700 ${REMOTE_BACKUP_DIR} && ` +
+    `cp ${REMOTE_PATH}/.env ${REMOTE_BACKUP_DIR}/env_$(date +%Y%m%d_%H%M%S).backup && ` +
+    `chmod 600 ${REMOTE_BACKUP_DIR}/env_*.backup`,
+    'Back up production .env outside web root'
+  );
+
+  ssh(
+    `cd ${REMOTE_PATH} && ` +
+    `if git remote get-url origin >/dev/null 2>&1; then git remote set-url origin ${REPO_URL}; else git remote add origin ${REPO_URL}; fi && ` +
+    `git fetch origin main && ` +
+    `REMOTE_MAIN=$(git rev-parse origin/main) && ` +
+    `test "$REMOTE_MAIN" = "${currentCommit}" && ` +
+    `git reset --hard ${currentCommit}`,
+    'Fetch and reset to exact approved SHA'
+  );
+
+  ssh(`cd ${REMOTE_PATH} && test -f .env`, 'Verify production .env survived code update');
+  ssh(`cd ${REMOTE_PATH} && composer install --no-dev --optimize-autoloader --no-interaction --no-scripts`, 'Install production Composer dependencies');
+  ssh(`cd ${REMOTE_PATH} && php artisan package:discover --ansi`, 'Discover Laravel packages');
+  ssh(`cd ${REMOTE_PATH} && php artisan migrate --force`, 'Run reviewed forward migrations');
+  ssh(`cd ${REMOTE_PATH} && php artisan optimize:clear && php artisan config:cache && php artisan view:cache`, 'Rebuild safe Laravel caches');
+
+  const deployedCommit = ssh(`cd ${REMOTE_PATH} && git rev-parse HEAD`, 'Verify deployed SHA');
+  if (deployedCommit !== currentCommit) throw new Error(`SHA mismatch: expected ${currentCommit}, deployed ${deployedCommit}`);
+
+  await checkHealth();
+
+  console.log('\nDEPLOYMENT VERIFIED');
+  console.log(`Previous SHA: ${previousCommit}`);
+  console.log(`Deployed SHA: ${deployedCommit}`);
+  console.log(`Health: ${HEALTH_URL}`);
+  console.log('If rollback is required, review migrations/data compatibility before resetting code to the previous SHA.');
+}
+
+deploy().catch((error) => {
+  console.error(`\n[DEPLOY FAILED] ${error.message}`);
   process.exit(1);
 });

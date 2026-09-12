@@ -34,8 +34,8 @@ class SiteControlCenterTest extends TestCase
             'display_name' => 'Config Dictionary Create',
         ]);
 
-        $role->attachPermission($permission);
-        $this->admin->attachRole($role);
+        $role->givePermission($permission);
+        $this->admin->addRole($role);
 
         $this->withoutExceptionHandling();
     }

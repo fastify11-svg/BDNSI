@@ -1,0 +1,50 @@
+# Secrets
+.env
+.env.*
+!.env.example
+.deploy_key
+.deploy_key.*
+*.pem
+*.key
+
+# Dependencies/build/runtime noise
+vendor/
+node_modules/
+public/build/
+playwright-report/
+test-results/
+coverage/
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+storage/app/backups/
+bootstrap/cache/*.php
+*.log
+.phpunit.result.cache
+
+# Legacy Antigravity workspace is not active Cursor context
+.agents/
+
+# Historical AI execution state is excluded by default; keep only the compact
+# handoff state file available for evidence when Cursor explicitly needs it.
+.ai/**
+!.ai/PROJECT_STATE.md
+
+# Superseded large autonomous prompt documents
+BDNSI_48H_AUTONOMOUS_MASTER_EXECUTION.md
+BDNSI_84H_NONSTOP_AUTONOMOUS_EXECUTION_MASTER.md
+
+# Databases/backups/archives
+*.sql
+*.sqlite
+*.sqlite3
+*.dump
+*.bak
+*.zip
+*.tar
+*.tar.gz
+
+# VCS/editor internals
+.git/
+.idea/
