@@ -1,16 +1,20 @@
 name: Autonomous CI Pipeline
 
-# ─────────────────────────────────────────────────────────────────────────────
 # CI-ONLY pipeline — no production SSH deployment.
-# Production deployment is performed directly from Antigravity IDE via SSH.
-# DEPLOYMENT_METHOD = ANTIGRAVITY_DIRECT_SSH → nenobet.live
-# ─────────────────────────────────────────────────────────────────────────────
+# Production deployment remains direct SSH and requires an explicit release decision.
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bdnsi-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   ci:
@@ -33,11 +37,9 @@ jobs:
           --health-retries=12
 
     steps:
-      # ─── 1. CHECKOUT ─────────────────────────────────────────────────────
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      # ─── 2. PHP SETUP ────────────────────────────────────────────────────
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -45,32 +47,37 @@ jobs:
           extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, gd, zip
           coverage: none
 
-      # ─── 3. ENVIRONMENT SETUP ────────────────────────────────────────────
       - name: Setup Environment
         run: |
           cp .env.example .env
+          sed -i 's/APP_ENV=.*/APP_ENV=testing/' .env
+          sed -i 's/APP_DEBUG=.*/APP_DEBUG=true/' .env
+          sed -i 's#APP_URL=.*#APP_URL=http://127.0.0.1:8000#' .env
           sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
           sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
           sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
           sed -i 's/DB_DATABASE=.*/DB_DATABASE=bdnsi_testing/' .env
           sed -i 's/DB_USERNAME=.*/DB_USERNAME=bdnsi_test_user/' .env
           sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=safe_test_password/' .env
-          sed -i 's/APP_DEBUG=.*/APP_DEBUG=true/' .env
-          sed -i 's/APP_ENV=.*/APP_ENV=testing/' .env
           sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' .env
           sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env
-          sed -i 's/REDIS_HOST=.*/REDIS_HOST=/' .env
           sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env
-          echo "APP_URL=http://127.0.0.1:8000" >> .env
+          sed -i 's/REDIS_HOST=.*/REDIS_HOST=/' .env
           echo "CI=true" >> .env
           echo "--- .env DB/Session config ---"
           grep -E '^(DB_|SESSION_|CACHE_|APP_URL|APP_ENV|QUEUE_)' .env
 
-      # ─── 4. COMPOSER ─────────────────────────────────────────────────────
-      # Install without Composer scripts first so Laravel boots only after the
-      # CI environment has a valid APP_KEY. Then run package discovery explicitly.
+      - name: Validate Composer Metadata
+        run: composer validate --no-check-publish
+
       - name: Install Composer Dependencies
         run: composer install --no-scripts --no-ansi --no-interaction --no-progress --prefer-dist
+
+      - name: Composer Security Audit
+        continue-on-error: true
+        env:
+          COMPOSER_NO_AUDIT: '0'
+        run: composer audit --locked --no-interaction
 
       - name: Generate App Key
         run: php artisan key:generate
@@ -82,37 +89,47 @@ jobs:
         run: |
           php artisan tinker --execute="if (DB::connection()->getDriverName() !== 'mysql') { throw new RuntimeException('CI database driver must be mysql'); } echo 'CI database driver: mysql' . PHP_EOL;"
 
-      # ─── 5. DATABASE ─────────────────────────────────────────────────────
       - name: Run Database Migrations & Seeding
         run: |
           php artisan migrate:fresh --seed --force -vvv > setup.log 2>&1 || (cat setup.log && exit 1)
-          echo "--- Verify admin was seeded ---"
           php artisan tinker --execute="echo 'Admin count: ' . \App\Models\Admin::count() . PHP_EOL . 'Admin email: ' . (\App\Models\Admin::first()->email ?? 'NONE');"
 
       - name: Run PHP Regression Suite
         run: php artisan test
 
-      # ─── 6. NODE.JS & NPM ────────────────────────────────────────────────
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install NPM Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
-      # ─── 7. BUILD FRONTEND ───────────────────────────────────────────────
+      - name: NPM Production Security Audit
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Compile Frontend Assets
         run: |
           npm run build
-          echo "--- Verify build output ---"
-          ls -la public/build/manifest.json 2>/dev/null || ls -la public/build/.vite/manifest.json 2>/dev/null || echo "WARNING: No Vite manifest found!"
-          ls -la public/build/assets/ | head -5
+          test -f public/build/manifest.json || test -f public/build/.vite/manifest.json
+          test -d public/build/assets
         env:
           NODE_ENV: production
 
-      # ─── 8. PLAYWRIGHT TESTS ─────────────────────────────────────────────
+      - name: Verify Committed Build Parity
+        run: |
+          BUILD_STATUS="$(git status --porcelain -- public/build)"
+          if [ -n "$BUILD_STATUS" ]; then
+            echo "Committed public/build does not match a fresh production build:"
+            echo "$BUILD_STATUS"
+            exit 1
+          fi
+
+      - name: Validate Direct-SSH Deploy Script Syntax
+        run: node --check deploy_to_production.mjs
+
       - name: Install Playwright Browsers
         run: npx playwright install chromium --with-deps
 
@@ -125,25 +142,25 @@ jobs:
       - name: Wait for Server to be Ready
         run: wait-on http://127.0.0.1:8000 -t 30000
 
-      - name: Smoke Test - Verify Server Responds
+      - name: Strict Smoke Test
         run: |
-          echo "--- Testing key routes ---"
-          curl -s -o /dev/null -w "Homepage: %{http_code}\n" http://127.0.0.1:8000/
-          curl -s -o /dev/null -w "Admin Login Page: %{http_code}\n" http://127.0.0.1:8000/admin/login
-          curl -s -o /dev/null -w "User Login Page: %{http_code}\n" http://127.0.0.1:8000/login
-          curl -s -o /dev/null -w "Public Result Page: %{http_code}\n" http://127.0.0.1:8000/result
-          curl -s -o /dev/null -w "All Courses Page: %{http_code}\n" http://127.0.0.1:8000/all-course
-          echo "--- Testing /health endpoint ---"
-          HEALTH_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/health)
-          echo "Health check response code: $HEALTH_CODE"
-          if [ "$HEALTH_CODE" = "200" ]; then
-            echo "Health smoke check: PASS"
-          else
-            echo "Health smoke check: WARNING - unexpected HTTP $HEALTH_CODE"
-          fi
-        env:
-          ADMIN_EMAIL: admin@gmail.com
-          ADMIN_PASSWORD: "12345678"
+          check_200() {
+            local label="$1"
+            local path="$2"
+            local code
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "http://127.0.0.1:8000${path}")
+            echo "${label}: ${code}"
+            if [ "$code" != "200" ]; then
+              echo "Smoke test failed for ${path}: expected 200, got ${code}"
+              exit 1
+            fi
+          }
+          check_200 "Homepage" "/"
+          check_200 "Admin Login Page" "/admin/login"
+          check_200 "User Login Page" "/login"
+          check_200 "Public Result Page" "/result"
+          check_200 "All Courses Page" "/all-course"
+          check_200 "Health" "/health"
 
       - name: Run Playwright Tests
         run: |
@@ -158,13 +175,6 @@ jobs:
           CENTER_EMAIL: center@gmail.com
           CENTER_PASSWORD: '12345678'
 
-      # NOTE: Production deployment is NOT handled here.
-      # DEPLOYMENT_METHOD = ANTIGRAVITY_DIRECT_SSH
-      # Target: nenobet.live
-      # Run deploy script: node deploy_to_production.mjs
-      # See .ai/PROJECT_STATE.md for deployment architecture.
-
-      # ─── 9. ARTIFACTS ON FAILURE ─────────────────────────────────────────
       - name: Upload Playwright Report
         if: failure()
         uses: actions/upload-artifact@v4
