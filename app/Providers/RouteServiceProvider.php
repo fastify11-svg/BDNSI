@@ -49,14 +49,14 @@ class RouteServiceProvider extends ServiceProvider
             if (app()->environment(['local', 'testing'])) {
                 return Limit::none();
             }
-            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
         RateLimiter::for('web', function (Request $request) {
             if (app()->environment(['local', 'testing'])) {
                 return Limit::none();
             }
-            return Limit::perMinute(120)->by(optional($request->user())->id ?: $request->ip());
+            return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
         });
 
         RateLimiter::for('results', function (Request $request) {
