@@ -17,7 +17,7 @@ Take over the EXISTING mature BDNSI Laravel project and finish only what is genu
 5. `CURSOR_HANDOFF_AUDIT.md`
 6. `CURSOR_EXECUTION_STATUS.md`
 7. `.github/workflows/autonomous.yml`
-8. `composer.json`, `package.json`, PHPUnit/Playwright config
+8. `composer.json`, `package.json`, lockfiles, PHPUnit/Playwright config
 
 Historical Antigravity reports are evidence only. Current source + current tests + current CI + current live evidence outrank old reports.
 
@@ -31,7 +31,7 @@ Ask the owner only before:
 - changing unresolved pricing/accounting/credit/result/certificate policy;
 - destructive Git history rewriting;
 - major framework/platform migration;
-- irreversible infrastructure change.
+- production deployment or irreversible infrastructure change.
 
 Do not ask for routine technical choices when the repository provides a safe answer.
 
@@ -52,14 +52,7 @@ Optimize for the fewest useful model calls, file reads, test runs and CI reruns 
 12. Stop when the requested behavior is proven and the next remaining action is clear. Do not hunt hypothetical P3 work while release blockers exist.
 
 ## Handoff baseline — verify, do not blindly trust
-`.ai/PROJECT_STATE.md` records:
-- phases A-U complete;
-- MySQL 8.0 canonical;
-- historical CI-green application head `1c4fd22547c5327236e8e4c2dbd4395fa2a8640e` / Run #147;
-- recorded deployed baseline `2e24c1ddbdaa0d23af9291b272a53539d2466d84`;
-- final independent live acceptance pending.
-
-The Cursor control layer and skills have since advanced on `cursor-development`. Use current branch/CI evidence, not the historical SHA, for new conclusions.
+`.ai/PROJECT_STATE.md` records a historical completed-roadmap/CI baseline and an older deployed SHA. The Cursor control layer has since advanced on `cursor-development`. Use current branch/CI evidence, not an old SHA or old phase report, for new conclusions.
 
 ## Execution loop
 
@@ -92,8 +85,8 @@ Escalate faster for schema, finance, auth/RBAC, tenant isolation, document acces
 Canonical environment when full parity is required:
 - PHP 8.2
 - MySQL 8.0 disposable test DB
-- Node 22
-- npm `--legacy-peer-deps`
+- Node 24 from `.nvmrc`
+- deterministic `npm ci --legacy-peer-deps`
 - Playwright Chromium
 
 Never make SQLite authoritative and never point destructive test commands at production/shared valuable data.
@@ -130,14 +123,16 @@ Never delete meaningful tests, bypass authorization, weaken financial validation
 ### 4. Release gate
 When no known P0/P1 blocker remains, run the release-level gates once for the candidate SHA:
 - full PHP suite;
-- production frontend build;
+- production frontend build and committed `public/build` parity;
 - release-critical Playwright;
 - MySQL parity/migration safety;
 - route/debug/security exposure review;
 - tenant/RBAC review;
 - financial invariant review;
 - private document/upload access review;
-- relevant dependency advisory review.
+- Composer/npm advisory review focused on exploitable production high/critical findings.
+
+Do not run `npm audit fix --force` or mass dependency upgrades automatically. Inspect the exact advisory and make the smallest compatible fix.
 
 Use the independent `verifier` subagent at this gate to challenge the evidence without rewriting working code.
 
@@ -152,10 +147,10 @@ Before merge:
 
 Do not merge or deploy merely because old reports said the roadmap was complete.
 
-Before production deployment, owner approval is required at the genuine release gate. Preserve rollback SHA and database/upload backup readiness. Deploy the exact verified merged SHA; never use live `migrate:fresh`/wipe/drop. If required credentials are unavailable, record `BLOCKED_CREDENTIAL` with only the required secret names and continue other safe work.
+Production deployment contract remains direct SSH; GitHub Actions stays CI-only. Before production deployment, owner approval is required. Preserve rollback SHA and database/upload backup readiness. The deployment script must deploy the exact approved `main` SHA with strict host verification and must never fall back to `.env.example`. Never use live `migrate:fresh`/wipe/drop. If required credentials are unavailable, record `BLOCKED_CREDENTIAL` with only required secret names and continue other safe work.
 
 ### 6. Independent live acceptance
-After exact-SHA deployment to `https://nenobet.live`, use only clearly labeled disposable DEMO/UAT records for mutations. Do not alter legitimate business records.
+After exact-SHA deployment to `https://nenobet.live`, use only clearly labeled disposable DEMO/UAT records for mutations; do not alter legitimate business records.
 
 Record `FA-01`, `FA-02`, ... for the minimum critical journeys:
 - public routes;
@@ -177,11 +172,12 @@ For a live defect: reproduce → minimal fix on `cursor-development` → targete
 ## Final completion gate
 Do not declare `PRODUCTION READY` until all are proven for the final exact SHA:
 - no known P0/P1 blocker;
-- full PHP suite PASS;
-- frontend build PASS;
+- full PHP suite PASS with no meaningless risked/debug probes counted as coverage;
+- frontend build + tracked build parity PASS;
 - release-critical Playwright PASS;
 - MySQL 8 canonical/parity PASS;
 - tenant/RBAC/finance/document/certificate critical controls PASS;
+- production dependency advisories reviewed;
 - exact verified `main` SHA deployed;
 - rollback state recorded;
 - independent live acceptance PASS.
