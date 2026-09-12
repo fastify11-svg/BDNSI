@@ -1,12 +1,12 @@
 {
   "mode": "BDNSI_84H_UNATTENDED_EXECUTION",
-  "status": "RUNNING",
+  "status": "SUPERSEDED_BY_CURSOR_HANDOFF",
   "window_started_at": "2026-09-10T18:12:58+06:00",
   "window_deadline_at": "2026-09-14T06:12:58+06:00",
   "cycle_number": 9,
-  "current_phase": "FINAL_LIVE_ACCEPTANCE",
-  "current_lane": "POST-DEPLOYMENT LIVE RE-ACCEPTANCE",
-  "active_task": "INDEPENDENT_HANDS_ON_LIVE_BROWSER_REACCEPTANCE",
+  "current_phase": "CURSOR_RELEASE_AUDIT",
+  "current_lane": "CURSOR_HANDOFF_ACTIVE",
+  "active_task": "EXACT_HEAD_CI_AND_RELEASE_AUDIT",
   "completed_tasks": [
     "TSK-1 to TSK-37: Cycles 1-7 complete",
     "TSK-38: Caching for DashboardController and CenterTotalResultController - DEPLOYED",
@@ -26,11 +26,13 @@
   "deployment_method": "ANTIGRAVITY_DIRECT_SSH",
   "persistent_runner_status": "IDLE",
   "blocked_tasks": [
-    "Repository head contains additional CI-green live-acceptance/form-state hotfixes after the currently recorded deployed commit; deployment of these newer fixes requires Antigravity direct SSH before they can be treated as live.",
+    "Current cursor-development exact head requires its own green GitHub CI evidence before merge or release readiness.",
+    "Repository contains newer release-hardening work after the currently recorded deployed commit; deployment requires an approved merge to main followed by Antigravity direct SSH.",
     "Independent hands-on live browser re-acceptance remains the final release gate; public read-only smoke checks are not sufficient for production-ready status"
   ],
   "owner_decision_required": false,
   "last_run_started_at": "2026-09-11T04:06:17.408Z",
+  "superseded_by": "cursor-development release-audit lane",
   "cycle7_summary": {
     "migrations_deployed": 2,
     "migration_detail": "orders composite index, center_ledgers composite index, students composite index",
@@ -44,5 +46,5 @@
     "audits_passed": 2,
     "fixes_deployed": 0
   },
-  "reconciliation_note": "Phases A-U remain closed per TASK_QUEUE. Latest verified application head is commit 1c4fd22547c5327236e8e4c2dbd4395fa2a8640e with GitHub Autonomous CI Run #147 success. The recorded live deployment remains commit 2e24c1ddbdaa0d23af9291b272a53539d2466d84 via ANTIGRAVITY_DIRECT_SSH to nenobet.live. Subsequent CI-green hotfix commits are not marked deployed. Final independent hands-on live browser re-acceptance is still required before any Production Ready declaration."
+  "reconciliation_note": "Legacy 84H unattended execution is no longer the active control lane. Phases A-U remain closed per TASK_QUEUE. Current work is the draft cursor-development release-audit lane, which must obtain exact-head green CI before merge. The recorded live deployment remains commit 2e24c1ddbdaa0d23af9291b272a53539d2466d84 via ANTIGRAVITY_DIRECT_SSH to nenobet.live. Newer Cursor work is not marked deployed. Final independent hands-on live browser re-acceptance is still required before any Production Ready declaration."
 }
