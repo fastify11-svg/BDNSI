@@ -83,7 +83,8 @@ jobs:
           php artisan package:discover --ansi
 
       - name: Assert MySQL test driver
-        run: php artisan tinker --execute="if (DB::connection()->getDriverName() !== 'mysql') { throw new RuntimeException('CI database driver must be mysql'); } echo 'CI database driver: mysql' . PHP_EOL;"
+        run: |
+          php artisan tinker --execute="if (DB::connection()->getDriverName() !== 'mysql') { throw new RuntimeException('CI database driver must be mysql'); } echo 'CI database driver: mysql' . PHP_EOL;"
 
       - name: Run database migrations and seeders
         run: php artisan migrate:fresh --seed --force -vvv > setup.log 2>&1 || (cat setup.log && exit 1)
