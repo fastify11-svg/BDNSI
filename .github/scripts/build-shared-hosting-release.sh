@@ -97,18 +97,25 @@ NODE_ENV=production npm run build
 
 echo "Creating fresh baseline database..."
 php artisan migrate:fresh --force --no-interaction
-php artisan db:seed --class='Database\Seeders\LaratrustSeeder' --force --no-interaction
-php artisan db:seed --class='Database\Seeders\ConfigSeeder' --force --no-interaction
-php artisan db:seed --class='Database\Seeders\SiteConfigSeeder' --force --no-interaction
+php artisan db:seed --class='Database\\Seeders\\LaratrustSeeder' --force --no-interaction
+php artisan db:seed --class='Database\\Seeders\\ConfigSeeder' --force --no-interaction
+php artisan db:seed --class='Database\\Seeders\\SiteConfigSeeder' --force --no-interaction
 
 ADMIN_EMAIL="admin@bdnsi.local"
 ADMIN_PASSWORD="$(php -r 'echo substr(bin2hex(random_bytes(32)), 0, 24);')"
 INSTALLER_ADMIN_EMAIL="$ADMIN_EMAIL" INSTALLER_ADMIN_PASSWORD="$ADMIN_PASSWORD" php artisan tinker --execute='
-$admin = \App\Models\Admin::updateOrCreate(
+$password = getenv("INSTALLER_ADMIN_PASSWORD");
+$admin = \\App\\Models\\Admin::updateOrCreate(
     ["email" => getenv("INSTALLER_ADMIN_EMAIL")],
-    ["name" => "Installer Administrator", "password" => getenv("INSTALLER_ADMIN_PASSWORD")]
+    [
+        "name" => "Installer Administrator",
+        "password" => \\Illuminate\\Support\\Facades\\Hash::make($password),
+    ]
 );
-$role = \App\Models\Role::whereIn("name", ["superadmin", "admin"])->first();
+if (! \\Illuminate\\Support\\Facades\\Hash::check($password, $admin->password)) {
+    throw new \\RuntimeException("Installer admin password hashing verification failed.");
+}
+$role = \\App\\Models\\Role::whereIn("name", ["superadmin", "admin"])->first();
 if ($role) { $admin->syncRoles([$role]); }
 ' >/dev/null
 
@@ -121,6 +128,12 @@ docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" "$MYSQL_CONTAINER" \
     --set-gtid-purged=OFF \
     "$MYSQL_DATABASE" > "$APP_DIR/database.sql"
 [[ -s "$APP_DIR/database.sql" ]] || { echo "database.sql is empty" >&2; exit 1; }
+
+# The login password may appear only in FIRST_LOGIN.txt, never as plaintext in database.sql.
+if grep -Fq "$ADMIN_PASSWORD" "$APP_DIR/database.sql"; then
+    echo "SECURITY ERROR: plaintext installer admin password found in database.sql" >&2
+    exit 1
+fi
 
 echo "Assembling flat shared-hosting package..."
 rsync -a "$APP_DIR/" "$PACKAGE_DIR/" \
