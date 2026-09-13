@@ -19,6 +19,26 @@ class CenterUpdateRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $normalized = [];
+        foreach ([
+            'credit_enabled',
+            'allow_registration_without_payment',
+            'allow_result_without_payment',
+            'allow_certificate_without_payment',
+            'auto_restriction',
+        ] as $field) {
+            if ($this->has($field)) {
+                $normalized[$field] = filter_var($this->input($field), FILTER_VALIDATE_BOOLEAN);
+            }
+        }
+
+        if ($normalized) {
+            $this->merge($normalized);
+        }
+    }
+
     public function rules()
     {
         return [
@@ -57,12 +77,8 @@ class CenterUpdateRequest extends FormRequest
     {
         $validated = $this->validated();
         $password = $validated['password'] ?? null;
-
-        // Password belongs to the portal user, not the centers table.
         unset($validated['password']);
 
-        // Normalize checkbox values so both HTML/FormData and JSON submissions
-        // persist an explicit false instead of silently retaining old values.
         foreach ([
             'credit_enabled',
             'allow_registration_without_payment',
@@ -75,14 +91,11 @@ class CenterUpdateRequest extends FormRequest
 
         $updated = $center->update($validated);
 
-        // An empty optional password must never reset an existing portal password.
         if ($password) {
             User::where('center_id', $center->id)
                 ->first()?->update(['password' => Hash::make($password)]);
         }
 
-        // Approval notifications are handled by the explicit approval flow.
-        // Generic profile/financial edits must remain side-effect free.
         return $updated;
     }
 }
