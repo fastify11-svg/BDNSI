@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Scopes\CenterScope;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,8 +19,10 @@ class Price extends Model
     ];
 
     protected $casts = [
-        'effective_from' => 'date',
+        'effective_from' => 'date:Y-m-d',
         'status' => 'boolean',
+        'base_price' => 'decimal:2',
+        'discount' => 'decimal:2',
     ];
 
     public function center()
@@ -30,4 +30,3 @@ class Price extends Model
         return $this->belongsTo(Center::class);
     }
 }
-
