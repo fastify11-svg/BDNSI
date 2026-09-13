@@ -32,21 +32,15 @@ class NoticeController extends Controller
         }
 
         $notices = $query->paginate(20)->withQueryString();
-
-        // Map formatted date
         $notices->getCollection()->transform(function ($notice) {
             $notice->formatted_date = $notice->created_at ? $notice->created_at->format('d M Y') : 'N/A';
 
             return $notice;
         });
 
-        $filters = [
-            'search' => $request->input('search', ''),
-        ];
-
         return Inertia::render('Admin/Notice/Index', [
             'notices' => $notices,
-            'filters' => $filters,
+            'filters' => ['search' => $request->input('search', '')],
         ]);
     }
 
@@ -81,14 +75,12 @@ class NoticeController extends Controller
             $notice->update(['file_path' => $path]);
         }
 
-        return redirect()->route('notice.index')->with('success', 'Notice published successfully!');
+        return redirect()->route('admin.notice.index')->with('success', 'Notice published successfully!');
     }
 
     public function edit(Notice $notice)
     {
-        return Inertia::render('Admin/Notice/Edit', [
-            'notice' => $notice,
-        ]);
+        return Inertia::render('Admin/Notice/Edit', ['notice' => $notice]);
     }
 
     public function update(Request $request, Notice $notice)
@@ -118,7 +110,7 @@ class NoticeController extends Controller
             $notice->update(['file_path' => $path]);
         }
 
-        return redirect()->route('notice.index')->with('success', 'Notice updated successfully!');
+        return redirect()->route('admin.notice.index')->with('success', 'Notice updated successfully!');
     }
 
     public function destroy(Notice $notice)
