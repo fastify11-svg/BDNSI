@@ -1,4 +1,4 @@
-name: Hostinger Remote Config Probe
+name: Production Environment Credential Probe
 
 on:
   push:
@@ -13,38 +13,33 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    environment: production
     env:
-      V_HOSTINGER_API_TOKEN: ${{ vars.HOSTINGER_API_TOKEN }}
-      V_HOSTINGER_TOKEN: ${{ vars.HOSTINGER_TOKEN }}
-      V_SSH_PASSWORD: ${{ vars.SSH_PASSWORD }}
-      V_HOSTINGER_PASSWORD: ${{ vars.HOSTINGER_PASSWORD }}
-      V_FTP_PASSWORD: ${{ vars.FTP_PASSWORD }}
-      V_HOSTINGER_FTP_PASSWORD: ${{ vars.HOSTINGER_FTP_PASSWORD }}
-      V_SSH_PRIVATE_KEY: ${{ vars.SSH_PRIVATE_KEY }}
-      V_SSH_HOST: ${{ vars.SSH_HOST }}
-      V_SSH_PORT: ${{ vars.SSH_PORT }}
-      V_SSH_USER: ${{ vars.SSH_USER }}
+      ENV_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      ENV_HOSTINGER_SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+      ENV_SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      ENV_HOSTINGER_SSH_PASSWORD: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+      ENV_HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
     steps:
-      - name: Report presence only
+      - name: Validate production environment credential presence and key format
         shell: bash
         run: |
           set -euo pipefail
-          check() {
-            local label="$1"
-            local value="$2"
-            if [ -n "$value" ]; then
-              echo "$label=PRESENT"
-            else
-              echo "$label=ABSENT"
+          present() { if [ -n "$2" ]; then echo "$1=PRESENT"; else echo "$1=ABSENT"; fi; }
+          present SSH_PRIVATE_KEY "$ENV_SSH_PRIVATE_KEY"
+          present HOSTINGER_SSH_PRIVATE_KEY "$ENV_HOSTINGER_SSH_PRIVATE_KEY"
+          present SSH_PASSWORD "$ENV_SSH_PASSWORD"
+          present HOSTINGER_SSH_PASSWORD "$ENV_HOSTINGER_SSH_PASSWORD"
+          present HOSTINGER_API_TOKEN "$ENV_HOSTINGER_API_TOKEN"
+
+          valid=0
+          for value in "$ENV_HOSTINGER_SSH_PRIVATE_KEY" "$ENV_SSH_PRIVATE_KEY"; do
+            [ -n "$value" ] || continue
+            printf '%s\n' "$value" > /tmp/key
+            chmod 600 /tmp/key
+            if ssh-keygen -y -P '' -f /tmp/key >/dev/null 2>&1; then
+              valid=1
+              break
             fi
-          }
-          check HOSTINGER_API_TOKEN "$V_HOSTINGER_API_TOKEN"
-          check HOSTINGER_TOKEN "$V_HOSTINGER_TOKEN"
-          check SSH_PASSWORD "$V_SSH_PASSWORD"
-          check HOSTINGER_PASSWORD "$V_HOSTINGER_PASSWORD"
-          check FTP_PASSWORD "$V_FTP_PASSWORD"
-          check HOSTINGER_FTP_PASSWORD "$V_HOSTINGER_FTP_PASSWORD"
-          check SSH_PRIVATE_KEY "$V_SSH_PRIVATE_KEY"
-          check SSH_HOST "$V_SSH_HOST"
-          check SSH_PORT "$V_SSH_PORT"
-          check SSH_USER "$V_SSH_USER"
+          done
+          echo "VALID_PRIVATE_KEY=$valid"
