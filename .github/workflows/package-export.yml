@@ -31,12 +31,12 @@ jobs:
         shell: bash
         run: bash .github/scripts/build-upload-ready-package.sh
 
-      - name: Upload package
+      - name: Upload direct hosting package
         uses: actions/upload-artifact@v4
         with:
-          name: BDNSI_READY_UPLOAD_FULL
-          path: |
-            package_out/BDNSI_READY_UPLOAD_FULL.zip
-            package_out/BDNSI_READY_UPLOAD_FULL.sha256
+          name: BDNSI_READY_UPLOAD_DIRECT
+          path: package_out/BDNSI_READY_UPLOAD/
+          include-hidden-files: true
+          if-no-files-found: error
           retention-days: 7
-          compression-level: 0
+          compression-level: 6
