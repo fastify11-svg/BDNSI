@@ -118,8 +118,24 @@ class StudentController extends Controller
 
         $validated['roll'] = Student::getLastFreeRoll();
         $validated['registration'] = Student::getLastFreeRegistration();
-        $validated['team_id'] = Auth::guard('staff')->id();
-        $validated['center_id'] = $validated['center_id'] ?? (Center::first()->id ?? 1);
+        $staffId = Auth::guard('staff')->id();
+        $validated['team_id'] = $staffId;
+
+        $allowedCenterIds = Center::where('team_id', $staffId)
+            ->orWhereNull('team_id')
+            ->pluck('id');
+
+        if (! empty($validated['center_id'])) {
+            if (! $allowedCenterIds->contains((int) $validated['center_id'])) {
+                abort(403, 'You cannot enroll students under this center.');
+            }
+        } else {
+            $validated['center_id'] = $allowedCenterIds->first();
+            if (! $validated['center_id']) {
+                return back()->withErrors(['center_id' => 'No eligible center is available for enrollment.']);
+            }
+        }
+
         $validated['status'] = StudentStatus::Pending;
 
         if ($request->hasFile('picture')) {

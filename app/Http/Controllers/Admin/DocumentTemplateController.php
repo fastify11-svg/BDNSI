@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DocumentTemplate;
+use App\Lib\Image;
 use Illuminate\Http\Request;
 
 class DocumentTemplateController extends Controller
@@ -32,7 +33,8 @@ class DocumentTemplateController extends Controller
         ]);
 
         if ($request->hasFile('background_image')) {
-            $validated['background_image'] = $request->file('background_image')->store('document_templates', 'public');
+            $stored = Image::storeFile($request->file('background_image'), 'document_templates');
+            $validated['background_image'] = preg_replace('#^public/#', '', $stored);
         }
 
         $template = DocumentTemplate::create($validated);
@@ -97,12 +99,13 @@ class DocumentTemplateController extends Controller
             'image' => 'required|image|max:5120',
         ]);
 
-        $path = $request->file('image')->store('document_templates/assets', 'public');
+        $stored = Image::storeFile($request->file('image'), 'document_templates/assets');
+        $path = preg_replace('#^public/#', '', $stored);
 
         return response()->json([
             'success' => true,
             'path' => $path,
-            'url' => asset('storage/' . $path)
+            'url' => asset('storage/' . $path),
         ]);
     }
 
