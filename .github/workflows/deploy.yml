@@ -66,14 +66,16 @@ jobs:
             sudo apt-get install -y -qq sshpass
             echo "AUTH_MODE=password" >> "$GITHUB_ENV"
           else
-            echo "::error::No SSH credential secret found. Supported secrets: BDNSI_SSH_PRIVATE_KEY / HOSTINGER_SSH_PRIVATE_KEY / SSH_PRIVATE_KEY or BDNSI_SSH_PASSWORD / HOSTINGER_SSH_PASSWORD / SSH_PASSWORD / HOSTINGER_PASSWORD."
+            echo "::error::No SSH credential secret found."
             exit 1
           fi
 
           if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
             printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+            echo "HOST_KEY_MODE=strict" >> "$GITHUB_ENV"
           else
-            ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" > "$HOME/.ssh/known_hosts"
+            : > "$HOME/.ssh/known_hosts"
+            echo "HOST_KEY_MODE=accept-new" >> "$GITHUB_ENV"
           fi
           chmod 600 "$HOME/.ssh/known_hosts"
 
@@ -81,24 +83,33 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          STRICT_MODE=yes
+          if [ "$HOST_KEY_MODE" = "accept-new" ]; then STRICT_MODE=accept-new; fi
+
+          COMMON_OPTS=(-o ConnectTimeout=20 -o ConnectionAttempts=2 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking="$STRICT_MODE" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
           if [ "$AUTH_MODE" = "key" ]; then
-            SSH=(ssh -i "$HOME/.ssh/bdnsi_deploy" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+            SSH=(ssh -i "$HOME/.ssh/bdnsi_deploy" -o BatchMode=yes "${COMMON_OPTS[@]}")
           else
             export SSHPASS="$SSH_PASSWORD"
-            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no "${COMMON_OPTS[@]}")
           fi
 
-          "${SSH[@]}" "$SSH_USER@$SSH_HOST" "set -e; command -v git >/dev/null; command -v php >/dev/null; command -v composer >/dev/null; test -d '$REMOTE_PATH'; test -f '$REMOTE_PATH/.env'; php -r 'exit(version_compare(PHP_VERSION, \"8.3.0\", \">=\") ? 0 : 1);'; whoami; hostname"
+          echo "Testing SSH endpoint ${SSH_HOST}:${SSH_PORT} as ${SSH_USER}..."
+          "${SSH[@]}" "$SSH_USER@$SSH_HOST" "set -e; command -v git >/dev/null; command -v php >/dev/null; command -v composer >/dev/null; test -d '$REMOTE_PATH'; test -f '$REMOTE_PATH/.env'; php -r 'exit(version_compare(PHP_VERSION, \"8.3.0\", \">=\") ? 0 : 1);'; echo SSH_PREFLIGHT_OK; whoami; hostname"
 
       - name: Deploy exact SHA safely
         shell: bash
         run: |
           set -euo pipefail
+          STRICT_MODE=yes
+          if [ "$HOST_KEY_MODE" = "accept-new" ]; then STRICT_MODE=accept-new; fi
+          COMMON_OPTS=(-o ConnectTimeout=20 -o ConnectionAttempts=2 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking="$STRICT_MODE" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+
           if [ "$AUTH_MODE" = "key" ]; then
-            SSH=(ssh -i "$HOME/.ssh/bdnsi_deploy" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+            SSH=(ssh -i "$HOME/.ssh/bdnsi_deploy" -o BatchMode=yes "${COMMON_OPTS[@]}")
           else
             export SSHPASS="$SSH_PASSWORD"
-            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no "${COMMON_OPTS[@]}")
           fi
 
           "${SSH[@]}" "$SSH_USER@$SSH_HOST" "bash -s" <<EOF
