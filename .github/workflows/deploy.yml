@@ -6,18 +6,23 @@ on:
     types: [completed]
     branches: [main]
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: bdnsi-production-deploy
+  group: bdnsi-production-deploy-${{ github.event_name }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy exact green main SHA to Hostinger
+    name: Hostinger SSH preflight and deploy
     if: >-
+      github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
@@ -30,9 +35,19 @@ jobs:
       HEALTH_URL: https://nenobet.live/health
       REPO_URL: https://github.com/fastify11-svg/BDNSI.git
       RELEASE_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-      SSH_PRIVATE_KEY: ${{ secrets.BDNSI_SSH_PRIVATE_KEY || secrets.HOSTINGER_SSH_PRIVATE_KEY || secrets.SSH_PRIVATE_KEY }}
-      SSH_PASSWORD: ${{ secrets.BDNSI_SSH_PASSWORD || secrets.HOSTINGER_SSH_PASSWORD || secrets.SSH_PASSWORD || secrets.HOSTINGER_PASSWORD }}
-      SSH_KNOWN_HOSTS: ${{ secrets.BDNSI_SSH_KNOWN_HOSTS }}
+      KEY_BDNSI: ${{ secrets.BDNSI_SSH_PRIVATE_KEY }}
+      KEY_HOSTINGER: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+      KEY_GENERIC: ${{ secrets.SSH_PRIVATE_KEY }}
+      KEY_HOSTINGER_ALT: ${{ secrets.HOSTINGER_PRIVATE_KEY }}
+      KEY_DEPLOY: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+      PASS_BDNSI: ${{ secrets.BDNSI_SSH_PASSWORD }}
+      PASS_HOSTINGER: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
+      PASS_GENERIC: ${{ secrets.SSH_PASSWORD }}
+      PASS_HOSTINGER_LEGACY: ${{ secrets.HOSTINGER_PASSWORD }}
+      PASSPHRASE_BDNSI: ${{ secrets.BDNSI_SSH_PASSPHRASE }}
+      PASSPHRASE_GENERIC: ${{ secrets.SSH_PASSPHRASE }}
+      PASSPHRASE_HOSTINGER: ${{ secrets.HOSTINGER_SSH_PASSPHRASE }}
+      SSH_KNOWN_HOSTS: ${{ secrets.BDNSI_SSH_KNOWN_HOSTS || secrets.HOSTINGER_SSH_KNOWN_HOSTS || secrets.SSH_KNOWN_HOSTS }}
 
     steps:
       - name: Checkout exact release SHA
@@ -50,77 +65,106 @@ jobs:
           test "$(git rev-parse origin/main)" = "$RELEASE_SHA"
           test -z "$(git status --porcelain)"
 
-      - name: Configure SSH authentication
+      - name: Validate configured SSH credentials
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
 
-          if [ -n "${SSH_PRIVATE_KEY:-}" ]; then
-            python3 - <<'PY'
-          import os, base64, pathlib
+          python3 - <<'PY'
+          import os, base64, pathlib, subprocess, shutil
 
-          raw = os.environ.get("SSH_PRIVATE_KEY", "")
+          root = pathlib.Path.home() / '.ssh'
+          github_env = pathlib.Path(os.environ['GITHUB_ENV'])
+          key_sources = [
+              ('BDNSI_SSH_PRIVATE_KEY', os.environ.get('KEY_BDNSI', '')),
+              ('HOSTINGER_SSH_PRIVATE_KEY', os.environ.get('KEY_HOSTINGER', '')),
+              ('SSH_PRIVATE_KEY', os.environ.get('KEY_GENERIC', '')),
+              ('HOSTINGER_PRIVATE_KEY', os.environ.get('KEY_HOSTINGER_ALT', '')),
+              ('DEPLOY_PRIVATE_KEY', os.environ.get('KEY_DEPLOY', '')),
+          ]
+          password_sources = [
+              ('BDNSI_SSH_PASSWORD', os.environ.get('PASS_BDNSI', '')),
+              ('HOSTINGER_SSH_PASSWORD', os.environ.get('PASS_HOSTINGER', '')),
+              ('SSH_PASSWORD', os.environ.get('PASS_GENERIC', '')),
+              ('HOSTINGER_PASSWORD', os.environ.get('PASS_HOSTINGER_LEGACY', '')),
+          ]
+          passphrases = list(dict.fromkeys([
+              '',
+              os.environ.get('PASSPHRASE_BDNSI', ''),
+              os.environ.get('PASSPHRASE_GENERIC', ''),
+              os.environ.get('PASSPHRASE_HOSTINGER', ''),
+          ]))
+
+          print('Configured private-key slots:', ', '.join(name for name, value in key_sources if value) or 'none')
+          print('Configured SSH-password slots:', ', '.join(name for name, value in password_sources if value) or 'none')
+
           candidates = []
+          seen = set()
+          for source, raw in key_sources:
+              if not raw:
+                  continue
+              raw = raw.strip().replace('\r\n', '\n')
+              variants = [raw, raw.replace('\\r', '').replace('\\n', '\n')]
+              try:
+                  decoded = base64.b64decode(''.join(raw.split()), validate=True).decode('utf-8')
+                  variants += [decoded, decoded.replace('\\r', '').replace('\\n', '\n')]
+              except Exception:
+                  pass
+              for variant in variants:
+                  variant = variant.strip()
+                  if variant and variant not in seen:
+                      seen.add(variant)
+                      candidates.append((source, variant))
 
-          def add_candidate(value):
-              value = value.strip().replace("\r\n", "\n")
-              if value and value not in candidates:
-                  candidates.append(value)
-
-          add_candidate(raw)
-          add_candidate(raw.replace("\\r", "").replace("\\n", "\n"))
-
-          try:
-              compact = "".join(raw.split())
-              decoded = base64.b64decode(compact, validate=True).decode("utf-8")
-              add_candidate(decoded)
-              add_candidate(decoded.replace("\\r", "").replace("\\n", "\n"))
-          except Exception:
-              pass
-
-          root = pathlib.Path.home() / ".ssh"
-          for index, candidate in enumerate(candidates):
-              path = root / f"bdnsi_candidate_{index}"
-              path.write_text(candidate + "\n")
+          selected = None
+          selected_source = None
+          for index, (source, candidate) in enumerate(candidates):
+              path = root / f'candidate_{index}'
+              path.write_text(candidate + '\n')
               path.chmod(0o600)
-          print(f"Prepared {len(candidates)} private-key format candidate(s) without exposing secret content.")
+              for passphrase in passphrases:
+                  result = subprocess.run(
+                      ['ssh-keygen', '-y', '-P', passphrase, '-f', str(path)],
+                      stdout=subprocess.DEVNULL,
+                      stderr=subprocess.DEVNULL,
+                  )
+                  if result.returncode == 0:
+                      selected = path
+                      selected_source = source
+                      break
+              if selected:
+                  break
+
+          if selected:
+              target = root / 'bdnsi_deploy'
+              shutil.copyfile(selected, target)
+              target.chmod(0o600)
+              with github_env.open('a') as f:
+                  f.write('AUTH_MODE=key\n')
+                  f.write(f'AUTH_SOURCE={selected_source}\n')
+              print(f'Validated usable SSH private key from {selected_source}.')
+          else:
+              password = next(((name, value) for name, value in password_sources if value), None)
+              if not password:
+                  print('::error::No usable SSH private key and no configured SSH password secret were found.')
+                  raise SystemExit(1)
+              source, value = password
+              delimiter = '__BDNSI_PASSWORD__'
+              with github_env.open('a') as f:
+                  f.write('AUTH_MODE=password\n')
+                  f.write(f'AUTH_SOURCE={source}\n')
+                  f.write(f'SSH_PASSWORD_SELECTED<<{delimiter}\n{value}\n{delimiter}\n')
+              print(f'Using configured SSH password from {source}.')
+
+          for path in root.glob('candidate_*'):
+              path.unlink(missing_ok=True)
           PY
 
-            VALID_KEY=""
-            for candidate in "$HOME"/.ssh/bdnsi_candidate_*; do
-              [ -f "$candidate" ] || continue
-              if ssh-keygen -y -P '' -f "$candidate" >/dev/null 2>&1; then
-                VALID_KEY="$candidate"
-                break
-              fi
-            done
-
-            if [ -n "$VALID_KEY" ]; then
-              mv "$VALID_KEY" "$HOME/.ssh/bdnsi_deploy"
-              rm -f "$HOME"/.ssh/bdnsi_candidate_*
-              chmod 600 "$HOME/.ssh/bdnsi_deploy"
-              echo "AUTH_MODE=key" >> "$GITHUB_ENV"
-              echo "SSH private key normalized and validated."
-            elif [ -n "${SSH_PASSWORD:-}" ]; then
-              rm -f "$HOME"/.ssh/bdnsi_candidate_*
-              sudo apt-get update -qq
-              sudo apt-get install -y -qq sshpass
-              echo "AUTH_MODE=password" >> "$GITHUB_ENV"
-              echo "Private-key secret was unusable; securely falling back to password secret."
-            else
-              rm -f "$HOME"/.ssh/bdnsi_candidate_*
-              echo "::error::An SSH private-key secret exists but is not a valid unencrypted PEM/OpenSSH key after raw, escaped-newline, and base64 normalization. No password secret is available for fallback."
-              exit 1
-            fi
-          elif [ -n "${SSH_PASSWORD:-}" ]; then
+          if [ "${AUTH_MODE:-}" = "password" ]; then
             sudo apt-get update -qq
             sudo apt-get install -y -qq sshpass
-            echo "AUTH_MODE=password" >> "$GITHUB_ENV"
-          else
-            echo "::error::No SSH credential secret found."
-            exit 1
           fi
 
           if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
@@ -132,25 +176,37 @@ jobs:
           fi
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Preflight server and application
+      - name: Read-only SSH preflight
         shell: bash
         run: |
           set -euo pipefail
           STRICT_MODE=yes
           if [ "$HOST_KEY_MODE" = "accept-new" ]; then STRICT_MODE=accept-new; fi
-
           COMMON_OPTS=(-o ConnectTimeout=20 -o ConnectionAttempts=2 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking="$STRICT_MODE" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+
           if [ "$AUTH_MODE" = "key" ]; then
             SSH=(ssh -i "$HOME/.ssh/bdnsi_deploy" -o BatchMode=yes "${COMMON_OPTS[@]}")
           else
-            export SSHPASS="$SSH_PASSWORD"
-            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no "${COMMON_OPTS[@]}")
+            export SSHPASS="$SSH_PASSWORD_SELECTED"
+            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no "${COMMON_OPTS[@]}")
           fi
 
-          echo "Testing SSH endpoint ${SSH_HOST}:${SSH_PORT} as ${SSH_USER}..."
-          "${SSH[@]}" "$SSH_USER@$SSH_HOST" "set -e; command -v git >/dev/null; command -v php >/dev/null; command -v composer >/dev/null; test -d '$REMOTE_PATH'; test -f '$REMOTE_PATH/.env'; php -r 'exit(version_compare(PHP_VERSION, \"8.3.0\", \">=\") ? 0 : 1);'; echo SSH_PREFLIGHT_OK; whoami; hostname"
+          echo "Testing Hostinger SSH endpoint ${SSH_HOST}:${SSH_PORT} as ${SSH_USER} using ${AUTH_SOURCE}..."
+          "${SSH[@]}" "$SSH_USER@$SSH_HOST" "bash -s" <<EOF
+          set -euo pipefail
+          command -v git >/dev/null || { echo 'PREFLIGHT_FAIL: git missing'; exit 31; }
+          command -v php >/dev/null || { echo 'PREFLIGHT_FAIL: php missing'; exit 32; }
+          command -v composer >/dev/null || { echo 'PREFLIGHT_FAIL: composer missing'; exit 33; }
+          test -d '$REMOTE_PATH' || { echo 'PREFLIGHT_FAIL: remote path missing'; exit 34; }
+          test -f '$REMOTE_PATH/.env' || { echo 'PREFLIGHT_FAIL: .env missing'; exit 35; }
+          php -r 'exit(version_compare(PHP_VERSION, "8.3.0", ">=") ? 0 : 1);' || { echo 'PREFLIGHT_FAIL: PHP below 8.3'; exit 36; }
+          echo 'SSH_PREFLIGHT_OK'
+          whoami
+          hostname
+          EOF
 
-      - name: Deploy exact SHA safely
+      - name: Deploy exact green SHA safely
+        if: github.event_name != 'push'
         shell: bash
         run: |
           set -euo pipefail
@@ -161,8 +217,8 @@ jobs:
           if [ "$AUTH_MODE" = "key" ]; then
             SSH=(ssh -i "$HOME/.ssh/bdnsi_deploy" -o BatchMode=yes "${COMMON_OPTS[@]}")
           else
-            export SSHPASS="$SSH_PASSWORD"
-            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no "${COMMON_OPTS[@]}")
+            export SSHPASS="$SSH_PASSWORD_SELECTED"
+            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no "${COMMON_OPTS[@]}")
           fi
 
           "${SSH[@]}" "$SSH_USER@$SSH_HOST" "bash -s" <<EOF
@@ -171,29 +227,18 @@ jobs:
           REMOTE_BACKUP_DIR='$REMOTE_BACKUP_DIR'
           RELEASE_SHA='$RELEASE_SHA'
           REPO_URL='$REPO_URL'
-
           cd "\$REMOTE_PATH"
           test -f .env
-
           mkdir -p "\$REMOTE_BACKUP_DIR"
           chmod 700 "\$REMOTE_BACKUP_DIR"
           cp .env "\$REMOTE_BACKUP_DIR/env_\$(date +%Y%m%d_%H%M%S).backup"
           chmod 600 "\$REMOTE_BACKUP_DIR"/env_*.backup
-
-          if [ ! -d .git ]; then
-            git init
-          fi
-          if git remote get-url origin >/dev/null 2>&1; then
-            git remote set-url origin "\$REPO_URL"
-          else
-            git remote add origin "\$REPO_URL"
-          fi
-
+          if [ ! -d .git ]; then git init; fi
+          if git remote get-url origin >/dev/null 2>&1; then git remote set-url origin "\$REPO_URL"; else git remote add origin "\$REPO_URL"; fi
           git fetch origin main
           test "\$(git rev-parse origin/main)" = "\$RELEASE_SHA"
           git reset --hard "\$RELEASE_SHA"
           test -f .env
-
           composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
           php artisan package:discover --ansi
           php artisan migrate --force
@@ -202,20 +247,18 @@ jobs:
           php artisan config:cache
           php artisan view:cache
           php artisan queue:restart >/dev/null 2>&1 || true
-
           test "\$(git rev-parse HEAD)" = "\$RELEASE_SHA"
           EOF
 
       - name: Verify live health
+        if: github.event_name != 'push'
         shell: bash
         run: |
           set -euo pipefail
           for attempt in 1 2 3 4 5; do
             code="$(curl -L -sS -o /tmp/health.txt -w '%{http_code}' --max-time 20 "$HEALTH_URL" || true)"
             echo "Health attempt $attempt: HTTP $code"
-            if [ "$code" = "200" ]; then
-              exit 0
-            fi
+            if [ "$code" = "200" ]; then exit 0; fi
             sleep 5
           done
           cat /tmp/health.txt || true
