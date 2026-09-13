@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Center;
 use App\Models\Student;
-use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -18,49 +17,46 @@ class DashboardController extends Controller
 {
     public function __construct()
     {
-        /*
-         * Uncomment the line below if you want to use verified middleware
-         */
-        // $this->middleware('verified:admin.verification.notice');
+        // Reserved for admin dashboard middleware.
     }
 
     public function index()
     {
+        // These operational KPIs must reflect the canonical tables immediately after
+        // admin mutations. Long-lived cache entries previously made the dashboard
+        // disagree with the Center/Student directories for up to an hour.
         $cards = collect([
             'Total Student ' => [
-                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_total_students', 3600, fn() => Student::count()),
+                'value' => Student::count(),
                 'url' => route('admin.student.index'),
             ],
             'Total Approved Student ' => [
-                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_approved_students', 3600, fn() => Student::where('status', StudentStatus::Approved)->count()),
+                'value' => Student::where('status', StudentStatus::Approved)->count(),
                 'url' => route('admin.student.index'),
             ],
             'Total Pending Student ' => [
-                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_pending_students', 3600, fn() => Student::where('status', StudentStatus::Pending)->count()),
+                'value' => Student::where('status', StudentStatus::Pending)->count(),
                 'url' => route('admin.student.index'),
             ],
             'Total Centers ' => [
-                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_total_centers', 3600, fn() => Center::count()),
+                'value' => Center::count(),
                 'url' => route('admin.center.index'),
             ],
             'Total Revenue' => [
-                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_total_revenue', 3600, fn() => \App\Models\Order::whereIn('status', [
+                'value' => \App\Models\Order::whereIn('status', [
                     \App\Models\Order::STATUS_PAID,
                     \App\Models\Order::STATUS_PARTIALLY_PAID,
-                ])->sum('paid_amount')),
+                ])->sum('paid_amount'),
                 'url' => '#',
             ],
             'Total Outstanding Dues' => [
-                'value' => \Illuminate\Support\Facades\Cache::remember('admin_dashboard_total_dues', 3600, fn() => \App\Models\Center::sum('current_due')),
+                'value' => Center::sum('current_due'),
                 'url' => '#',
-            ]
+            ],
         ]);
 
-        $adminList = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_admin_list', 3600, fn() => Admin::all());
+        $adminList = Admin::all();
 
-        // Analytics Data
-
-        // 1. Monthly Registrations (Last 6 Months)
         $sixMonthsAgo = now()->subMonths(5)->startOfMonth();
         $monthlyRegistrations = Student::select(
             DB::raw("DATE_FORMAT(created_at, '%b %Y') as month_name"),
@@ -72,7 +68,6 @@ class DashboardController extends Controller
             ->orderBy('month_key', 'ASC')
             ->get();
 
-        // 2. Student Status Breakdown
         $statusBreakdown = Student::select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->get()
@@ -83,7 +78,6 @@ class DashboardController extends Controller
                 ];
             });
 
-        // 3. Top Centers
         $topCenters = DB::table('students')
             ->join('centers', 'students.center_id', '=', 'centers.id')
             ->select('centers.name as center_name', DB::raw('COUNT(students.id) as total_students'))
@@ -91,8 +85,7 @@ class DashboardController extends Controller
             ->orderBy('total_students', 'DESC')
             ->limit(5)
             ->get();
-            
-        // 4. Financial Health (Last 30 Days Revenue)
+
         $thirtyDaysAgo = now()->subDays(30);
         $recentRevenue = \App\Models\Order::where('created_at', '>=', $thirtyDaysAgo)->sum('paid_amount');
 
@@ -110,20 +103,18 @@ class DashboardController extends Controller
 
     public function userCreate(Request $request)
     {
-
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:admins'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = Admin::create([
+        Admin::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
         return response()->success('Successfully Created');
-
     }
 }
