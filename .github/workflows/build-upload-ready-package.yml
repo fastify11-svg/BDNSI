@@ -1,0 +1,194 @@
+name: Build Full Upload Ready Package
+
+on:
+  push:
+    branches:
+      - export/upload-ready-20260913
+    paths:
+      - '.github/workflows/build-upload-ready-package.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: bdnsi_package
+          MYSQL_USER: bdnsi_package_user
+          MYSQL_PASSWORD: safe_package_password
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - '3306:3306'
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    env:
+      SOURCE_SHA: 2e6c63ccb0b73ffab21ef74823d0827f7599c9a9
+
+    steps:
+      - name: Checkout exact main source
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          fetch-depth: 0
+
+      - name: Verify exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test -z "$(git status --porcelain)"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, gd, zip
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Prepare temporary package environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          sed -i 's/APP_ENV=.*/APP_ENV=production/' .env
+          sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' .env
+          sed -i 's#APP_URL=.*#APP_URL=https://YOUR-DOMAIN.COM#' .env
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_PORT=.*/DB_PORT=3306/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=bdnsi_package/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=bdnsi_package_user/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=safe_package_password/' .env
+          sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' .env || true
+          sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=file/' .env || true
+          sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' .env || true
+
+      - name: Install production Composer dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          composer validate --no-check-publish
+          composer install --no-dev --no-scripts --no-ansi --no-interaction --no-progress --prefer-dist --optimize-autoloader
+          php artisan key:generate --force
+          php artisan package:discover --ansi
+
+      - name: Build production frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --legacy-peer-deps
+          NODE_ENV=production npm run build
+          test -d public/build/assets
+
+      - name: Build fresh MySQL baseline database
+        shell: bash
+        run: |
+          set -euo pipefail
+          php artisan migrate:fresh --force
+          php artisan db:seed --class='Database\\Seeders\\LaratrustSeeder' --force
+          php artisan db:seed --class='Database\\Seeders\\ConfigSeeder' --force
+          php artisan db:seed --class='Database\\Seeders\\SiteConfigSeeder' --force
+
+          INSTALL_ADMIN_PASSWORD="$(openssl rand -base64 32 | tr -dc 'A-Za-z0-9@#%+=_' | head -c 24)"
+          export INSTALL_ADMIN_PASSWORD
+          php artisan tinker --execute='use App\\Models\\Admin; use App\\Models\\Role; use Illuminate\\Support\\Facades\\Hash; $p=getenv("INSTALL_ADMIN_PASSWORD"); $a=Admin::updateOrCreate(["email"=>"admin@bdnsi.local"],["name"=>"BDNSI Administrator","password"=>Hash::make($p)]); $r=Role::whereName("admin")->first(); if ($r) { $a->syncRoles([$r]); }'
+          printf 'Admin login for this fresh database\nEmail: admin@bdnsi.local\nPassword: %s\n\nChange this password immediately after first login.\n' "$INSTALL_ADMIN_PASSWORD" > /tmp/FIRST_LOGIN.txt
+
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq default-mysql-client
+          mysqldump \
+            -h 127.0.0.1 -P 3306 \
+            -ubdnsi_package_user -psafe_package_password \
+            --single-transaction --routines --triggers --no-tablespaces \
+            --default-character-set=utf8mb4 \
+            bdnsi_package > /tmp/database.sql
+          test -s /tmp/database.sql
+
+      - name: Assemble exact source plus runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/BDNSI_READY_UPLOAD
+          mkdir -p /tmp/BDNSI_READY_UPLOAD
+
+          git archive "$SOURCE_SHA" | tar -x -C /tmp/BDNSI_READY_UPLOAD
+          cp -a vendor /tmp/BDNSI_READY_UPLOAD/vendor
+          rm -rf /tmp/BDNSI_READY_UPLOAD/public/build
+          cp -a public/build /tmp/BDNSI_READY_UPLOAD/public/build
+          cp /tmp/database.sql /tmp/BDNSI_READY_UPLOAD/database.sql
+          cp /tmp/FIRST_LOGIN.txt /tmp/BDNSI_READY_UPLOAD/FIRST_LOGIN.txt
+
+          APP_KEY_LINE="$(grep '^APP_KEY=' .env | head -n1)"
+          cp .env.example /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/APP_ENV=.*/APP_ENV=production/' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/APP_DEBUG=.*/APP_DEBUG=false/' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's#APP_URL=.*#APP_URL=https://YOUR-DOMAIN.COM#' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i "s#^APP_KEY=.*#${APP_KEY_LINE}#" /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=mysql/' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/DB_HOST=.*/DB_HOST=localhost/' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/DB_PORT=.*/DB_PORT=3306/' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=CHANGE_ME/' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=CHANGE_ME/' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=CHANGE_ME/' /tmp/BDNSI_READY_UPLOAD/.env
+          sed -i 's/CACHE_DRIVER=.*/CACHE_DRIVER=file/' /tmp/BDNSI_READY_UPLOAD/.env || true
+          sed -i 's/SESSION_DRIVER=.*/SESSION_DRIVER=file/' /tmp/BDNSI_READY_UPLOAD/.env || true
+          sed -i 's/QUEUE_CONNECTION=.*/QUEUE_CONNECTION=sync/' /tmp/BDNSI_READY_UPLOAD/.env || true
+
+          mkdir -p \
+            /tmp/BDNSI_READY_UPLOAD/storage/framework/cache/data \
+            /tmp/BDNSI_READY_UPLOAD/storage/framework/sessions \
+            /tmp/BDNSI_READY_UPLOAD/storage/framework/views \
+            /tmp/BDNSI_READY_UPLOAD/storage/logs \
+            /tmp/BDNSI_READY_UPLOAD/storage/app/public \
+            /tmp/BDNSI_READY_UPLOAD/bootstrap/cache
+
+          cat > /tmp/BDNSI_READY_UPLOAD/UPLOAD_README.txt <<'TXT'
+BDNSI FULL UPLOAD-READY PACKAGE
+
+1) Upload/extract the entire BDNSI_READY_UPLOAD folder contents into your hosting web root/public_html.
+2) Import database.sql into a fresh MySQL database.
+3) Edit only .env: APP_URL and DB_HOST/DB_DATABASE/DB_USERNAME/DB_PASSWORD.
+
+Composer is NOT required on the hosting server because vendor/ is already included.
+Frontend build is already included in public/build/.
+The root .htaccess already routes requests to Laravel public/.
+Use FIRST_LOGIN.txt for the fresh installer admin, then change that password immediately.
+TXT
+
+          printf '%s\n' "$SOURCE_SHA" > /tmp/BDNSI_READY_UPLOAD/SOURCE_COMMIT.txt
+
+      - name: Create final ZIP and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd /tmp
+          zip -qry -y BDNSI_READY_UPLOAD_FULL.zip BDNSI_READY_UPLOAD
+          sha256sum BDNSI_READY_UPLOAD_FULL.zip > BDNSI_READY_UPLOAD_FULL.sha256
+          unzip -tq BDNSI_READY_UPLOAD_FULL.zip
+          echo "PACKAGE_SIZE=$(stat -c%s BDNSI_READY_UPLOAD_FULL.zip)"
+          cat BDNSI_READY_UPLOAD_FULL.sha256
+
+      - name: Upload final package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BDNSI_READY_UPLOAD_FULL
+          path: |
+            /tmp/BDNSI_READY_UPLOAD_FULL.zip
+            /tmp/BDNSI_READY_UPLOAD_FULL.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
