@@ -19,7 +19,7 @@ class AiDocumentIntelligenceService
         $path = str_replace('public/', '', $document->file_path);
         
         if (!$disk->exists($path)) {
-            dd('FILE NOT FOUND', $path, $disk->path($path));
+            \Illuminate\Support\Facades\Log::warning('AI document analysis skipped: file missing', ['path' => $path]);
             return $this->defaultResponse();
         }
 
@@ -106,10 +106,9 @@ Extract data and return ONLY a raw JSON object with these keys (no markdown, no 
             }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Gemini Document Intelligence Error: ' . $e->getMessage());
-            dd("Exception caught: " . $e->getMessage());
+            return $this->defaultResponse();
         }
 
-        dd("Fell through to default. API Key: " . (empty($apiKey) ? "EMPTY" : "EXISTS") . " Response successful: " . (isset($response) ? ($response->successful() ? "YES" : "NO " . $response->status()) : "NO RESPONSE"));
         return $this->defaultResponse();
     }
 
