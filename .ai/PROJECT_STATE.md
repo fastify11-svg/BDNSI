@@ -7,7 +7,8 @@
 - Repository: `fastify11-svg/BDNSI`
 - Working branch: `cursor/final-development-dcdd`
 - Verified main baseline: `93792b0ae8728b3d0f5f09f85691bb5ffd536530`
-- Final development SHA: `efdc51789f8581914254af7884e8bde151f2c02e`
+- Application evidence SHA: `ad5f8080183f2421601e46e54707cf43e40a5eff`
+- Evidence tip with green CI `34727447848`: `f54ca57461aca0a8436ff6bf085870c194bed8ae`
 - Safety copy: `fastify11-svg/BDNSI-Cursor` untouched unless recovery is required.
 
 ## Verified platform

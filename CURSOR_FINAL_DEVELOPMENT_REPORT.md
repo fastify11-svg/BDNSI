@@ -14,14 +14,17 @@ Deployment, production SSH, live migrations, production `.env` changes, and live
 | Field | Value |
 |---|---|
 | FINAL_BRANCH | `cursor/final-development-dcdd` |
-| FINAL_SHA |  |
+| EVIDENCE_TIP_SHA | `f54ca57461aca0a8436ff6bf085870c194bed8ae` |
+| APPLICATION_EVIDENCE_SHA | `ad5f8080183f2421601e46e54707cf43e40a5eff` |
 | BASE_MAIN_SHA | `93792b0ae8728b3d0f5f09f85691bb5ffd536530` |
 | PHP_VERSION | 8.3.33 |
 | LARAVEL_VERSION | 13.31.0 |
 | MYSQL_VERSION | 8.0.46 |
 | NODE_VERSION | 24.21.0 |
 
-## Gate evidence (exact final SHA)
+Evidence tip `f54ca57461aca0a8436ff6bf085870c194bed8ae` is the last SHA with application + status docs that already passed CI run `34727447848`. Subsequent documentation-only tip commits must also stay CI-green; they do not change application behavior.
+
+## Gate evidence (evidence tip SHA)
 
 | Gate | Result |
 |---|---|
@@ -32,7 +35,7 @@ Deployment, production SSH, live migrations, production `.env` changes, and live
 | Frontend production build | PASS (`vite build`) |
 | Smoke HTTP 200 | `/`, `/admin/login`, `/login`, `/result`, `/all-course`, `/health` |
 | Playwright critical | **11/11 PASS** (`frontend.spec.js` + `frontend-connectivity.spec.js`) |
-| CI_RUN |  SUCCESS |
+| CI_RUN | `34727447848` SUCCESS on `f54ca57461aca0a8436ff6bf085870c194bed8ae` |
 
 ## Module status
 
