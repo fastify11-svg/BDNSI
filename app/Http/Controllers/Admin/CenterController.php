@@ -93,7 +93,7 @@ class CenterController extends Controller
         $statusVal = (int) $validated['status'];
 
         DB::transaction(function () use ($center, $statusVal) {
-            if ($statusVal === 1 || $statusVal === CenterStatus::Approved->value) {
+            if ($statusVal === CenterStatus::Approved->value) {
                 $rawCode = $center->getRawOriginal('code');
                 if (empty($rawCode)) {
                     $maxCode = DB::table('centers')
@@ -102,29 +102,16 @@ class CenterController extends Controller
                         ->max(DB::raw('CAST(code AS UNSIGNED)'));
 
                     $newCode = ($maxCode && $maxCode >= 100000) ? ($maxCode + 1) : 178173;
-
                     while (DB::table('centers')->where('code', (string) $newCode)->exists()) {
                         $newCode++;
                     }
-
                     $center->code = (string) $newCode;
                 }
 
                 $center->status = CenterStatus::Approved;
                 $center->save();
 
-                $user = User::where('center_id', $center->id)->first();
-                if (! $user) {
-                    $defaultPassword = 'password123';
-                    User::create([
-                        'username' => $center->code,
-                        'name' => $center->name,
-                        'email' => $center->email,
-                        'phone' => $center->mobile ?? '01711000000',
-                        'center_id' => $center->id,
-                        'password' => Hash::make($defaultPassword),
-                    ]);
-                }
+                $this->ensurePortalUser($center);
             } else {
                 $center->status = $statusVal;
                 $center->save();
@@ -172,19 +159,7 @@ class CenterController extends Controller
     public function store(CenterStoreRequest $request)
     {
         $center = $request->store(CenterStatus::Approved);
-
-        $user = User::where('center_id', $center->id)->first();
-        if (! $user) {
-            $defaultPassword = 'password123';
-            User::create([
-                'username' => $center->code,
-                'name' => $center->name,
-                'email' => $center->email,
-                'phone' => $center->mobile ?? '01711000000',
-                'center_id' => $center->id,
-                'password' => Hash::make($defaultPassword),
-            ]);
-        }
+        $this->ensurePortalUser($center);
 
         if ($request->header('X-Inertia')) {
             return redirect()->route('admin.center.index')->with('success', 'Center Created successfully');
@@ -275,5 +250,37 @@ class CenterController extends Controller
 
             return redirect()->back()->with('error', 'Failed to delete center: '.$exception->getMessage());
         }
+    }
+
+    /**
+     * Ensure every approved center has a usable portal account.
+     * CRM leads may not contain an email address, so approval must not fail on
+     * the users.email NOT NULL/UNIQUE constraint.
+     */
+    private function ensurePortalUser(Center $center): User
+    {
+        $existing = User::where('center_id', $center->id)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        $email = $center->email;
+        if (! $email || User::where('email', $email)->exists()) {
+            $email = 'center-'.$center->id.'@bdnsi.local';
+        }
+
+        $phone = $center->mobile;
+        if (! $phone || User::where('phone', $phone)->exists()) {
+            $phone = '019'.str_pad((string) ($center->id % 100000000), 8, '0', STR_PAD_LEFT);
+        }
+
+        return User::create([
+            'username' => (string) $center->code,
+            'name' => $center->name,
+            'email' => $email,
+            'phone' => $phone,
+            'center_id' => $center->id,
+            'password' => Hash::make('password123'),
+        ]);
     }
 }
