@@ -6,7 +6,6 @@ use App\Enums\CenterStatus;
 use App\Enums\Gender;
 use App\Enums\Religion;
 use App\Lib\Geo;
-use App\Lib\Helper;
 use App\Models\Center;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
@@ -57,18 +56,33 @@ class CenterUpdateRequest extends FormRequest
     public function update(Center $center)
     {
         $validated = $this->validated();
+        $password = $validated['password'] ?? null;
 
-        $validated['code'] = $validated['code'] ?? random_int(111111, 999999);
+        // Password belongs to the portal user, not the centers table.
+        unset($validated['password']);
 
-        if (User::where('center_id', $center->id)->count() > 0) {
-            User::where('center_id', $center->id)->first()->update(['password' => Hash::make($this->password)]);
+        // Normalize checkbox values so both HTML/FormData and JSON submissions
+        // persist an explicit false instead of silently retaining old values.
+        foreach ([
+            'credit_enabled',
+            'allow_registration_without_payment',
+            'allow_result_without_payment',
+            'allow_certificate_without_payment',
+            'auto_restriction',
+        ] as $field) {
+            $validated[$field] = $this->boolean($field);
         }
 
-        if ($center->status->is(CenterStatus::Pending())) {
-            $message = 'Congratulations!! Dear, Your institute has been approved successfully by YTTC. Your institute Email: '.$center->email.' and password: '.$validated['password'].'. Please login to your institute portal here: '.route('login').'. Thanks for staying with YTTC.';
-            Helper::sendSms($center->mobile, $message);
+        $updated = $center->update($validated);
+
+        // An empty optional password must never reset an existing portal password.
+        if ($password) {
+            User::where('center_id', $center->id)
+                ->first()?->update(['password' => Hash::make($password)]);
         }
 
-        return $center->update($validated);
+        // Approval notifications are handled by the explicit approval flow.
+        // Generic profile/financial edits must remain side-effect free.
+        return $updated;
     }
 }
