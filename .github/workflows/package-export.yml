@@ -14,47 +14,45 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Prepare fresh MySQL-ready setup files
+      - name: Prepare fresh MySQL setup files
         shell: bash
         run: |
           set -euo pipefail
-          cat > .env.install.example <<'EOF'
-APP_NAME=BDNSI
-APP_ENV=production
-APP_KEY=
-APP_DEBUG=false
-APP_URL=https://example.com
-
-LOG_CHANNEL=stack
-LOG_LEVEL=error
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=YOUR_DATABASE_NAME
-DB_USERNAME=YOUR_DATABASE_USERNAME
-DB_PASSWORD=YOUR_DATABASE_PASSWORD
-
-CACHE_STORE=file
-SESSION_DRIVER=file
-QUEUE_CONNECTION=database
-EOF
-          cat > FRESH_SETUP_README.txt <<'EOF'
-BDNSI FRESH SETUP PACKAGE
-Source commit: edccb636b08d92fc7194d8f9bfdca5a303f3fa63
-
-1. Copy .env.install.example to .env.
-2. Insert your MySQL database name, username and password in .env.
-3. Run: composer install --no-dev --optimize-autoloader
-4. Run: php artisan key:generate --force
-5. Run: php artisan migrate --force
-6. Run: php artisan storage:link
-7. Run: php artisan optimize
-8. Configure the web root to the /public directory.
-9. Configure queue worker / scheduler as required by the hosting environment.
-
-Security note: No real database password is stored in this archive.
-EOF
+          printf '%s\n' \
+            'APP_NAME=BDNSI' \
+            'APP_ENV=production' \
+            'APP_KEY=' \
+            'APP_DEBUG=false' \
+            'APP_URL=https://example.com' \
+            '' \
+            'LOG_CHANNEL=stack' \
+            'LOG_LEVEL=error' \
+            '' \
+            'DB_CONNECTION=mysql' \
+            'DB_HOST=127.0.0.1' \
+            'DB_PORT=3306' \
+            'DB_DATABASE=YOUR_DATABASE_NAME' \
+            'DB_USERNAME=YOUR_DATABASE_USERNAME' \
+            'DB_PASSWORD=YOUR_DATABASE_PASSWORD' \
+            '' \
+            'CACHE_STORE=file' \
+            'SESSION_DRIVER=file' \
+            'QUEUE_CONNECTION=database' > .env.install.example
+          printf '%s\n' \
+            'BDNSI FRESH SETUP PACKAGE' \
+            'Source commit: edccb636b08d92fc7194d8f9bfdca5a303f3fa63' \
+            '' \
+            '1. Copy .env.install.example to .env.' \
+            '2. Insert your MySQL database name, username and password in .env.' \
+            '3. Run: composer install --no-dev --optimize-autoloader' \
+            '4. Run: php artisan key:generate --force' \
+            '5. Run: php artisan migrate --force' \
+            '6. Run: php artisan storage:link' \
+            '7. Run: php artisan optimize' \
+            '8. Configure the web root to the /public directory.' \
+            '9. Configure queue worker and scheduler for the hosting environment.' \
+            '' \
+            'Security note: No real database password is stored in this archive.' > FRESH_SETUP_README.txt
 
       - name: Build deployment archive
         shell: bash
@@ -81,5 +79,3 @@ EOF
           path: dist/BDNSI_FRESH_SETUP.zip
           retention-days: 3
           compression-level: 0
-
-# trigger: 2026-09-13
