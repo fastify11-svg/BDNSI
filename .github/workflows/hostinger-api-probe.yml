@@ -1,0 +1,53 @@
+name: Hostinger API Probe
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/hostinger-api-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+    steps:
+      - name: Check Hostinger API token presence
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${HOSTINGER_API_TOKEN:-}" ]; then
+            echo 'HOSTINGER_API_TOKEN_NOT_CONFIGURED'
+            exit 2
+          fi
+          echo 'HOSTINGER_API_TOKEN_CONFIGURED'
+
+      - name: Verify Hostinger API access read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/hostinger.json -w '%{http_code}' \
+            --max-time 20 \
+            -H "Authorization: Bearer $HOSTINGER_API_TOKEN" \
+            -H 'Accept: application/json' \
+            'https://developers.hostinger.com/api/hosting/v1/websites?domain=nenobet.live&per_page=5')
+          echo "Hostinger API HTTP status: $code"
+          test "$code" = '200'
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/hostinger.json'))
+          items=data.get('data', []) if isinstance(data, dict) else []
+          target=[x for x in items if x.get('domain') == 'nenobet.live']
+          if not target:
+              print('TARGET_WEBSITE_NOT_FOUND')
+              raise SystemExit(3)
+          item=target[0]
+          print('TARGET_WEBSITE_FOUND')
+          print('username=' + str(item.get('username','')))
+          print('root_directory=' + str(item.get('root_directory','')))
+          print('website_type=' + str(item.get('website_type','')))
+          PY
