@@ -1,4 +1,4 @@
-name: Package Export
+name: Full Main Archive
 
 on:
   push:
@@ -6,85 +6,33 @@ on:
       - export/package-20260913
 
 jobs:
-  package:
+  archive:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout export branch
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
-      - name: Show source sizes
-        shell: bash
-        run: |
-          du -sh app bootstrap config database public resources routes storage 2>/dev/null || true
-
-      - name: Build compact deployment package
+      - name: Build exact main repository archive
         shell: bash
         run: |
           set -euo pipefail
-          ROOT="$GITHUB_WORKSPACE/dist/BDNSI"
-          mkdir -p "$ROOT"
-          for d in app bootstrap config database resources routes; do
-            if [ -d "$d" ]; then cp -a "$d" "$ROOT/"; fi
-          done
-          if [ -d public ]; then
-            rsync -a public/ "$ROOT/public/" \
-              --exclude='storage/' \
-              --exclude='uploads/' \
-              --exclude='upload/' \
-              --exclude='*.log'
-          fi
-          mkdir -p "$ROOT/storage/app/public" "$ROOT/storage/logs" \
-            "$ROOT/storage/framework/cache/data" "$ROOT/storage/framework/sessions" "$ROOT/storage/framework/views"
-          for f in artisan composer.json composer.lock package.json package-lock.json yarn.lock vite.config.js vite.config.ts webpack.mix.js phpunit.xml; do
-            if [ -f "$f" ]; then cp -a "$f" "$ROOT/"; fi
-          done
-          printf '%s\n' \
-            'APP_NAME=BDNSI' \
-            'APP_ENV=production' \
-            'APP_KEY=' \
-            'APP_DEBUG=false' \
-            'APP_URL=https://example.com' \
-            '' \
-            'LOG_CHANNEL=stack' \
-            'LOG_LEVEL=error' \
-            '' \
-            'DB_CONNECTION=mysql' \
-            'DB_HOST=127.0.0.1' \
-            'DB_PORT=3306' \
-            'DB_DATABASE=YOUR_DATABASE_NAME' \
-            'DB_USERNAME=YOUR_DATABASE_USERNAME' \
-            'DB_PASSWORD=YOUR_DATABASE_PASSWORD' \
-            '' \
-            'CACHE_STORE=file' \
-            'SESSION_DRIVER=file' \
-            'QUEUE_CONNECTION=database' > "$ROOT/.env.install.example"
-          printf '%s\n' \
-            'BDNSI COMPACT DEPLOYMENT PACKAGE' \
-            'Application source: main commit edccb636b08d92fc7194d8f9bfdca5a303f3fa63' \
-            '' \
-            'This package intentionally excludes Git metadata, CI/agent files, tests, vendor, node_modules, logs and user-uploaded runtime files.' \
-            '' \
-            'SETUP:' \
-            '1. Copy .env.install.example to .env and enter the MySQL credentials.' \
-            '2. composer install --no-dev --optimize-autoloader' \
-            '3. php artisan key:generate --force' \
-            '4. php artisan migrate --force' \
-            '5. php artisan storage:link' \
-            '6. php artisan optimize' \
-            '7. Point the web root to /public.' \
-            '8. Configure queue worker and scheduler for the host.' \
-            '' \
-            'No real database password is embedded in this archive.' > "$ROOT/FRESH_SETUP_README.txt"
-          cd "$GITHUB_WORKSPACE/dist"
-          zip -rq9 BDNSI_COMPACT_DEPLOYMENT.zip BDNSI
-          ls -lh BDNSI_COMPACT_DEPLOYMENT.zip
+          git cat-file -e edccb636b08d92fc7194d8f9bfdca5a303f3fa63^{commit}
+          git archive \
+            --format=zip \
+            --output=BDNSI_MAIN_edccb636_COMPLETE.zip \
+            --prefix=BDNSI/ \
+            edccb636b08d92fc7194d8f9bfdca5a303f3fa63
+          sha256sum BDNSI_MAIN_edccb636_COMPLETE.zip > BDNSI_MAIN_edccb636_COMPLETE.sha256
+          ls -lh BDNSI_MAIN_edccb636_COMPLETE.zip BDNSI_MAIN_edccb636_COMPLETE.sha256
 
-      - name: Upload compact package
+      - name: Upload exact archive
         uses: actions/upload-artifact@v4
         with:
-          name: BDNSI_COMPACT_DEPLOYMENT
-          path: dist/BDNSI_COMPACT_DEPLOYMENT.zip
+          name: BDNSI_MAIN_COMPLETE
+          path: |
+            BDNSI_MAIN_edccb636_COMPLETE.zip
+            BDNSI_MAIN_edccb636_COMPLETE.sha256
           retention-days: 3
           compression-level: 0
