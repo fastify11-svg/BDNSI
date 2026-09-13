@@ -4,7 +4,7 @@ name: Autonomous CI Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, refactor/repo-cleanup-release-system]
   pull_request:
     branches: [main]
 

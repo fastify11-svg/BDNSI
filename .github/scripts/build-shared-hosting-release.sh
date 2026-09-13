@@ -1,275 +1,315 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
-SOURCE_SHA="${GITHUB_SHA:-$(git rev-parse HEAD)}"
-ROOT="${GITHUB_WORKSPACE:-$(pwd)}"
-SRC="$ROOT/.release-build/source"
-OUT="$ROOT/package_out"
-RELEASE="$OUT/public_html"
-MYSQL_CONTAINER="bdnsi-release-mysql-${GITHUB_RUN_ID:-local}"
+export COMPOSER_ALLOW_SUPERUSER=1
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+OUT_DIR="${1:-$REPO_ROOT/dist}"
+SOURCE_COMMIT="$(git rev-parse HEAD)"
+WORKDIR="$(mktemp -d)"
+APP_DIR="$WORKDIR/app"
+PACKAGE_DIR="$OUT_DIR/package"
+ZIP_PATH="$OUT_DIR/BDNSI_PUBLIC_HTML_READY.zip"
+MYSQL_CONTAINER="bdnsi-package-${GITHUB_RUN_ID:-local}-$$"
+MYSQL_ROOT_PASSWORD="$(php -r 'echo bin2hex(random_bytes(18));')"
+MYSQL_DATABASE="bdnsi_package"
+MYSQL_PORT=""
 
 cleanup() {
-  docker rm -f "$MYSQL_CONTAINER" >/dev/null 2>&1 || true
-  rm -rf "$ROOT/.release-build"
+    docker rm -f "$MYSQL_CONTAINER" >/dev/null 2>&1 || true
+    rm -rf "$WORKDIR"
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM
 
-rm -rf "$ROOT/.release-build" "$OUT"
-mkdir -p "$SRC" "$RELEASE"
-
-git cat-file -e "${SOURCE_SHA}^{commit}"
-git archive "$SOURCE_SHA" | tar -x -C "$SRC"
-cd "$SRC"
-
-# Isolated MySQL is used only to produce a clean, importable database.sql.
-docker run -d --name "$MYSQL_CONTAINER" -p 3306:3306 \
-  -e MYSQL_DATABASE=bdnsi_release \
-  -e MYSQL_USER=bdnsi_release_user \
-  -e MYSQL_PASSWORD=safe_release_password \
-  -e MYSQL_ROOT_PASSWORD=root \
-  mysql:8.0 >/dev/null
-
-for i in $(seq 1 60); do
-  if docker exec "$MYSQL_CONTAINER" mysqladmin ping -uroot -proot --silent >/dev/null 2>&1; then
-    break
-  fi
-  if [ "$i" = "60" ]; then
-    docker logs "$MYSQL_CONTAINER"
-    exit 1
-  fi
-  sleep 2
+required=(git php composer npm node docker zip openssl rsync)
+for cmd in "${required[@]}"; do
+    command -v "$cmd" >/dev/null 2>&1 || { echo "Missing required command: $cmd" >&2; exit 1; }
 done
+
+rm -rf "$OUT_DIR"
+mkdir -p "$APP_DIR" "$PACKAGE_DIR"
+
+git -C "$REPO_ROOT" archive "$SOURCE_COMMIT" | tar -x -C "$APP_DIR"
+cd "$APP_DIR"
 
 cp .env.example .env
 set_env() {
-  local key="$1" value="$2"
-  if grep -q "^${key}=" .env; then
-    sed -i "s#^${key}=.*#${key}=${value}#" .env
-  else
-    printf '%s=%s\n' "$key" "$value" >> .env
-  fi
+    local key="$1" value="$2"
+    if grep -qE "^${key}=" .env; then
+        sed -i "s|^${key}=.*|${key}=${value}|" .env
+    else
+        printf '%s=%s\n' "$key" "$value" >> .env
+    fi
 }
-set_env APP_ENV production
+
+set_env APP_ENV local
 set_env APP_DEBUG false
-set_env APP_URL https://YOUR-DOMAIN.COM
+set_env APP_URL http://127.0.0.1
+set_env LOG_CHANNEL stack
 set_env DB_CONNECTION mysql
 set_env DB_HOST 127.0.0.1
-set_env DB_PORT 3306
-set_env DB_DATABASE bdnsi_release
-set_env DB_USERNAME bdnsi_release_user
-set_env DB_PASSWORD safe_release_password
-set_env CACHE_DRIVER file
+set_env DB_DATABASE "$MYSQL_DATABASE"
+set_env DB_USERNAME root
+set_env DB_PASSWORD "$MYSQL_ROOT_PASSWORD"
 set_env SESSION_DRIVER file
+set_env CACHE_STORE file
+set_env CACHE_DRIVER file
 set_env QUEUE_CONNECTION sync
 
-composer install --no-dev --no-scripts --no-ansi --no-interaction --no-progress --prefer-dist --optimize-autoloader
-php artisan key:generate --force
-php artisan package:discover --ansi
+echo "Starting isolated MySQL 8 builder database..."
+docker run -d --rm \
+    --name "$MYSQL_CONTAINER" \
+    -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
+    -e MYSQL_DATABASE="$MYSQL_DATABASE" \
+    -p 127.0.0.1::3306 \
+    mysql:8.0 >/dev/null
 
-npm ci --legacy-peer-deps
+MYSQL_PORT="$(docker port "$MYSQL_CONTAINER" 3306/tcp | awk -F: 'NR==1 { print $NF }')"
+[[ "$MYSQL_PORT" =~ ^[0-9]+$ ]] || { echo "Could not resolve MySQL builder port" >&2; exit 1; }
+set_env DB_PORT "$MYSQL_PORT"
+
+for _ in $(seq 1 60); do
+    if docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" "$MYSQL_CONTAINER" mysqladmin ping -uroot --silent >/dev/null 2>&1; then
+        break
+    fi
+    sleep 2
+done
+docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" "$MYSQL_CONTAINER" mysqladmin ping -uroot --silent >/dev/null
+
+echo "Installing production PHP dependencies..."
+composer install \
+    --no-dev \
+    --no-scripts \
+    --no-ansi \
+    --no-interaction \
+    --no-progress \
+    --prefer-dist \
+    --optimize-autoloader
+
+php artisan key:generate --force --no-interaction >/dev/null
+php artisan package:discover --ansi --no-interaction >/dev/null
+APP_KEY="$(grep '^APP_KEY=' .env | head -n 1 | cut -d= -f2-)"
+[[ -n "$APP_KEY" ]] || { echo "APP_KEY generation failed" >&2; exit 1; }
+
+echo "Building frontend assets..."
+npm ci --legacy-peer-deps --no-audit --no-fund
 NODE_ENV=production npm run build
-test -d public/build/assets
-test -f public/build/manifest.json -o -f public/build/.vite/manifest.json
 
-php artisan migrate:fresh --force
-php artisan db:seed --class='Database\\Seeders\\LaratrustSeeder' --force
-php artisan db:seed --class='Database\\Seeders\\ConfigSeeder' --force
-php artisan db:seed --class='Database\\Seeders\\SiteConfigSeeder' --force
+echo "Creating fresh baseline database..."
+php artisan migrate:fresh --force --no-interaction
+php artisan db:seed --class='Database\Seeders\LaratrustSeeder' --force --no-interaction
+php artisan db:seed --class='Database\Seeders\ConfigSeeder' --force --no-interaction
+php artisan db:seed --class='Database\Seeders\SiteConfigSeeder' --force --no-interaction
 
-INSTALL_ADMIN_PASSWORD="$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9@#%+=_' | head -c 24)"
-export INSTALL_ADMIN_PASSWORD
-php artisan tinker --execute='use App\\Models\\Admin; use App\\Models\\Role; use Illuminate\\Support\\Facades\\Hash; $p=getenv("INSTALL_ADMIN_PASSWORD"); $a=Admin::updateOrCreate(["email"=>"admin@bdnsi.local"],["name"=>"BDNSI Administrator","password"=>Hash::make($p)]); $r=Role::whereName("admin")->first(); if ($r) { $a->syncRoles([$r]); }'
-printf 'Admin login for this fresh database\nEmail: admin@bdnsi.local\nPassword: %s\n\nChange this password immediately after first login.\n' "$INSTALL_ADMIN_PASSWORD" > FIRST_LOGIN.txt
+ADMIN_EMAIL="admin@bdnsi.local"
+ADMIN_PASSWORD="$(php -r 'echo substr(bin2hex(random_bytes(32)), 0, 24);')"
+INSTALLER_ADMIN_EMAIL="$ADMIN_EMAIL" INSTALLER_ADMIN_PASSWORD="$ADMIN_PASSWORD" php artisan tinker --execute='
+$admin = \App\Models\Admin::updateOrCreate(
+    ["email" => getenv("INSTALLER_ADMIN_EMAIL")],
+    ["name" => "Installer Administrator", "password" => getenv("INSTALLER_ADMIN_PASSWORD")]
+);
+$role = \App\Models\Role::whereIn("name", ["superadmin", "admin"])->first();
+if ($role) { $admin->syncRoles([$role]); }
+' >/dev/null
 
-docker exec "$MYSQL_CONTAINER" mysqldump \
-  -ubdnsi_release_user -psafe_release_password \
-  --single-transaction --routines --triggers --no-tablespaces \
-  --default-character-set=utf8mb4 bdnsi_release > database.sql
-test -s database.sql
+# Dump from inside the MySQL container so the runner does not need a local mysql client.
+docker exec -e MYSQL_PWD="$MYSQL_ROOT_PASSWORD" "$MYSQL_CONTAINER" \
+    mysqldump -uroot \
+    --skip-comments \
+    --no-tablespaces \
+    --single-transaction \
+    --set-gtid-purged=OFF \
+    "$MYSQL_DATABASE" > "$APP_DIR/database.sql"
+[[ -s "$APP_DIR/database.sql" ]] || { echo "database.sql is empty" >&2; exit 1; }
 
-# Runtime Laravel source. Deliberately allowlisted: no AI plans, scratch files or dev artifacts.
-for dir in app bootstrap config database resources routes storage vendor; do
-  test -d "$dir"
-  cp -a "$dir" "$RELEASE/$dir"
-done
-if [ -d packages ]; then cp -a packages "$RELEASE/packages"; fi
+echo "Assembling flat shared-hosting package..."
+rsync -a "$APP_DIR/" "$PACKAGE_DIR/" \
+    --exclude='.git/' \
+    --exclude='.github/' \
+    --exclude='public/' \
+    --exclude='node_modules/' \
+    --exclude='.env' \
+    --exclude='database.sql' \
+    --exclude='storage/framework/cache/data/*' \
+    --exclude='storage/framework/sessions/*' \
+    --exclude='storage/framework/testing/*' \
+    --exclude='storage/framework/views/*' \
+    --exclude='storage/logs/*'
 
-# Public web assets are flattened to public_html, matching the proven live package.
-cp -a public/. "$RELEASE/"
+# Public web assets belong directly in public_html for this proven Hostinger layout.
+rsync -a "$APP_DIR/public/" "$PACKAGE_DIR/" --exclude='storage'
+cp "$APP_DIR/database.sql" "$PACKAGE_DIR/database.sql"
 
-for file in artisan composer.json composer.lock package.json package-lock.json vite.config.mjs postcss.config.js .env.example; do
-  if [ -f "$file" ]; then cp "$file" "$RELEASE/$file"; fi
-done
-
-cp database.sql "$RELEASE/database.sql"
-cp FIRST_LOGIN.txt "$RELEASE/FIRST_LOGIN.txt"
-printf '%s\n' "$SOURCE_SHA" > "$RELEASE/SOURCE_COMMIT.txt"
-
-APP_KEY_LINE="$(grep '^APP_KEY=' .env | head -n1)"
-cp .env.example "$RELEASE/.env"
-release_env() {
-  local key="$1" value="$2"
-  if grep -q "^${key}=" "$RELEASE/.env"; then
-    sed -i "s#^${key}=.*#${key}=${value}#" "$RELEASE/.env"
-  else
-    printf '%s=%s\n' "$key" "$value" >> "$RELEASE/.env"
-  fi
-}
-release_env APP_ENV production
-release_env APP_DEBUG false
-release_env APP_URL https://YOUR-DOMAIN.COM
-release_env APP_KEY "${APP_KEY_LINE#APP_KEY=}"
-release_env DB_CONNECTION mysql
-release_env DB_HOST localhost
-release_env DB_PORT 3306
-release_env DB_DATABASE CHANGE_ME
-release_env DB_USERNAME CHANGE_ME
-release_env DB_PASSWORD CHANGE_ME
-release_env CACHE_DRIVER file
-release_env SESSION_DRIVER file
-release_env QUEUE_CONNECTION sync
-
-mkdir -p \
-  "$RELEASE/storage/framework/cache/data" \
-  "$RELEASE/storage/framework/sessions" \
-  "$RELEASE/storage/framework/views" \
-  "$RELEASE/storage/logs" \
-  "$RELEASE/storage/app/public" \
-  "$RELEASE/bootstrap/cache"
-find "$RELEASE/storage/logs" -mindepth 1 ! -name '.gitignore' -delete 2>/dev/null || true
-find "$RELEASE/storage/framework/sessions" -mindepth 1 ! -name '.gitignore' -delete 2>/dev/null || true
-find "$RELEASE/storage/framework/views" -mindepth 1 ! -name '.gitignore' -delete 2>/dev/null || true
-find "$RELEASE/storage/framework/cache/data" -mindepth 1 ! -name '.gitignore' -delete 2>/dev/null || true
-
-cat > "$RELEASE/index.php" <<'PHP'
+cat > "$PACKAGE_DIR/index.php" <<'PHP'
 <?php
 
-use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-if (file_exists(__DIR__.'/storage/framework/maintenance.php')) {
-    require __DIR__.'/storage/framework/maintenance.php';
+if (file_exists($maintenance = __DIR__.'/storage/framework/maintenance.php')) {
+    require $maintenance;
 }
 
 require __DIR__.'/vendor/autoload.php';
 
-$app = require_once __DIR__.'/bootstrap/app.php';
-$app->usePublicPath(__DIR__);
-
-$kernel = $app->make(Kernel::class);
-
-$response = tap($kernel->handle(
-    $request = Request::capture()
-))->send();
-
-$kernel->terminate($request, $response);
+(require_once __DIR__.'/bootstrap/app.php')
+    ->handleRequest(Request::capture());
 PHP
 
-cat > "$RELEASE/.htaccess" <<'HTACCESS'
-<IfModule mod_rewrite.c>
-    <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
-    </IfModule>
+cat > "$PACKAGE_DIR/.htaccess" <<'HTACCESS'
+Options -Indexes
 
+<IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Preserve Authorization header for API/auth requests.
-    RewriteCond %{HTTP:Authorization} .
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    # Keep ACME/SSL challenges available.
+    RewriteRule ^\.well-known/ - [L]
 
-    # Serve Laravel public-disk files without requiring `php artisan storage:link`.
+    # Never expose dotfiles or application internals.
+    RewriteRule (^|/)\. - [F,L]
+    RewriteRule ^(?:app|bootstrap|config|database|resources|routes|tests|vendor)(?:/|$) - [F,L,NC]
+
+    # Serve Laravel public storage safely without requiring a symlink.
     RewriteRule ^storage/(.*)$ public-storage.php?path=$1 [L,QSA,NC]
 
-    # Never expose application source/runtime directories directly.
-    RewriteRule ^(?:app|bootstrap|config|database|resources|routes|vendor|packages)(?:/|$) - [F,L,NC]
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    # Protect sensitive root files while keeping them editable in File Manager.
-    RewriteRule ^(?:artisan|composer\.(?:json|lock)|package(?:-lock)?\.json|vite\.config\.(?:js|mjs|ts)|phpunit\.xml|database\.sql|FIRST_LOGIN\.txt|SOURCE_COMMIT\.txt)$ - [F,L,NC]
-
-    # Redirect trailing slash when target is not a real directory.
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
-
-    # Existing static files/assets are served directly; everything else goes Laravel.
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
+    RewriteRule ^ index.php [L,QSA]
 </IfModule>
 
-<FilesMatch "^\.env">
+<FilesMatch "^(?:\.env(?:\..*)?|composer\.(?:json|lock)|package(?:-lock)?\.json|vite\.config\..*|phpunit\.xml|artisan|database\.sql|FIRST_LOGIN\.txt|SOURCE_COMMIT\.txt|UPLOAD_README\.txt)$">
     Require all denied
 </FilesMatch>
 HTACCESS
 
-cat > "$RELEASE/public-storage.php" <<'PHP'
+cat > "$PACKAGE_DIR/public-storage.php" <<'PHP'
 <?php
-$base = realpath(__DIR__ . '/storage/app/public');
-$requested = isset($_GET['path']) ? rawurldecode((string) $_GET['path']) : '';
-$requested = str_replace('\\', '/', $requested);
+
+$base = realpath(__DIR__.'/storage/app/public');
+$requested = isset($_GET['path']) ? (string) $_GET['path'] : '';
 
 if ($base === false || $requested === '' || str_contains($requested, "\0")) {
     http_response_code(404);
     exit;
 }
 
-$target = realpath($base . '/' . ltrim($requested, '/'));
-if ($target === false || !is_file($target) || !str_starts_with($target, $base . DIRECTORY_SEPARATOR)) {
+$file = realpath($base.DIRECTORY_SEPARATOR.ltrim($requested, '/\\'));
+$prefix = rtrim($base, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+
+if ($file === false || !is_file($file) || !str_starts_with($file, $prefix)) {
     http_response_code(404);
     exit;
 }
 
-$mime = function_exists('mime_content_type') ? mime_content_type($target) : 'application/octet-stream';
-header('Content-Type: ' . ($mime ?: 'application/octet-stream'));
-header('Content-Length: ' . filesize($target));
-header('Cache-Control: public, max-age=86400');
-readfile($target);
+$mime = function_exists('mime_content_type') ? mime_content_type($file) : false;
+if (is_string($mime) && $mime !== '') {
+    header('Content-Type: '.$mime);
+}
+header('Content-Length: '.filesize($file));
+header('X-Content-Type-Options: nosniff');
+readfile($file);
 PHP
 
-cat > "$RELEASE/UPLOAD_README.txt" <<'TXT'
-BDNSI SHARED-HOSTING DEPLOYMENT PACKAGE
+mkdir -p \
+    "$PACKAGE_DIR/bootstrap/cache" \
+    "$PACKAGE_DIR/storage/app/public" \
+    "$PACKAGE_DIR/storage/framework/cache/data" \
+    "$PACKAGE_DIR/storage/framework/sessions" \
+    "$PACKAGE_DIR/storage/framework/testing" \
+    "$PACKAGE_DIR/storage/framework/views" \
+    "$PACKAGE_DIR/storage/logs"
 
-1. Extract the CONTENTS of this package directly into public_html.
-2. Import BDNSI_database.sql (or database.sql inside this package) into a fresh MySQL database.
-3. Edit only the deployment values in .env: APP_URL, DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD.
-4. Open the site. No Composer, npm, SSH, terminal command, storage:link or document-root change is required.
-5. Use FIRST_LOGIN.txt for the fresh admin login, then change that password immediately.
+cat > "$PACKAGE_DIR/.env" <<ENV
+APP_NAME=BDNSI
+APP_ENV=production
+APP_KEY=$APP_KEY
+APP_DEBUG=false
+APP_URL=https://YOUR-DOMAIN.COM
 
-This package was generated from the exact Git commit recorded in SOURCE_COMMIT.txt.
-TXT
+LOG_CHANNEL=stack
+LOG_LEVEL=warning
 
-# Strip development-only documentation from the hosting package.
-find "$RELEASE" -type f \( -name '*.md' -o -name '*.markdown' \) -delete
-rm -rf "$RELEASE/.github" "$RELEASE/.agents" "$RELEASE/.ai" "$RELEASE/.cursor" "$RELEASE/.vscode" "$RELEASE/tests" "$RELEASE/node_modules" "$RELEASE/screenshots" "$RELEASE/brain" "$RELEASE/extract_test" "$RELEASE/PROJECT_DOCUMENTATION"
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=CHANGE_ME
+DB_USERNAME=CHANGE_ME
+DB_PASSWORD=CHANGE_ME
 
-# Contract checks: the archive must be directly extractable into public_html.
-test -f "$RELEASE/index.php"
-test -f "$RELEASE/.htaccess"
-test -f "$RELEASE/.env"
-test -f "$RELEASE/vendor/autoload.php"
-test -d "$RELEASE/build/assets"
-test -f "$RELEASE/database.sql"
-test -f "$RELEASE/FIRST_LOGIN.txt"
-test -f "$RELEASE/public-storage.php"
-test ! -d "$RELEASE/public"
-grep -q '^DB_DATABASE=CHANGE_ME$' "$RELEASE/.env"
-grep -q '^DB_USERNAME=CHANGE_ME$' "$RELEASE/.env"
-grep -q '^DB_PASSWORD=CHANGE_ME$' "$RELEASE/.env"
-grep -q 'usePublicPath(__DIR__)' "$RELEASE/index.php"
+SESSION_DRIVER=file
+CACHE_STORE=file
+CACHE_DRIVER=file
+QUEUE_CONNECTION=sync
+ENV
 
-cd "$OUT"
-zip -qry -y BDNSI_PUBLIC_HTML_READY.zip public_html/.
-cp "$RELEASE/database.sql" BDNSI_database.sql
-sha256sum BDNSI_PUBLIC_HTML_READY.zip > BDNSI_PUBLIC_HTML_READY.sha256
-sha256sum BDNSI_database.sql > BDNSI_database.sha256
-unzip -tq BDNSI_PUBLIC_HTML_READY.zip
+cat > "$PACKAGE_DIR/FIRST_LOGIN.txt" <<EOF
+BDNSI fresh-install administrator
+Email: $ADMIN_EMAIL
+Password: $ADMIN_PASSWORD
 
-# Verify the ZIP is flat (index.php at archive root), not wrapped in another directory.
-unzip -Z1 BDNSI_PUBLIC_HTML_READY.zip | grep -qx 'index.php'
-unzip -Z1 BDNSI_PUBLIC_HTML_READY.zip | grep -qx '.htaccess'
-unzip -Z1 BDNSI_PUBLIC_HTML_READY.zip | grep -qx 'vendor/autoload.php'
-unzip -Z1 BDNSI_PUBLIC_HTML_READY.zip | grep -qx 'database.sql'
+Change this password immediately after first login.
+Delete this file from hosting after recording the credentials securely.
+EOF
 
-ls -lh BDNSI_PUBLIC_HTML_READY.zip BDNSI_database.sql BDNSI_PUBLIC_HTML_READY.sha256 BDNSI_database.sha256
+cat > "$PACKAGE_DIR/SOURCE_COMMIT.txt" <<EOF
+$SOURCE_COMMIT
+EOF
+
+cat > "$PACKAGE_DIR/UPLOAD_README.txt" <<'EOF'
+BDNSI — SHARED HOSTING / HOSTINGER READY PACKAGE
+
+This archive is intentionally self-contained. Do NOT run Composer or npm on hosting.
+
+Install:
+1. Upload/extract ALL files from this archive directly into public_html.
+2. Create/select a MySQL database and import database.sql.
+3. Edit only the required deployment values in .env:
+   APP_URL, DB_HOST (if your host differs), DB_DATABASE, DB_USERNAME, DB_PASSWORD.
+4. Ensure storage/ and bootstrap/cache/ are writable by PHP.
+5. Open the site and sign in using FIRST_LOGIN.txt.
+6. Change the administrator password immediately, then delete FIRST_LOGIN.txt and database.sql from hosting.
+
+The package already contains production Composer dependencies and compiled frontend assets.
+EOF
+
+# Strict package contract.
+required_paths=(
+    .env
+    .htaccess
+    index.php
+    public-storage.php
+    database.sql
+    FIRST_LOGIN.txt
+    UPLOAD_README.txt
+    SOURCE_COMMIT.txt
+    vendor/autoload.php
+    build/manifest.json
+)
+for path in "${required_paths[@]}"; do
+    [[ -e "$PACKAGE_DIR/$path" ]] || { echo "Missing required package path: $path" >&2; exit 1; }
+done
+
+for forbidden in .git .github node_modules; do
+    [[ ! -e "$PACKAGE_DIR/$forbidden" ]] || { echo "Forbidden package path present: $forbidden" >&2; exit 1; }
+done
+
+# Ensure the package .env contains placeholders, never builder DB credentials.
+grep -q '^DB_DATABASE=CHANGE_ME$' "$PACKAGE_DIR/.env"
+grep -q '^DB_USERNAME=CHANGE_ME$' "$PACKAGE_DIR/.env"
+grep -q '^DB_PASSWORD=CHANGE_ME$' "$PACKAGE_DIR/.env"
+! grep -q "$MYSQL_ROOT_PASSWORD" "$PACKAGE_DIR/.env"
+
+rm -f "$ZIP_PATH"
+(
+    cd "$PACKAGE_DIR"
+    zip -qr "$ZIP_PATH" .
+)
+unzip -tq "$ZIP_PATH" >/dev/null
+
+printf 'Package ready: %s\n' "$ZIP_PATH"
+printf 'Source commit: %s\n' "$SOURCE_COMMIT"
+printf 'Package SHA-256: '
+sha256sum "$ZIP_PATH" | awk '{print $1}'

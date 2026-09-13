@@ -1,0 +1,99 @@
+name: Build Upload-Ready Package
+
+on:
+  push:
+    branches:
+      - main
+      - refactor/repo-cleanup-release-system
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bdnsi-package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Golden Shared-Hosting Package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, gd, bcmath, zip, curl, fileinfo
+          coverage: none
+          tools: composer:v2
+
+      - name: Build upload-ready package
+        env:
+          COMPOSER_ALLOW_SUPERUSER: '1'
+        run: bash .github/scripts/build-shared-hosting-release.sh "$GITHUB_WORKSPACE/dist"
+
+      - name: Verify package contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            .env
+            .htaccess
+            index.php
+            public-storage.php
+            database.sql
+            FIRST_LOGIN.txt
+            UPLOAD_README.txt
+            SOURCE_COMMIT.txt
+            vendor/autoload.php
+            build/manifest.json
+          )
+          for path in "${required[@]}"; do
+            test -e "dist/package/$path"
+          done
+          test ! -e dist/package/.git
+          test ! -e dist/package/.github
+          test ! -e dist/package/node_modules
+          grep -q '^APP_ENV=production$' dist/package/.env
+          grep -q '^APP_DEBUG=false$' dist/package/.env
+          grep -q '^DB_DATABASE=CHANGE_ME$' dist/package/.env
+          grep -q '^DB_USERNAME=CHANGE_ME$' dist/package/.env
+          grep -q '^DB_PASSWORD=CHANGE_ME$' dist/package/.env
+          unzip -tq dist/BDNSI_PUBLIC_HTML_READY.zip
+
+      - name: Record package checksum
+        run: sha256sum dist/BDNSI_PUBLIC_HTML_READY.zip | tee dist/BDNSI_PUBLIC_HTML_READY.zip.sha256
+
+      - name: Upload direct deployable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BDNSI_PUBLIC_HTML_READY
+          path: dist/package/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 6
+
+      - name: Upload canonical ZIP and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: BDNSI_CANONICAL_ZIP
+          path: |
+            dist/BDNSI_PUBLIC_HTML_READY.zip
+            dist/BDNSI_PUBLIC_HTML_READY.zip.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
