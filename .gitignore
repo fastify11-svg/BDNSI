@@ -1,91 +1,62 @@
-# PHP / Composer
-/vendor/
-composer.phar
-.phpunit.result.cache
+/vendor
+/node_modules
+/.phpunit.cache
+/.fleet
+/.idea
+/.vscode
 
-# Node / frontend local output
-/node_modules/
-/public/hot
-/public/storage
-/test-results/
-/playwright-report/
-/coverage/
-npm-debug.log*
-yarn-error.log*
-
-# Laravel runtime
-/storage/*.key
-/storage/framework/sessions/
-/storage/framework/views/
-/storage/logs/
-/storage/app/backups/
-/bootstrap/cache/*.php
-
-# Environment / secrets
+# Environment and credentials
 .env
 .env.*
 !.env.example
-.deploy_key
-.deploy_key.pub
-*.pem
-*.key
+auth.json
 
-# IDE / OS
-/.idea/
-.DS_Store
-Thumbs.db
+# Runtime state
+/storage/*.key
+/storage/logs/*
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+!/storage/logs/.gitignore
+!/storage/framework/cache/data/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/views/.gitignore
+/public/hot
+/public/storage
 
-# Databases, backups, archives
-*.sql
-*.sql.gz
+# Persisted live user content must never enter Git
+/public/upload/
+/upload/
+
+# Local database state
+database/database.sqlite
 *.sqlite
-*.sqlite3
-*.dump
-*.bak
-backup.sql
-database_backup*.sql
-*.zip
-*.tar
-*.tar.gz
-mysql_test_data/
-archive_backup_2026/
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
 
-# Local scratch / diagnostic artifacts
-/scratch/
+# Logs, reports, browser artifacts, scratch work
 *.log
-*_debug.html
-login-failure.png
-job_log_latest.txt
-routes.txt
-file_list*.txt
-validFiles.json
-review-input.json
-review-output.json
+npm-debug.log
+yarn-error.log
+scratch_*
+test-results/
+playwright-report/
+/screenshots/
+/extract_test/
+/package_out/
+/.release-build/
 
-# Legacy/local deployment helpers and generated packages
-.run_ssh.mjs
-build_tar.mjs
-full_auto_deploy.mjs
-fix_live_env.js
-zip_it.mjs
-zip_vendor.js
-zip.php
-add_scopes.ps1
-cred-query.txt
-deploy*.zip
-deploy*.tar.gz
-vendor.zip
-vendor.tar.gz
-storage_public.zip
-storage_public.tar.gz
-storage_public_py.zip
-public_build.zip
-update.zip
+# Generated deployment artifacts
+/BDNSI_*.zip
+/BDNSI_*.sql
+/BDNSI_*.sha256
 
-# Historical Antigravity workspace remains tracked where already committed,
-# but do not add new local runtime files under it.
-.agents/logs/
-.agents/reports/
+# AI/editor state is not application source
+/.agents/
+/.ai/
+/.cursor/
+/brain/
 
-# IMPORTANT: public/build is intentionally tracked because the current
-# direct-SSH production deployment does not build frontend assets remotely.
+# public/build is intentionally tracked on the development branch until the
+# release pipeline and frontend parity checks are fully stabilized.
