@@ -14,10 +14,32 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Prepare fresh MySQL setup files
+      - name: Show source sizes
+        shell: bash
+        run: |
+          du -sh app bootstrap config database public resources routes storage 2>/dev/null || true
+
+      - name: Build compact deployment package
         shell: bash
         run: |
           set -euo pipefail
+          ROOT="$GITHUB_WORKSPACE/dist/BDNSI"
+          mkdir -p "$ROOT"
+          for d in app bootstrap config database resources routes; do
+            if [ -d "$d" ]; then cp -a "$d" "$ROOT/"; fi
+          done
+          if [ -d public ]; then
+            rsync -a public/ "$ROOT/public/" \
+              --exclude='storage/' \
+              --exclude='uploads/' \
+              --exclude='upload/' \
+              --exclude='*.log'
+          fi
+          mkdir -p "$ROOT/storage/app/public" "$ROOT/storage/logs" \
+            "$ROOT/storage/framework/cache/data" "$ROOT/storage/framework/sessions" "$ROOT/storage/framework/views"
+          for f in artisan composer.json composer.lock package.json package-lock.json yarn.lock vite.config.js vite.config.ts webpack.mix.js phpunit.xml; do
+            if [ -f "$f" ]; then cp -a "$f" "$ROOT/"; fi
+          done
           printf '%s\n' \
             'APP_NAME=BDNSI' \
             'APP_ENV=production' \
@@ -37,45 +59,32 @@ jobs:
             '' \
             'CACHE_STORE=file' \
             'SESSION_DRIVER=file' \
-            'QUEUE_CONNECTION=database' > .env.install.example
+            'QUEUE_CONNECTION=database' > "$ROOT/.env.install.example"
           printf '%s\n' \
-            'BDNSI FRESH SETUP PACKAGE' \
-            'Source commit: edccb636b08d92fc7194d8f9bfdca5a303f3fa63' \
+            'BDNSI COMPACT DEPLOYMENT PACKAGE' \
+            'Application source: main commit edccb636b08d92fc7194d8f9bfdca5a303f3fa63' \
             '' \
-            '1. Copy .env.install.example to .env.' \
-            '2. Insert your MySQL database name, username and password in .env.' \
-            '3. Run: composer install --no-dev --optimize-autoloader' \
-            '4. Run: php artisan key:generate --force' \
-            '5. Run: php artisan migrate --force' \
-            '6. Run: php artisan storage:link' \
-            '7. Run: php artisan optimize' \
-            '8. Configure the web root to the /public directory.' \
-            '9. Configure queue worker and scheduler for the hosting environment.' \
+            'This package intentionally excludes Git metadata, CI/agent files, tests, vendor, node_modules, logs and user-uploaded runtime files.' \
             '' \
-            'Security note: No real database password is stored in this archive.' > FRESH_SETUP_README.txt
+            'SETUP:' \
+            '1. Copy .env.install.example to .env and enter the MySQL credentials.' \
+            '2. composer install --no-dev --optimize-autoloader' \
+            '3. php artisan key:generate --force' \
+            '4. php artisan migrate --force' \
+            '5. php artisan storage:link' \
+            '6. php artisan optimize' \
+            '7. Point the web root to /public.' \
+            '8. Configure queue worker and scheduler for the host.' \
+            '' \
+            'No real database password is embedded in this archive.' > "$ROOT/FRESH_SETUP_README.txt"
+          cd "$GITHUB_WORKSPACE/dist"
+          zip -rq9 BDNSI_COMPACT_DEPLOYMENT.zip BDNSI
+          ls -lh BDNSI_COMPACT_DEPLOYMENT.zip
 
-      - name: Build deployment archive
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          zip -rq9 dist/BDNSI_FRESH_SETUP.zip . \
-            -x '.git/*' \
-            -x '.github/workflows/package-export.yml' \
-            -x 'dist/*' \
-            -x 'vendor/*' \
-            -x 'node_modules/*' \
-            -x '.env' \
-            -x 'storage/logs/*' \
-            -x 'storage/framework/cache/*' \
-            -x 'storage/framework/sessions/*' \
-            -x 'storage/framework/views/*'
-          ls -lh dist/BDNSI_FRESH_SETUP.zip
-
-      - name: Upload package
+      - name: Upload compact package
         uses: actions/upload-artifact@v4
         with:
-          name: BDNSI_FRESH_SETUP
-          path: dist/BDNSI_FRESH_SETUP.zip
+          name: BDNSI_COMPACT_DEPLOYMENT
+          path: dist/BDNSI_COMPACT_DEPLOYMENT.zip
           retention-days: 3
           compression-level: 0
