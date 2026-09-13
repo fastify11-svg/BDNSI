@@ -14,17 +14,17 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     env:
-      HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+      HOSTINGER_TOKEN: ${{ secrets.HOSTINGER_TOKEN }}
     steps:
-      - name: Check Hostinger API token presence
+      - name: Check alternate Hostinger token presence
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${HOSTINGER_API_TOKEN:-}" ]; then
-            echo 'HOSTINGER_API_TOKEN_NOT_CONFIGURED'
+          if [ -z "${HOSTINGER_TOKEN:-}" ]; then
+            echo 'HOSTINGER_TOKEN_NOT_CONFIGURED'
             exit 2
           fi
-          echo 'HOSTINGER_API_TOKEN_CONFIGURED'
+          echo 'HOSTINGER_TOKEN_CONFIGURED'
 
       - name: Verify Hostinger API access read-only
         shell: bash
@@ -32,7 +32,7 @@ jobs:
           set -euo pipefail
           code=$(curl -sS -o /tmp/hostinger.json -w '%{http_code}' \
             --max-time 20 \
-            -H "Authorization: Bearer $HOSTINGER_API_TOKEN" \
+            -H "Authorization: Bearer $HOSTINGER_TOKEN" \
             -H 'Accept: application/json' \
             'https://developers.hostinger.com/api/hosting/v1/websites?domain=nenobet.live&per_page=5')
           echo "Hostinger API HTTP status: $code"
