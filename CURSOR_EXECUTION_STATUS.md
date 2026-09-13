@@ -4,7 +4,7 @@ Overall: `DEVELOPMENT_COMPLETE | DEPLOYMENT_POSTPONED_BY_OWNER`
 Branch: `cursor/final-development-dcdd`
 
 ## Current verified tip (authoritative)
-- Exact SHA: `ad5f8080183f2421601e46e54707cf43e40a5eff`
+- Exact SHA: `efdc51789f8581914254af7884e8bde151f2c02e`
 - Base main SHA: `93792b0ae8728b3d0f5f09f85691bb5ffd536530`
 - Laravel **13.31.0** / PHP **8.3.33** / MySQL **8.0**
 - PHPUnit **150 passed** / **498 assertions**

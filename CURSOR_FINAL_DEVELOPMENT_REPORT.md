@@ -14,7 +14,7 @@ Deployment, production SSH, live migrations, production `.env` changes, and live
 | Field | Value |
 |---|---|
 | FINAL_BRANCH | `cursor/final-development-dcdd` |
-| FINAL_SHA | `ad5f8080183f2421601e46e54707cf43e40a5eff` |
+| FINAL_SHA | `efdc51789f8581914254af7884e8bde151f2c02e` (docs tip; application evidence `ad5f8080183f2421601e46e54707cf43e40a5eff`) |
 | BASE_MAIN_SHA | `93792b0ae8728b3d0f5f09f85691bb5ffd536530` |
 | PHP_VERSION | 8.3.33 |
 | LARAVEL_VERSION | 13.31.0 |
