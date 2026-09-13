@@ -24,6 +24,9 @@ class Session extends Model
 
     protected $casts = [
         'duration' => 'int',
+        'exam_date' => 'date:Y-m-d',
+        'result_published_date' => 'date:Y-m-d',
+        'status' => 'int',
     ];
 
     protected static function booted()
@@ -50,7 +53,7 @@ class Session extends Model
             return CourseType::Diploma;
         }
 
-        return CourseType::Regular; // fallback
+        return CourseType::Regular;
     }
 
     public function getCourseDurationStringAttribute()
@@ -60,33 +63,15 @@ class Session extends Model
             return '';
         }
 
-        if ($duration == 1) {
-            return 'One Month';
-        }
-        if ($duration == 2) {
-            return 'Two Months';
-        }
-        if ($duration == 3) {
-            return 'Three Months';
-        }
-        if ($duration == 6) {
-            return 'Six Months';
-        }
-        if ($duration == 12) {
-            return 'One Year';
-        }
-        if ($duration == 18) {
-            return 'One Year Six Months';
-        }
-        if ($duration == 24) {
-            return 'Two Years';
-        }
-        if ($duration == 36) {
-            return 'Three Years';
-        }
-        if ($duration == 48) {
-            return 'Four Years';
-        }
+        if ($duration == 1) return 'One Month';
+        if ($duration == 2) return 'Two Months';
+        if ($duration == 3) return 'Three Months';
+        if ($duration == 6) return 'Six Months';
+        if ($duration == 12) return 'One Year';
+        if ($duration == 18) return 'One Year Six Months';
+        if ($duration == 24) return 'Two Years';
+        if ($duration == 36) return 'Three Years';
+        if ($duration == 48) return 'Four Years';
 
         return $duration.' Months';
     }
