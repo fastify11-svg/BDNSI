@@ -93,7 +93,7 @@ class CenterController extends Controller
         $statusVal = (int) $validated['status'];
 
         DB::transaction(function () use ($center, $statusVal) {
-            if ($statusVal === CenterStatus::Approved->value) {
+            if ($statusVal === CenterStatus::Approved) {
                 $rawCode = $center->getRawOriginal('code');
                 if (empty($rawCode)) {
                     $maxCode = DB::table('centers')
@@ -252,11 +252,6 @@ class CenterController extends Controller
         }
     }
 
-    /**
-     * Ensure every approved center has a usable portal account.
-     * CRM leads may not contain an email address, so approval must not fail on
-     * the users.email NOT NULL/UNIQUE constraint.
-     */
     private function ensurePortalUser(Center $center): User
     {
         $existing = User::where('center_id', $center->id)->first();
