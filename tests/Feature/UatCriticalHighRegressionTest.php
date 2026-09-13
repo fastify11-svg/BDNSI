@@ -69,13 +69,13 @@ class UatCriticalHighRegressionTest extends TestCase
         $request = Request::create(
             '/admin/center/'.$center->id.'/status',
             'PATCH',
-            ['status' => CenterStatus::Approved->value]
+            ['status' => CenterStatus::Approved]
         );
 
         app(CenterController::class)->updateStatus($request, $center);
 
         $center->refresh();
-        $this->assertSame(CenterStatus::Approved, $center->status);
+        $this->assertSame(CenterStatus::Approved, $center->status->value);
 
         $portalUser = User::where('center_id', $center->id)->first();
         $this->assertNotNull($portalUser);
