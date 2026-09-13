@@ -58,9 +58,62 @@ jobs:
           chmod 700 "$HOME/.ssh"
 
           if [ -n "${SSH_PRIVATE_KEY:-}" ]; then
-            printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/bdnsi_deploy"
-            chmod 600 "$HOME/.ssh/bdnsi_deploy"
-            echo "AUTH_MODE=key" >> "$GITHUB_ENV"
+            python3 - <<'PY'
+          import os, base64, pathlib
+
+          raw = os.environ.get("SSH_PRIVATE_KEY", "")
+          candidates = []
+
+          def add_candidate(value):
+              value = value.strip().replace("\r\n", "\n")
+              if value and value not in candidates:
+                  candidates.append(value)
+
+          add_candidate(raw)
+          add_candidate(raw.replace("\\r", "").replace("\\n", "\n"))
+
+          try:
+              compact = "".join(raw.split())
+              decoded = base64.b64decode(compact, validate=True).decode("utf-8")
+              add_candidate(decoded)
+              add_candidate(decoded.replace("\\r", "").replace("\\n", "\n"))
+          except Exception:
+              pass
+
+          root = pathlib.Path.home() / ".ssh"
+          for index, candidate in enumerate(candidates):
+              path = root / f"bdnsi_candidate_{index}"
+              path.write_text(candidate + "\n")
+              path.chmod(0o600)
+          print(f"Prepared {len(candidates)} private-key format candidate(s) without exposing secret content.")
+          PY
+
+            VALID_KEY=""
+            for candidate in "$HOME"/.ssh/bdnsi_candidate_*; do
+              [ -f "$candidate" ] || continue
+              if ssh-keygen -y -P '' -f "$candidate" >/dev/null 2>&1; then
+                VALID_KEY="$candidate"
+                break
+              fi
+            done
+
+            if [ -n "$VALID_KEY" ]; then
+              mv "$VALID_KEY" "$HOME/.ssh/bdnsi_deploy"
+              rm -f "$HOME"/.ssh/bdnsi_candidate_*
+              chmod 600 "$HOME/.ssh/bdnsi_deploy"
+              echo "AUTH_MODE=key" >> "$GITHUB_ENV"
+              echo "SSH private key normalized and validated."
+            elif [ -n "${SSH_PASSWORD:-}" ]; then
+              rm -f "$HOME"/.ssh/bdnsi_candidate_*
+              sudo apt-get update -qq
+              sudo apt-get install -y -qq sshpass
+              echo "AUTH_MODE=password" >> "$GITHUB_ENV"
+              echo "Private-key secret was unusable; securely falling back to password secret."
+            else
+              rm -f "$HOME"/.ssh/bdnsi_candidate_*
+              echo "::error::An SSH private-key secret exists but is not a valid unencrypted PEM/OpenSSH key after raw, escaped-newline, and base64 normalization. No password secret is available for fallback."
+              exit 1
+            fi
           elif [ -n "${SSH_PASSWORD:-}" ]; then
             sudo apt-get update -qq
             sudo apt-get install -y -qq sshpass
