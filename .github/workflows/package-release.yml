@@ -40,12 +40,12 @@ jobs:
           coverage: none
           tools: composer:v2
 
-      - name: Build upload-ready package
+      - name: Build clean upload-ready package
         env:
           COMPOSER_ALLOW_SUPERUSER: '1'
-        run: bash .github/scripts/build-shared-hosting-release.sh "$GITHUB_WORKSPACE/dist"
+        run: bash .github/scripts/build-clean-shared-hosting-release.sh "$GITHUB_WORKSPACE/dist"
 
-      - name: Verify package contract
+      - name: Verify clean package contract
         shell: bash
         run: |
           set -euo pipefail
@@ -58,20 +58,22 @@ jobs:
             FIRST_LOGIN.txt
             UPLOAD_README.txt
             SOURCE_COMMIT.txt
-            vendor/autoload.php
+            _app/vendor/autoload.php
+            _app/bootstrap/app.php
             build/manifest.json
           )
           for path in "${required[@]}"; do
             test -e "dist/package/$path"
           done
-          test ! -e dist/package/.git
-          test ! -e dist/package/.github
-          test ! -e dist/package/node_modules
+          for forbidden in .git .github node_modules tests docs PROJECT_DOCUMENTATION extract_test screenshots brain scripts storage_backup app bootstrap config database resources routes; do
+            test ! -e "dist/package/$forbidden"
+          done
           grep -q '^APP_ENV=production$' dist/package/.env
           grep -q '^APP_DEBUG=false$' dist/package/.env
           grep -q '^DB_DATABASE=CHANGE_ME$' dist/package/.env
           grep -q '^DB_USERNAME=CHANGE_ME$' dist/package/.env
           grep -q '^DB_PASSWORD=CHANGE_ME$' dist/package/.env
+          test -z "$(find dist/package -type f \( -iname '*.md' -o -iname '*.markdown' \) -print -quit)"
           unzip -tq dist/BDNSI_PUBLIC_HTML_READY.zip
 
       - name: Record package checksum
