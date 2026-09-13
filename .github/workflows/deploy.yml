@@ -1,0 +1,158 @@
+name: Production Auto Deploy
+
+on:
+  workflow_run:
+    workflows: ["Autonomous CI Pipeline"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bdnsi-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy exact green main SHA to Hostinger
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    env:
+      SSH_HOST: 145.79.212.19
+      SSH_PORT: '65002'
+      SSH_USER: u881397359
+      REMOTE_PATH: /home/u881397359/domains/nenobet.live/public_html
+      REMOTE_BACKUP_DIR: /home/u881397359/bdnsi_release_backups
+      HEALTH_URL: https://nenobet.live/health
+      REPO_URL: https://github.com/fastify11-svg/BDNSI.git
+      RELEASE_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+      SSH_PRIVATE_KEY: ${{ secrets.BDNSI_SSH_PRIVATE_KEY || secrets.HOSTINGER_SSH_PRIVATE_KEY || secrets.SSH_PRIVATE_KEY }}
+      SSH_PASSWORD: ${{ secrets.BDNSI_SSH_PASSWORD || secrets.HOSTINGER_SSH_PASSWORD || secrets.SSH_PASSWORD || secrets.HOSTINGER_PASSWORD }}
+      SSH_KNOWN_HOSTS: ${{ secrets.BDNSI_SSH_KNOWN_HOSTS }}
+
+    steps:
+      - name: Checkout exact release SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          fetch-depth: 0
+
+      - name: Verify exact main SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test "$(git rev-parse origin/main)" = "$RELEASE_SHA"
+          test -z "$(git status --porcelain)"
+
+      - name: Configure SSH authentication
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+
+          if [ -n "${SSH_PRIVATE_KEY:-}" ]; then
+            printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/bdnsi_deploy"
+            chmod 600 "$HOME/.ssh/bdnsi_deploy"
+            echo "AUTH_MODE=key" >> "$GITHUB_ENV"
+          elif [ -n "${SSH_PASSWORD:-}" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq sshpass
+            echo "AUTH_MODE=password" >> "$GITHUB_ENV"
+          else
+            echo "::error::No SSH credential secret found. Supported secrets: BDNSI_SSH_PRIVATE_KEY / HOSTINGER_SSH_PRIVATE_KEY / SSH_PRIVATE_KEY or BDNSI_SSH_PASSWORD / HOSTINGER_SSH_PASSWORD / SSH_PASSWORD / HOSTINGER_PASSWORD."
+            exit 1
+          fi
+
+          if [ -n "${SSH_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          else
+            ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" > "$HOME/.ssh/known_hosts"
+          fi
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Preflight server and application
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$AUTH_MODE" = "key" ]; then
+            SSH=(ssh -i "$HOME/.ssh/bdnsi_deploy" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+          else
+            export SSHPASS="$SSH_PASSWORD"
+            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+          fi
+
+          "${SSH[@]}" "$SSH_USER@$SSH_HOST" "set -e; command -v git >/dev/null; command -v php >/dev/null; command -v composer >/dev/null; test -d '$REMOTE_PATH'; test -f '$REMOTE_PATH/.env'; php -r 'exit(version_compare(PHP_VERSION, \"8.3.0\", \">=\") ? 0 : 1);'; whoami; hostname"
+
+      - name: Deploy exact SHA safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$AUTH_MODE" = "key" ]; then
+            SSH=(ssh -i "$HOME/.ssh/bdnsi_deploy" -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+          else
+            export SSHPASS="$SSH_PASSWORD"
+            SSH=(sshpass -e ssh -o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -p "$SSH_PORT")
+          fi
+
+          "${SSH[@]}" "$SSH_USER@$SSH_HOST" "bash -s" <<EOF
+          set -euo pipefail
+          REMOTE_PATH='$REMOTE_PATH'
+          REMOTE_BACKUP_DIR='$REMOTE_BACKUP_DIR'
+          RELEASE_SHA='$RELEASE_SHA'
+          REPO_URL='$REPO_URL'
+
+          cd "\$REMOTE_PATH"
+          test -f .env
+
+          mkdir -p "\$REMOTE_BACKUP_DIR"
+          chmod 700 "\$REMOTE_BACKUP_DIR"
+          cp .env "\$REMOTE_BACKUP_DIR/env_\$(date +%Y%m%d_%H%M%S).backup"
+          chmod 600 "\$REMOTE_BACKUP_DIR"/env_*.backup
+
+          if [ ! -d .git ]; then
+            git init
+          fi
+          if git remote get-url origin >/dev/null 2>&1; then
+            git remote set-url origin "\$REPO_URL"
+          else
+            git remote add origin "\$REPO_URL"
+          fi
+
+          git fetch origin main
+          test "\$(git rev-parse origin/main)" = "\$RELEASE_SHA"
+          git reset --hard "\$RELEASE_SHA"
+          test -f .env
+
+          composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+          php artisan package:discover --ansi
+          php artisan migrate --force
+          php artisan storage:link >/dev/null 2>&1 || true
+          php artisan optimize:clear
+          php artisan config:cache
+          php artisan view:cache
+          php artisan queue:restart >/dev/null 2>&1 || true
+
+          test "\$(git rev-parse HEAD)" = "\$RELEASE_SHA"
+          EOF
+
+      - name: Verify live health
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            code="$(curl -L -sS -o /tmp/health.txt -w '%{http_code}' --max-time 20 "$HEALTH_URL" || true)"
+            echo "Health attempt $attempt: HTTP $code"
+            if [ "$code" = "200" ]; then
+              exit 0
+            fi
+            sleep 5
+          done
+          cat /tmp/health.txt || true
+          exit 1
