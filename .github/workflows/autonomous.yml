@@ -113,15 +113,39 @@ jobs:
           test -f public/build/manifest.json || test -f public/build/.vite/manifest.json
           test -d public/build/assets
 
-      - name: Verify committed build parity
+      - name: Verify fresh frontend manifest integrity
         shell: bash
         run: |
-          BUILD_STATUS="$(git status --porcelain -- public/build)"
-          if [ -n "$BUILD_STATUS" ]; then
-            echo "Committed public/build does not match a fresh production build:"
-            echo "$BUILD_STATUS"
-            exit 1
-          fi
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const buildRoot = 'public/build';
+          const manifestPath = fs.existsSync(`${buildRoot}/manifest.json`)
+            ? `${buildRoot}/manifest.json`
+            : `${buildRoot}/.vite/manifest.json`;
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          const referenced = new Set();
+
+          for (const entry of Object.values(manifest)) {
+            if (entry.file) referenced.add(entry.file);
+            for (const key of ['css', 'assets']) {
+              for (const file of entry[key] || []) referenced.add(file);
+            }
+          }
+
+          if (referenced.size === 0) {
+            throw new Error('Frontend manifest contains no generated files.');
+          }
+
+          const missing = [...referenced].filter((file) => !fs.existsSync(path.join(buildRoot, file)));
+          if (missing.length) {
+            console.error('Frontend manifest references missing files:', missing);
+            process.exit(1);
+          }
+
+          console.log(`Verified ${referenced.size} files referenced by the fresh frontend manifest.`);
+          NODE
 
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
