@@ -81,3 +81,5 @@ EOF
           path: dist/BDNSI_FRESH_SETUP.zip
           retention-days: 3
           compression-level: 0
+
+# trigger: 2026-09-13
